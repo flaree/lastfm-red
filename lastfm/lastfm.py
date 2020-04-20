@@ -13,7 +13,8 @@ import arrow
 import discord
 from bs4 import BeautifulSoup
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import pagify
+import tabulate
+from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from requests_futures.sessions import FuturesSession  # from wyns cog
 
@@ -890,18 +891,19 @@ class LastFm(commands.Cog):
         content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
 
         crowns = await self.config.guild(ctx.guild).crowns()
-        crown_holder = crowns.get(artistname, None)
+        crown_holder = crowns.get(formatted_name, None)
 
         if crown_holder is None or crown_holder["user"] != ctx.author.id:
-            crownstate = ""
+            crownstate = None
         else:
-            crownstate = ":crown: "
-
-        content.add_field(
-            name="Scrobbles | Albums | Tracks",
-            value=f"{crownstate}**{metadata[0]}** | **{metadata[1]}** | **{metadata[2]}**",
-            inline=False,
-        )
+            crownstate = "👑"
+        if crownstate is not None:
+            stats = [[crownstate, str(metadata[0]), str(metadata[1]), str(metadata[2])]]
+            headers = ["-", "Scrobbles", "Albums", "Tracks"]
+        else:
+            stats = [[str(metadata[0]), str(metadata[1]), str(metadata[2])]]
+            headers = ["Scrobbles", "Albums", "Tracks"]
+        content.description = box(tabulate.tabulate(stats, headers=headers), lang="prolog")
 
         content.add_field(
             name="Top albums",
