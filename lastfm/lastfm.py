@@ -703,27 +703,48 @@ class LastFm(commands.Cog):
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
-            content.title = f"**{escape_md(artist)}** — ***{escape_md(track)} ***"
-            content.set_thumbnail(url=image_url)
+            title = f"**{escape_md(artist)}** — ***{escape_md(track)} ***"
 
             # tags and playcount
             if "@attr" in tracks[0]:
                 if "nowplaying" in tracks[0]["@attr"]:
-                    results = lyrics_musixmatch(track)
-                    for page in pagify(results):
-                        content.description = page
-                        await ctx.send(embed=content)
+                    results = await self.lyrics_musixmatch(track)
+                    embeds = []
+                    for i, page in enumerate(pagify(results, page_length=1000), 1):
+                        content = discord.Embed(
+                            color=await self.bot.get_embed_color(ctx.channel),
+                            description=page,
+                            title=title,
+                        )
+                        content.set_thumbnail(url=image_url)
+                        content.set_footer(text=f"Page {i}")
+
+                        embeds.append(content)
+                    if len(embeds) > 1:
+                        await menu(ctx, embeds, DEFAULT_CONTROLS)
+                    else:
+                        await ctx.send(embed=embeds[0])
             else:
                 await ctx.send("You're not currently playing a song.")
         else:
-            content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
-            content.title = f"***{escape_md(track)} ***"
 
-            results = lyrics_musixmatch(track)
-            for page in pagify(results):
-                content.description = page
-                await ctx.send(embed=content)
+            results, songurl = await self.lyrics_musixmatch(track, returnsong=True)
+            song = songurl.split("/")
+            songtitle = song[2] + " - " + " ".join(song[3:])
+            embeds = []
+            for i, page in enumerate(pagify(results, page_length=1000), 1):
+                content = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title=f"***{escape_md(songtitle)} ***",
+                    description=page,
+                )
+                content.set_footer(text=f"Page {i}")
+                embeds.append(content)
+            if len(embeds) > 1:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            else:
+                await ctx.send(embed=embeds[0])
 
     async def api_request(self, ctx, params):
         """Get json data from the lastfm api"""
@@ -962,33 +983,32 @@ class LastFm(commands.Cog):
 
         return pages
 
-
-def lyrics_musixmatch(artistsong):
-    artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
-    artistsong = re.sub(r"\s+", " ", artistsong).strip()
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Arch Linux; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0"
-    }
-    try:
-        session = FuturesSession()
-        searchresult = session.get(
+    async def lyrics_musixmatch(self, artistsong, *, returnsong=False):
+        artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
+        artistsong = re.sub(r"\s+", " ", artistsong).strip()
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Arch Linux; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0"
+        }
+        async with self.session.get(
             "https://musixmatch.com/search/{}".format(artistsong).replace(" ", "%20"),
             headers=headers,
-        )
-        soup = BeautifulSoup(searchresult.result().content, "html.parser")
-        url = "https://www.musixmatch.com" + soup.find("a", {"class": "title"})["href"]
-        soup = BeautifulSoup(session.get(url, headers=headers).result().content, "html.parser")
+        ) as resp:
+            result = await resp.text()
+        soup = BeautifulSoup(result, "html.parser")
+        songurl = soup.find("a", {"class": "title"})["href"]
+        url = "https://www.musixmatch.com" + songurl
+        async with self.session.get(url, headers=headers) as resp:
+            result = await resp.text()
+        soup = BeautifulSoup(result, "html.parser")
         lyrics = soup.text.split('"body":"')[1].split('","language"')[0]
         lyrics = lyrics.replace("\\n", "\n")
         lyrics = lyrics.replace("\\", "")
         lyrics = lyrics.replace("&amp;", "&")
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
-
-    except Exception:
-        lyrics = "No lyrics Found."
-
-    return lyrics
+        if returnsong:
+            return (lyrics, songurl)
+        return lyrics
 
 
 def format_plays(amount):
