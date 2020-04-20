@@ -709,6 +709,8 @@ class LastFm(commands.Cog):
             if "@attr" in tracks[0]:
                 if "nowplaying" in tracks[0]["@attr"]:
                     results = await self.lyrics_musixmatch(track)
+                    if results is None:
+                        return await ctx.send("No lyrics found.")
                     embeds = []
                     for i, page in enumerate(pagify(results, page_length=1000), 1):
                         content = discord.Embed(
@@ -730,6 +732,8 @@ class LastFm(commands.Cog):
             # content.colour = int(image_colour, 16)
 
             results, songurl = await self.lyrics_musixmatch(track, returnsong=True)
+            if results is None:
+                return await ctx.send("No lyrics found.")
             song = songurl.split("/")
             songtitle = song[2] + " - " + " ".join(song[3:])
             embeds = []
@@ -993,10 +997,15 @@ class LastFm(commands.Cog):
             "https://musixmatch.com/search/{}".format(artistsong).replace(" ", "%20"),
             headers=headers,
         ) as resp:
-            result = await resp.text()
+            if resp.status == 200:
+                result = await resp.text()
         soup = BeautifulSoup(result, "html.parser")
-        songurl = soup.find("a", {"class": "title"})["href"]
-        url = "https://www.musixmatch.com" + songurl
+        songurl = soup.find("a", {"class": "title"})
+        if songurl is None:
+            if returnsong:
+                return (None, None)
+            return None
+        url = "https://www.musixmatch.com" + songurl["href"]
         async with self.session.get(url, headers=headers) as resp:
             result = await resp.text()
         soup = BeautifulSoup(result, "html.parser")
