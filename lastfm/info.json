@@ -1,0 +1,11 @@
+{
+    "author": ["flare(flare#0001)", "joinem"],
+    "install_msg": "LastFM - Port of Miso Bot",
+    "name": "LastFm",
+    "disabled": false,
+    "short": "LastFm Port.",
+    "description": "LastFM Port.",
+    "tags": ["LastFM"],
+    "hidden": false,
+    "requirements": ["regex", "arrow", "requests_futures", "bs4", "aiohttp"]
+}
