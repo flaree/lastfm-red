@@ -25,7 +25,7 @@ async def tokencheck(ctx):
     return bool(token.get("appid"))
 
 
-class LastFm(commands.Cog):
+class LastFM(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(

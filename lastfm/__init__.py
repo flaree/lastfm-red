@@ -1,7 +1,7 @@
-from .lastfm import LastFm
+from .lastfm import LastFM
 
 
 async def setup(bot):
-    cog = LastFm(bot)
+    cog = LastFM(bot)
     bot.add_cog(cog)
     await cog.initalize()
