@@ -699,7 +699,7 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    @commands.command(aliases=["lyr"])
+    @fm.command(aliases=["lyr"])
     async def lyrics(self, ctx, *, track: str = None):
         """Currently playing song or most recent song."""
         if track is None:
