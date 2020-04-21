@@ -99,7 +99,7 @@ class LastFM(commands.Cog):
         except LastFMError as e:
             return await ctx.send(str(e))
         if content is None:
-            return await ctx.send(f":warning: Invalid Last.fm username `{username}`")
+            return await ctx.send(f"\N{WARNING SIGN} Invalid Last.fm username `{username}`")
 
         await self.config.member(ctx.author).lastfm_username.set(username)
         await ctx.send(
@@ -111,7 +111,7 @@ class LastFM(commands.Cog):
     async def unset(self, ctx):
         """Unlink your last.fm."""
         await self.config.member(ctx.author).lastfm_username.set(None)
-        await ctx.send(":broken_heart: Removed your last.fm username from the database")
+        await ctx.send("\N{BROKEN HEART} Removed your last.fm username from the database")
         async with self.config.guild(ctx.guild).crowns() as crowns:
             crownlist = []
             for crown in crowns:
@@ -178,7 +178,7 @@ class LastFM(commands.Cog):
                 sorted(listeners, key=lambda p: p[0], reverse=True), start=1
             ):
                 if i == 1:
-                    rank = ":crown:"
+                    rank = "\N{CROWN}"
                     old_kingdata = await self.config.guild(ctx.guild).crowns()
                     old_kingartist = old_kingdata.get(artistname)
                     if old_kingartist is not None:
@@ -243,7 +243,8 @@ class LastFM(commands.Cog):
                 crownartists.append((key, crowns[key]["playcount"]))
         if crownartists is None:
             return await ctx.send(
-                "You haven't acquired any crowns yet! Use the `>whoknows` command to claim crowns :crown:"
+                "You haven't acquired any crowns yet! "
+                f"Use the `{ctx.clean_prefix}whoknows` command to claim crowns \N{CROWN}"
             )
 
         rows = []
@@ -1003,7 +1004,7 @@ class LastFM(commands.Cog):
         timestamp = datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
         # image_colour = await color_from_image_url(profile_pic_url)
 
-        content = discord.Embed(title=f":cd: {username}")
+        content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
         content.add_field(
             name="Last.fm profile", value=f"[Link]({profile_url})", inline=True
         )
