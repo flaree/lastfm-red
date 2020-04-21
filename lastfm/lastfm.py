@@ -1,22 +1,20 @@
 import asyncio
 import math
-import os
 import re
 import urllib.parse
+from copy import deepcopy
 from operator import itemgetter
 from typing import Optional
-from copy import deepcopy
-import regex
 
 import aiohttp
 import arrow
 import discord
+import regex
+import tabulate
 from bs4 import BeautifulSoup
 from redbot.core import Config, commands
-import tabulate
 from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-from requests_futures.sessions import FuturesSession  # from wyns cog
 
 
 class LastFMError(Exception):
@@ -31,7 +29,9 @@ async def tokencheck(ctx):
 class LastFm(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
+        self.config = Config.get_conf(
+            self, identifier=95932766180343808, force_registration=True
+        )
         defaults = {"lastfm_username": None}
 
         self.config.register_member(**defaults)
@@ -74,7 +74,8 @@ class LastFm(commands.Cog):
 
         await self.config.member(ctx.author).lastfm_username.set(username)
         await ctx.send(
-            f"{ctx.message.author.mention} Username saved as `{username}`", embed=content
+            f"{ctx.message.author.mention} Username saved as `{username}`",
+            embed=content,
         )
 
     @fm.command()
@@ -126,7 +127,9 @@ class LastFm(commands.Cog):
                 if member is None:
                     continue
 
-                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
+                tasks.append(
+                    self.get_playcount(ctx, artistname, lastfm_username, member)
+                )
             if tasks:
                 try:
                     data = await asyncio.gather(*tasks)
@@ -158,11 +161,15 @@ class LastFm(commands.Cog):
                     play = playcount
                 else:
                     rank = f"`#{i:2}`"
-                rows.append(f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}")
+                rows.append(
+                    f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}"
+                )
                 total += playcount
 
             if not rows:
-                return await ctx.send(f"Nobody on this server has listened to **{artistname}**")
+                return await ctx.send(
+                    f"Nobody on this server has listened to **{artistname}**"
+                )
 
             content = discord.Embed(
                 title=f"Who knows **{artistname}**?",
@@ -179,12 +186,16 @@ class LastFm(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
         if old_king is None:
-            await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
+            await ctx.send(
+                f"> **{new_king.name}** just earned the **{artistname}** crown."
+            )
             async with self.config.guild(ctx.guild).crowns() as crowns:
                 crowns[artistname] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
             if not (old_king.id == new_king.id):
-                await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
+                await ctx.send(
+                    f"> **{new_king.name}** just earned the **{artistname}** crown."
+                )
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname] = {"user": new_king.id, "playcount": play}
             if old_king.id == new_king.id:
@@ -269,7 +280,12 @@ class LastFm(commands.Cog):
             try:
                 trackdata = await self.api_request(
                     ctx,
-                    {"user": name, "method": "track.getInfo", "artist": artist, "track": track},
+                    {
+                        "user": name,
+                        "method": "track.getInfo",
+                        "artist": artist,
+                        "track": track,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -279,7 +295,9 @@ class LastFm(commands.Cog):
                     trackdata = trackdata["track"]
                     playcount = int(trackdata["userplaycount"])
                     if playcount > 0:
-                        content.description += f"\n> {playcount} {format_plays(playcount)}"
+                        content.description += (
+                            f"\n> {playcount} {format_plays(playcount)}"
+                        )
                     for tag in trackdata["toptags"]["tag"]:
                         tags.append(tag["name"])
                     content.set_footer(text=", ".join(tags))
@@ -298,7 +316,8 @@ class LastFm(commands.Cog):
                         state = "— Now Playing"
 
             content.set_author(
-                name=f"{user_attr['user']} {state}", icon_url=ctx.message.author.avatar_url
+                name=f"{user_attr['user']} {state}",
+                icon_url=ctx.message.author.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."
@@ -546,7 +565,8 @@ class LastFm(commands.Cog):
             content.set_thumbnail(url=image_url)
             content.set_footer(text=f"Total scrobbles: {user_attr['total']}")
             content.set_author(
-                name=f"{user_attr['user']} — Recent tracks", icon_url=ctx.message.author.avatar_url
+                name=f"{user_attr['user']} — Recent tracks",
+                icon_url=ctx.message.author.avatar_url,
             )
 
             pages = await self.create_pages(content, rows)
@@ -780,7 +800,11 @@ class LastFm(commands.Cog):
         image = soup.find("img", {"class": "image-list-image"})
         if image is None:
             try:
-                image = soup.find("li", {"class": "image-list-item-wrapper"}).find("a").find("img")
+                image = (
+                    soup.find("li", {"class": "image-list-item-wrapper"})
+                    .find("a")
+                    .find("img")
+                )
             except AttributeError:
                 return ""
         return image["src"].replace("/avatar170s/", "/300x300/") if image else ""
@@ -798,7 +822,9 @@ class LastFm(commands.Cog):
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
             params = {"date_preset": period_format_map[period], "page": i}
-            task = asyncio.ensure_future(fetch(self.session, url, params, handling="text"))
+            task = asyncio.ensure_future(
+                fetch(self.session, url, params, handling="text")
+            )
             tasks.append(task)
 
         responses = await asyncio.gather(*tasks)
@@ -811,7 +837,8 @@ class LastFm(commands.Cog):
                 soup = BeautifulSoup(data, "html.parser")
                 imagedivs = soup.findAll("td", {"class": "chartlist-image"})
                 images += [
-                    div.find("img")["src"].replace("/avatar70s/", "/300x300/") for div in imagedivs
+                    div.find("img")["src"].replace("/avatar70s/", "/300x300/")
+                    for div in imagedivs
                 ]
 
         return images
@@ -821,10 +848,14 @@ class LastFm(commands.Cog):
         url = f"https://last.fm/music/{artistname}"
         data = await fetch(self.session, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
-        for artist in soup.findAll("h3", {"class": "artist-similar-artists-sidebar-item-name"}):
+        for artist in soup.findAll(
+            "h3", {"class": "artist-similar-artists-sidebar-item-name"}
+        ):
             similar.append(artist.find("a").text)
         listeners = (
-            soup.find("li", {"class": "header-metadata-tnew-item--listeners"}).find("abbr").text
+            soup.find("li", {"class": "header-metadata-tnew-item--listeners"})
+            .find("abbr")
+            .text
         )
         return similar, listeners
 
@@ -837,7 +868,9 @@ class LastFm(commands.Cog):
         data = await fetch(self.session, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
         try:
-            albumsdiv, tracksdiv, _ = soup.findAll("tbody", {"data-playlisting-add-entries": ""})
+            albumsdiv, tracksdiv, _ = soup.findAll(
+                "tbody", {"data-playlisting-add-entries": ""}
+            )
         except ValueError:
             if period == "overall":
                 return await ctx.send(f"You have never listened to **{artistname}**!")
@@ -849,7 +882,9 @@ class LastFm(commands.Cog):
         for container, destination in zip([albumsdiv, tracksdiv], [albums, tracks]):
             items = container.findAll("tr", {"class": "chartlist-row"})
             for item in items:
-                name = item.find("td", {"class": "chartlist-name"}).find("a").get("title")
+                name = (
+                    item.find("td", {"class": "chartlist-name"}).find("a").get("title")
+                )
                 playcount = (
                     item.find("span", {"class": "chartlist-count-bar-value"})
                     .text.replace("scrobbles", "")
@@ -888,7 +923,9 @@ class LastFm(commands.Cog):
         )
         similar, listeners = await self.get_similar_artists(formatted_name)
 
-        content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
+        content.set_footer(
+            text=f"{listeners} Listeners | Similar to: {', '.join(similar)}"
+        )
 
         crowns = await self.config.guild(ctx.guild).crowns()
         crown_holder = crowns.get(formatted_name, None)
@@ -903,7 +940,9 @@ class LastFm(commands.Cog):
         else:
             stats = [[str(metadata[0]), str(metadata[1]), str(metadata[2])]]
             headers = ["Scrobbles", "Albums", "Tracks"]
-        content.description = box(tabulate.tabulate(stats, headers=headers), lang="prolog")
+        content.description = box(
+            tabulate.tabulate(stats, headers=headers), lang="prolog"
+        )
 
         content.add_field(
             name="Top albums",
@@ -936,7 +975,9 @@ class LastFm(commands.Cog):
         # image_colour = await color_from_image_url(profile_pic_url)
 
         content = discord.Embed(title=f":cd: {username}")
-        content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
+        content.add_field(
+            name="Last.fm profile", value=f"[Link]({profile_url})", inline=True
+        )
         content.add_field(
             name="Registered",
             value=f"{timestamp.humanize()}\n{timestamp.format('DD/MM/YYYY')}",
@@ -948,7 +989,13 @@ class LastFm(commands.Cog):
 
     async def get_playcount(self, ctx, artist, username, reference=None):
         data = await self.api_request(
-            ctx, {"method": "artist.getinfo", "user": username, "artist": artist, "autocorrect": 1}
+            ctx,
+            {
+                "method": "artist.getinfo",
+                "user": username,
+                "artist": artist,
+                "autocorrect": 1,
+            },
         )
         try:
             count = int(data["artist"]["stats"]["userplaycount"])
@@ -1144,7 +1191,9 @@ async def fetch(session, url, params={}, handling="json"):
 
 def escape_md(s):
 
-    transformations = {regex.escape(c): "\\" + c for c in ("*", "`", "_", "~", "\\", "||")}
+    transformations = {
+        regex.escape(c): "\\" + c for c in ("*", "`", "_", "~", "\\", "||")
+    }
 
     def replace(obj):
         return transformations.get(regex.escape(obj.group(0)), "")
