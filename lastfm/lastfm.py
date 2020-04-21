@@ -9,11 +9,10 @@ from typing import Optional
 import aiohttp
 import arrow
 import discord
-import regex
 import tabulate
 from bs4 import BeautifulSoup
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import pagify, box
+from redbot.core.utils.chat_formatting import pagify, box, escape
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
@@ -272,8 +271,8 @@ class LastFm(commands.Cog):
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
-            content.description = f"**{escape_md(album)}**"
-            content.title = f"**{escape_md(artist)}** — ***{escape_md(track)} ***"
+            content.description = f"**{escape(album, formatting=True)}**"
+            content.title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
             content.set_thumbnail(url=image_url)
 
             # tags and playcount
@@ -361,7 +360,7 @@ class LastFm(commands.Cog):
 
             rows = []
             for i, artist in enumerate(artists, start=1):
-                name = escape_md(artist["name"])
+                name = escape(artist["name"], formatting=True)
                 plays = artist["playcount"]
                 rows.append(f"`#{i:2}` **{plays}** {format_plays(plays)} — **{name}**")
 
@@ -418,8 +417,8 @@ class LastFm(commands.Cog):
 
         rows = []
         for i, album in enumerate(albums, start=1):
-            name = escape_md(album["name"])
-            artist_name = escape_md(album["artist"]["name"])
+            name = escape(album["name"], formatting=True)
+            artist_name = escape(album["artist"]["name"], formatting=True)
             plays = album["playcount"]
             rows.append(
                 f"`#{i:2}` **{plays}** {format_plays(plays)} — **{artist_name}** — ***{name}***"
@@ -480,8 +479,8 @@ class LastFm(commands.Cog):
 
             rows = []
             for i, track in enumerate(tracks, start=1):
-                name = escape_md(track["name"])
-                artist_name = escape_md(track["artist"]["name"])
+                name = escape(track["name"], formatting=True)
+                artist_name = escape(track["artist"]["name"], formatting=True)
                 plays = track["playcount"]
                 rows.append(
                     f"`#{i:2}` **{plays}** {format_plays(plays)} — **{artist_name}** — ***{name}***"
@@ -552,8 +551,8 @@ class LastFm(commands.Cog):
             for i, track in enumerate(tracks):
                 if i >= size:
                     break
-                name = escape_md(track["name"])
-                artist_name = escape_md(track["artist"]["#text"])
+                name = escape(track["name"], formatting=True)
+                artist_name = escape(track["artist"]["#text"], formatting=True)
                 rows.append(f"**{artist_name}** — ***{name}***")
 
             image_url = tracks[0]["image"][-1]["#text"]
@@ -724,7 +723,7 @@ class LastFm(commands.Cog):
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
-            title = f"**{escape_md(artist)}** — ***{escape_md(track)} ***"
+            title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
 
             # tags and playcount
             if "@attr" in tracks[0]:
@@ -761,7 +760,7 @@ class LastFm(commands.Cog):
             for i, page in enumerate(pagify(results, page_length=1000), 1):
                 content = discord.Embed(
                     color=await self.bot.get_embed_color(ctx.channel),
-                    title=f"***{escape_md(songtitle)} ***",
+                    title=f"***{escape(songtitle, formatting=True)} ***",
                     description=page,
                 )
                 content.set_footer(text=f"Page {i}")
@@ -1179,7 +1178,9 @@ def parse_chart_arguments(args):
     return parsed
 
 
-async def fetch(session, url, params={}, handling="json"):
+async def fetch(session, url, params=None, handling="json"):
+    if params is None:
+        params = {}
     async with session.get(url, params=params) as response:
         if handling == "json":
             return await response.json()
@@ -1187,19 +1188,6 @@ async def fetch(session, url, params={}, handling="json"):
             return await response.text()
         else:
             return await response
-
-
-def escape_md(s):
-
-    transformations = {
-        regex.escape(c): "\\" + c for c in ("*", "`", "_", "~", "\\", "||")
-    }
-
-    def replace(obj):
-        return transformations.get(regex.escape(obj.group(0)), "")
-
-    pattern = regex.compile("|".join(transformations.keys()))
-    return pattern.sub(replace, s)
 
 
 def period_http_format(period):
