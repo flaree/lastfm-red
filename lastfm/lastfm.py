@@ -136,14 +136,11 @@ class LastFM(commands.Cog):
         except LastFMError as e:
             return await ctx.send(str(e))
 
-    @commands.command()
+    @commands.command(usage="<artist name>")
     @commands.guild_only()
     @commands.cooldown(2, 10, type=commands.BucketType.user)
     async def whoknows(self, ctx, *, artistname):
-        """Check who has listened to a given artist the most.
-        Usage:
-            >whoknows <artist name>
-        """
+        """Check who has listened to a given artist the most."""
         listeners = []
         tasks = []
         async with ctx.typing():
@@ -355,13 +352,9 @@ class LastFM(commands.Cog):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @fm.command(aliases=["ta"])
+    @fm.command(aliases=["ta"], usage="[timeframe] [amount]")
     async def topartists(self, ctx, *args):
-        """Most listened artists.
-
-        Usage:
-            [p]fm topartists [timeframe] [amount]
-        """
+        """Most listened artists."""
         name = await self.config.member(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
@@ -413,13 +406,9 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["talb"])
+    @fm.command(aliases=["talb"], usage="[timeframe] [amount]")
     async def topalbums(self, ctx, *args):
-        """Most listened albums.
-
-        Usage:
-            [p]fm topalbums [timeframe] [amount]    
-        """
+        """Most listened albums."""
         name = await self.config.member(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
@@ -474,13 +463,9 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["tt"])
+    @fm.command(aliases=["tt"], usage="[timeframe] [amount]")
     async def toptracks(self, ctx, *args):
-        """Most listened tracks.
-
-        Usage:
-            [p]fm toptracks [timeframe] [amount]
-        """
+        """Most listened tracks."""
         name = await self.config.member(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
@@ -551,13 +536,9 @@ class LastFM(commands.Cog):
             else:
                 await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["recents", "re"])
+    @fm.command(aliases=["recents", "re"], usage="[amount]")
     async def recent(self, ctx, size: int = 15):
-        """Recently listened tracks.
-
-        Usage:
-            [p]fm recent [amount]
-        """
+        """Recently listened tracks."""
         name = await self.config.member(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
@@ -605,15 +586,9 @@ class LastFM(commands.Cog):
             else:
                 await ctx.send(embed=pages[0])
 
-    @fm.command()
+    @fm.command(usage="[timeframe] <toptracks|topalbums|overview> <artist name>")
     async def artist(self, ctx, timeframe, datatype, *, artistname=""):
-        """Your top tracks or albums for specific artist.
-        
-        Usage:
-            [p]fm artist [timeframe] toptracks <artist name>
-            [p]fm artist [timeframe] topalbums <artist name>
-            [p]fm artist [timeframe] overview  <artist name>
-        """
+        """Your top tracks or albums for specific artist."""
         name = await self.config.member(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
