@@ -2,14 +2,15 @@ import asyncio
 import math
 import re
 import urllib.parse
+from datetime import datetime
 from copy import deepcopy
 from operator import itemgetter
 from typing import Optional
 
 import aiohttp
-import arrow
 import discord
 import tabulate
+import humanize
 from bs4 import BeautifulSoup
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import pagify, box, escape
@@ -970,7 +971,7 @@ class LastFM(commands.Cog):
         playcount = data["user"]["playcount"]
         profile_url = data["user"]["url"]
         profile_pic_url = data["user"]["image"][3]["#text"]
-        timestamp = arrow.get(int(data["user"]["registered"]["unixtime"]))
+        timestamp = datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
         # image_colour = await color_from_image_url(profile_pic_url)
 
         content = discord.Embed(title=f":cd: {username}")
@@ -979,7 +980,7 @@ class LastFM(commands.Cog):
         )
         content.add_field(
             name="Registered",
-            value=f"{timestamp.humanize()}\n{timestamp.format('DD/MM/YYYY')}",
+            value=f"{humanize.naturaltime(timestamp)}\n{timestamp.strftime('%d.%m.%Y')}",
             inline=True,
         )
         content.set_thumbnail(url=profile_pic_url)

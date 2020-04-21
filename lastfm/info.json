@@ -7,5 +7,5 @@
     "description": "LastFM Port.",
     "tags": ["LastFM"],
     "hidden": false,
-    "requirements": ["arrow", "requests_futures", "bs4", "aiohttp"]
+    "requirements": ["humanize", "requests_futures", "bs4", "aiohttp"]
 }
