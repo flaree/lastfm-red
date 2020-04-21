@@ -26,7 +26,36 @@ async def tokencheck(ctx):
     return bool(token.get("appid"))
 
 
+async def create_pages(content, rows, maxrows=15, maxpages=10):
+    pages = []
+    content.description = ""
+    thisrow = 0
+    rowcount = len(rows)
+    for row in rows:
+        thisrow += 1
+        if len(content.description) + len(row) < 2000 and thisrow < maxrows + 1:
+            content.description += f"\n{row}"
+            rowcount -= 1
+        else:
+            thisrow = 1
+            if len(pages) == maxpages - 1:
+                content.description += f"\n*+ {rowcount} more entries...*"
+                pages.append(content)
+                content = None
+                break
+
+            pages.append(content)
+            content = deepcopy(content)
+            content.description = f"{row}"
+            rowcount -= 1
+    if content is not None and not content.description == "":
+        pages.append(content)
+
+    return pages
+
+
 class LastFM(commands.Cog):
+    # noinspection PyMissingConstructor
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
@@ -180,7 +209,7 @@ class LastFM(commands.Cog):
             if len(listeners) > 1:
                 content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -228,7 +257,7 @@ class LastFM(commands.Cog):
         content.set_footer(text="Playcounts are updated on the whoknows command.")
         if not rows:
             return await ctx.send("You do not have any crowns.")
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -377,7 +406,7 @@ class LastFM(commands.Cog):
                 icon_url=ctx.message.author.avatar_url,
             )
 
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
@@ -438,7 +467,7 @@ class LastFM(commands.Cog):
             icon_url=ctx.message.author.avatar_url,
         )
 
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
@@ -515,7 +544,7 @@ class LastFM(commands.Cog):
                 icon_url=ctx.message.author.avatar_url,
             )
 
-            pages = await self.create_pages(content, rows)
+            pages = await create_pages(content, rows)
             if len(pages) > 1:
                 await menu(ctx, pages[:15], DEFAULT_CONTROLS)
             else:
@@ -569,7 +598,7 @@ class LastFM(commands.Cog):
                 icon_url=ctx.message.author.avatar_url,
             )
 
-            pages = await self.create_pages(content, rows)
+            pages = await create_pages(content, rows)
             if len(pages) > 1:
                 await menu(ctx, pages[:15], DEFAULT_CONTROLS)
             else:
@@ -688,7 +717,7 @@ class LastFM(commands.Cog):
             f" for {formatted_name}"
         )
 
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
@@ -787,7 +816,7 @@ class LastFM(commands.Cog):
                             f"Error {content.get('error')} : {content.get('message')}"
                         )
 
-                except aiohttp.client_exceptions.ContentTypeError:
+                except aiohttp.ContentTypeError:
                     return None
 
     async def scrape_artist_image(self, artist):
@@ -1009,33 +1038,6 @@ class LastFM(commands.Cog):
         else:
             return count, reference, name
 
-    async def create_pages(self, content, rows, maxrows=15, maxpages=10):
-        pages = []
-        content.description = ""
-        thisrow = 0
-        rowcount = len(rows)
-        for row in rows:
-            thisrow += 1
-            if len(content.description) + len(row) < 2000 and thisrow < maxrows + 1:
-                content.description += f"\n{row}"
-                rowcount -= 1
-            else:
-                thisrow = 1
-                if len(pages) == maxpages - 1:
-                    content.description += f"\n*+ {rowcount} more entries...*"
-                    pages.append(content)
-                    content = None
-                    break
-
-                pages.append(content)
-                content = deepcopy(content)
-                content.description = f"{row}"
-                rowcount -= 1
-        if content is not None and not content.description == "":
-            pages.append(content)
-
-        return pages
-
     async def lyrics_musixmatch(self, artistsong, *, returnsong=False):
         artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
         artistsong = re.sub(r"\s+", " ", artistsong).strip()
@@ -1052,7 +1054,7 @@ class LastFM(commands.Cog):
         songurl = soup.find("a", {"class": "title"})
         if songurl is None:
             if returnsong:
-                return (None, None)
+                return None, None
             return None
         url = "https://www.musixmatch.com" + songurl["href"]
         async with self.session.get(url, headers=headers) as resp:
@@ -1065,7 +1067,7 @@ class LastFM(commands.Cog):
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
         if returnsong:
-            return (lyrics, songurl)
+            return lyrics, songurl
         return lyrics
 
 
