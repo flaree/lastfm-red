@@ -368,10 +368,16 @@ class LastFM(commands.Cog):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @fm.command()
+    @fm.group(aliases=["cloud"])
     @commands.check(wordcloud_available)
-    async def artistcloud(self, ctx, user: Optional[discord.Member] = None):
-        """Get an picture with most listened artists"""
+    async def wordcloud(self, ctx):
+        """WordCloud Commands"""
+        pass
+
+    @wordcloud.command(aliases=["artist"])
+    @commands.check(wordcloud_available)
+    async def artists(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to artists."""
         # Idea taken from here: http://lastfm.dontdrinkandroot.net
         author = user or ctx.author
         async with ctx.typing():
@@ -391,6 +397,54 @@ class LastFM(commands.Cog):
             wc.to_file(pic)
             pic.seek(0)
             await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
+
+    @wordcloud.command()
+    @commands.check(wordcloud_available)
+    async def tracks(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to tracks."""
+        # Idea taken from here: http://lastfm.dontdrinkandroot.net
+        author = user or ctx.author
+        async with ctx.typing():
+            name = await self.config.user(author).lastfm_username()
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
+            )
+            data = {
+                a["name"]: int(a["playcount"]) for a in data["toptracks"]["track"]
+            }
+            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
+            wc = await self.bot.loop.run_in_executor(
+                None, wc.generate_from_frequencies, data
+            )
+            pic = BytesIO()
+            pic.name = f"{name}_tracks.png"
+            wc.to_file(pic)
+            pic.seek(0)
+            await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
+
+    @wordcloud.command()
+    @commands.check(wordcloud_available)
+    async def albums(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to albums."""
+        # Idea taken from here: http://lastfm.dontdrinkandroot.net
+        author = user or ctx.author
+        async with ctx.typing():
+            name = await self.config.user(author).lastfm_username()
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
+            )
+            data = {
+                a["name"]: int(a["playcount"]) for a in data["topalbums"]["album"]
+            }
+            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
+            wc = await self.bot.loop.run_in_executor(
+                None, wc.generate_from_frequencies, data
+            )
+            pic = BytesIO()
+            pic.name = f"{name}_albums.png"
+            wc.to_file(pic)
+            pic.seek(0)
+            await ctx.send(f"{name}'s albums cloud:", file=discord.File(pic))
 
     @fm.command(aliases=["ta"], usage="[timeframe] [amount]")
     async def topartists(self, ctx, *args):
@@ -797,11 +851,10 @@ class LastFM(commands.Cog):
         else:
             # content.colour = int(image_colour, 16)
 
-            results, songurl = await self.lyrics_musixmatch(track, returnsong=True)
+            results, songtitle = await self.lyrics_musixmatch(track, returnsong=True)
+            songtitle = str(songtitle)
             if results is None:
                 return await ctx.send("No lyrics found.")
-            song = songurl.split("/")
-            songtitle = song[2] + " - " + " ".join(song[3:])
             embeds = []
             for i, page in enumerate(pagify(results, page_length=1000), 1):
                 content = discord.Embed(
@@ -1078,14 +1131,19 @@ class LastFM(commands.Cog):
         async with self.session.get(url, headers=headers) as resp:
             result = await resp.text()
         soup = BeautifulSoup(result, "html.parser")
-        lyrics = soup.text.split('"body":"')[1].split('","language"')[0]
+        lyrics = soup.text.split('"body":"')
+        lyrics = lyrics[0]
+        songname = lyrics.split("|")[0]
+        lyrics = lyrics.split('","language"')[0]
+        lyrics = lyrics.split("languages")[1]
+        lyrics = lyrics.split("Report")[0]
         lyrics = lyrics.replace("\\n", "\n")
         lyrics = lyrics.replace("\\", "")
         lyrics = lyrics.replace("&amp;", "&")
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
         if returnsong:
-            return lyrics, songurl
+            return lyrics, songname.strip()
         return lyrics
 
 

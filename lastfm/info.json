@@ -1,5 +1,5 @@
 {
-    "author": ["flare(flare#0001)", "joinem"],
+    "author": ["flare(flare#0001)", "joinem", "fixator10"],
     "install_msg": "LastFM - Port of Miso Bot",
     "name": "LastFm",
     "disabled": false,
