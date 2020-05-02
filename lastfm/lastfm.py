@@ -382,7 +382,7 @@ class LastFM(commands.Cog):
             data = {
                 a["name"]: int(a["playcount"]) for a in data["topartists"]["artist"]
             }
-            wc = WordCloud(width=2048, height=2048)
+            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
             wc = await self.bot.loop.run_in_executor(
                 None, wc.generate_from_frequencies, data
             )
