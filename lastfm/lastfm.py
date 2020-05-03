@@ -848,7 +848,7 @@ class LastFM(commands.Cog):
         else:
             # content.colour = int(image_colour, 16)
 
-            results, songtitle = await self.lyrics_musixmatch(track, returnsong=True)
+            results, songtitle = await self.lyrics_musixmatch(track)
             if results is None:
                 return await ctx.send("No lyrics found.")
             embeds = []
@@ -1106,7 +1106,7 @@ class LastFM(commands.Cog):
         else:
             return count, reference, name
 
-    async def lyrics_musixmatch(self, artistsong, *, returnsong=False) -> (str, str):
+    async def lyrics_musixmatch(self, artistsong) -> (str, str):
         artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
         artistsong = re.sub(r"\s+", " ", artistsong).strip()
         headers = {
@@ -1121,9 +1121,7 @@ class LastFM(commands.Cog):
         soup = BeautifulSoup(result, "html.parser")
         songurl = soup.find("a", {"class": "title"})
         if songurl is None:
-            if returnsong:
-                return None, None
-            return None
+            return None, None
         url = "https://www.musixmatch.com" + songurl["href"]
         async with self.session.get(url, headers=headers) as resp:
             result = await resp.text()
@@ -1139,9 +1137,7 @@ class LastFM(commands.Cog):
         lyrics = lyrics.replace("&amp;", "&")
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
-        if returnsong:
-            return lyrics, songname.strip()
-        return lyrics, ""
+        return lyrics, songname.strip()
 
 
 def format_plays(amount):
