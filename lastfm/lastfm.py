@@ -817,14 +817,14 @@ class LastFM(commands.Cog):
             # image_url_small = tracks[0]['image'][1]['#text']
             # image_colour = await color_from_image_url(image_url_small)
 
-            content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
+            # content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
             title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
 
             # tags and playcount
             if "@attr" in tracks[0]:
                 if "nowplaying" in tracks[0]["@attr"]:
-                    results = await self.lyrics_musixmatch(track)
+                    results, songtitle = await self.lyrics_musixmatch(track)
                     if results is None:
                         return await ctx.send("No lyrics found.")
                     embeds = []
