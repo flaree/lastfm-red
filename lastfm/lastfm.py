@@ -1130,7 +1130,10 @@ class LastFM(commands.Cog):
         lyrics = lyrics[0]
         songname = lyrics.split("|")[0]
         lyrics = lyrics.split('","language"')[0]
-        lyrics = lyrics.split("languages")[1]
+        try:
+            lyrics = lyrics.split("languages")[1]
+        except IndexError:
+            return None, None
         lyrics = lyrics.split("Report")[0]
         lyrics = lyrics.replace("\\n", "\n")
         lyrics = lyrics.replace("\\", "")
