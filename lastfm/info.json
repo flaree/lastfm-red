@@ -1,11 +1,22 @@
 {
-    "author": ["flare(flare#0001)", "joinem", "fixator10"],
-    "install_msg": "LastFM - Port of Miso Bot",
-    "name": "LastFm",
-    "disabled": false,
-    "short": "LastFm Port.",
-    "description": "LastFM Port.",
-    "tags": ["LastFM"],
-    "hidden": false,
-    "requirements": ["humanize", "bs4", "aiohttp", "tabulate", "wordcloud"]
+  "author": [
+    "flare(flare#0001)",
+    "joinem",
+    "fixator10"
+  ],
+  "install_msg": "LastFM - Port of Miso Bot",
+  "name": "LastFm",
+  "disabled": false,
+  "short": "LastFm Port.",
+  "description": "LastFM Port.",
+  "tags": [
+    "LastFM"
+  ],
+  "hidden": false,
+  "requirements": [
+    "humanize",
+    "bs4",
+    "tabulate",
+    "wordcloud"
+  ]
 }
