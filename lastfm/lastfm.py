@@ -98,6 +98,17 @@ class LastFM(commands.Cog):
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
 
+    @commands.is_owner()
+    @commands.command(aliases=["fmset"])
+    async def lastfmset(self, ctx):
+        """Instructions on how to set the api key."""
+        message = (
+            "1. Vist the [LastFM](https://www.last.fm/api/) site and click on 'Get an API Account'.\n"
+            "2. Visit [API Account Page](https://www.last.fm/api/accounts/) and retrieve your APP ID.\n"
+            f"3. Enter the key via `{ctx.prefix}set api lastfm appid <appid_here>`"
+        )
+        await ctx.maybe_send_embed(message)
+
     @commands.check(tokencheck)
     @commands.group(case_insensitive=True)
     async def fm(self, ctx):
