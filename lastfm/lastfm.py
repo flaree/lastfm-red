@@ -828,7 +828,8 @@ class LastFM(commands.Cog):
                     if results is None:
                         return await ctx.send("No lyrics found.")
                     embeds = []
-                    for i, page in enumerate(pagify(results, page_length=1000), 1):
+                    results = list(pagify(results, page_length=2048))
+                    for i, page in enumerate(results, 1):
                         content = discord.Embed(
                             color=await self.bot.get_embed_color(ctx.channel),
                             description=page,
@@ -848,17 +849,17 @@ class LastFM(commands.Cog):
             # content.colour = int(image_colour, 16)
 
             results, songtitle = await self.lyrics_musixmatch(track, returnsong=True)
-            songtitle = str(songtitle)
             if results is None:
                 return await ctx.send("No lyrics found.")
             embeds = []
-            for i, page in enumerate(pagify(results, page_length=1000), 1):
+            results = list(pagify(results, page_length=2048))
+            for i, page in enumerate(results, 1):
                 content = discord.Embed(
                     color=await self.bot.get_embed_color(ctx.channel),
                     title=f"***{escape(songtitle, formatting=True)} ***",
                     description=page,
                 )
-                content.set_footer(text=f"Page {i}")
+                content.set_footer(text=f"Page {i}/{len(results)}")
                 embeds.append(content)
             if len(embeds) > 1:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -1105,7 +1106,7 @@ class LastFM(commands.Cog):
         else:
             return count, reference, name
 
-    async def lyrics_musixmatch(self, artistsong, *, returnsong=False):
+    async def lyrics_musixmatch(self, artistsong, *, returnsong=False) -> (str, str):
         artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
         artistsong = re.sub(r"\s+", " ", artistsong).strip()
         headers = {
@@ -1140,7 +1141,7 @@ class LastFM(commands.Cog):
         lyrics = lyrics.strip()
         if returnsong:
             return lyrics, songname.strip()
-        return lyrics
+        return lyrics, ""
 
 
 def format_plays(amount):
