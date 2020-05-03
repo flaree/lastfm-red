@@ -82,8 +82,11 @@ class LastFM(commands.Cog):
             loop=self.bot.loop,
         )
         self.token = None
+        self.wc = None
+        if "WordCloud" in globals().keys():
+            self.wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
 
-    async def initalize(self):
+    async def initialize(self):
         token = await self.bot.get_shared_api_tokens("lastfm")
         self.token = token.get("appid")
 
@@ -277,7 +280,7 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["np"])
+    @fm.command(aliases=["np", "now"])
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
@@ -368,17 +371,17 @@ class LastFM(commands.Cog):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @fm.group(aliases=["cloud"])
+    @fm.group(aliases=["cloud", "wc"])
     @commands.check(wordcloud_available)
     async def wordcloud(self, ctx):
-        """WordCloud Commands"""
+        """WordCloud Commands
+
+        Original idea: http://lastfm.dontdrinkandroot.net"""
         pass
 
     @wordcloud.command(aliases=["artist"])
-    @commands.check(wordcloud_available)
     async def artists(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to artists."""
-        # Idea taken from here: http://lastfm.dontdrinkandroot.net
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
@@ -388,9 +391,8 @@ class LastFM(commands.Cog):
             data = {
                 a["name"]: int(a["playcount"]) for a in data["topartists"]["artist"]
             }
-            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
             wc = await self.bot.loop.run_in_executor(
-                None, wc.generate_from_frequencies, data
+                None, self.wc.generate_from_frequencies, data
             )
             pic = BytesIO()
             pic.name = f"{name}_artists.png"
@@ -399,10 +401,8 @@ class LastFM(commands.Cog):
             await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
 
     @wordcloud.command()
-    @commands.check(wordcloud_available)
     async def tracks(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to tracks."""
-        # Idea taken from here: http://lastfm.dontdrinkandroot.net
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
@@ -412,9 +412,8 @@ class LastFM(commands.Cog):
             data = {
                 a["name"]: int(a["playcount"]) for a in data["toptracks"]["track"]
             }
-            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
             wc = await self.bot.loop.run_in_executor(
-                None, wc.generate_from_frequencies, data
+                None, self.wc.generate_from_frequencies, data
             )
             pic = BytesIO()
             pic.name = f"{name}_tracks.png"
@@ -423,10 +422,8 @@ class LastFM(commands.Cog):
             await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
 
     @wordcloud.command()
-    @commands.check(wordcloud_available)
     async def albums(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to albums."""
-        # Idea taken from here: http://lastfm.dontdrinkandroot.net
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
@@ -436,9 +433,8 @@ class LastFM(commands.Cog):
             data = {
                 a["name"]: int(a["playcount"]) for a in data["topalbums"]["album"]
             }
-            wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
             wc = await self.bot.loop.run_in_executor(
-                None, wc.generate_from_frequencies, data
+                None, self.wc.generate_from_frequencies, data
             )
             pic = BytesIO()
             pic.name = f"{name}_albums.png"
@@ -839,7 +835,7 @@ class LastFM(commands.Cog):
                             title=title,
                         )
                         content.set_thumbnail(url=image_url)
-                        content.set_footer(text=f"Page {i}")
+                        content.set_footer(text=f"Page {i}/{len(results)}")
 
                         embeds.append(content)
                     if len(embeds) > 1:
