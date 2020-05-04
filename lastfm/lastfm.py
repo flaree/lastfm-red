@@ -919,34 +919,35 @@ class LastFM(commands.Cog):
             return await ctx.send(str(e))
         chart = []
         chart_type = "ERROR"
-        if arguments['method'] == "user.gettopalbums":
-            chart_type = "top album"
-            albums = data['topalbums']['album']
-            for album in albums:
-                name = album['name']
-                artist = album['artist']['name']
-                plays = album['playcount']
-                chart.append((f"{plays} {format_plays(plays)}\n{name} - {artist}", album['image'][3]['#text']))
-            img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+        async with ctx.typing():
+            if arguments['method'] == "user.gettopalbums":
+                chart_type = "top album"
+                albums = data['topalbums']['album']
+                for album in albums:
+                    name = album['name']
+                    artist = album['artist']['name']
+                    plays = album['playcount']
+                    chart.append((f"{plays} {format_plays(plays)}\n{name} - {artist}", album['image'][3]['#text']))
+                img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
 
-        elif arguments['method'] == "user.gettopartists":
-            chart_type = "top artist"
-            artists = data['topartists']['artist']
-            scraped_images = await self.scrape_artists_for_chart(username, arguments['period'], arguments['amount'])
-            for i, artist in enumerate(artists):
-                name = artist['name']
-                plays = artist['playcount']
-                chart.append((f"{plays} {format_plays(plays)}\n{name}", scraped_images[i]))
-            img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+            elif arguments['method'] == "user.gettopartists":
+                chart_type = "top artist"
+                artists = data['topartists']['artist']
+                scraped_images = await self.scrape_artists_for_chart(username, arguments['period'], arguments['amount'])
+                for i, artist in enumerate(artists):
+                    name = artist['name']
+                    plays = artist['playcount']
+                    chart.append((f"{plays} {format_plays(plays)}\n{name}", scraped_images[i]))
+                img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
 
-        elif arguments['method'] == "user.getrecenttracks":
-            chart_type = "recent tracks"
-            tracks = data['recenttracks']['track']
-            for track in tracks:
-                name = track['name']
-                artist = track['artist']['#text']
-                chart.append((f"{name} - {artist}", track['image'][3]['#text']))
-            img = await track_chart(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+            elif arguments['method'] == "user.getrecenttracks":
+                chart_type = "recent tracks"
+                tracks = data['recenttracks']['track']
+                for track in tracks:
+                    name = track['name']
+                    artist = track['artist']['#text']
+                    chart.append((f"{name} - {artist}", track['image'][3]['#text']))
+                img = await track_chart(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
         try:
             await ctx.send(
                     f"`{username} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
