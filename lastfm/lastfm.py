@@ -84,7 +84,9 @@ class LastFM(commands.Cog):
         self.token = None
         self.wc = None
         if "WordCloud" in globals().keys():
-            self.wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
+            self.wc = WordCloud(
+                width=1920, height=1080, mode="RGBA", background_color=None
+            )
 
     async def initialize(self):
         token = await self.bot.get_shared_api_tokens("lastfm")
@@ -420,9 +422,7 @@ class LastFM(commands.Cog):
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
             )
-            data = {
-                a["name"]: int(a["playcount"]) for a in data["toptracks"]["track"]
-            }
+            data = {a["name"]: int(a["playcount"]) for a in data["toptracks"]["track"]}
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
             )
@@ -441,9 +441,7 @@ class LastFM(commands.Cog):
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
             )
-            data = {
-                a["name"]: int(a["playcount"]) for a in data["topalbums"]["album"]
-            }
+            data = {a["name"]: int(a["playcount"]) for a in data["topalbums"]["album"]}
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
             )
@@ -836,7 +834,7 @@ class LastFM(commands.Cog):
                 if "nowplaying" in tracks[0]["@attr"]:
                     results, songtitle = await self.lyrics_musixmatch(track)
                     if results is None:
-                        return await ctx.send("No lyrics found.")
+                        return await ctx.send(f'No lyrics for "{track}" found.')
                     embeds = []
                     results = list(pagify(results, page_length=2048))
                     for i, page in enumerate(results, 1):
@@ -860,7 +858,7 @@ class LastFM(commands.Cog):
 
             results, songtitle = await self.lyrics_musixmatch(track)
             if results is None:
-                return await ctx.send("No lyrics found.")
+                return await ctx.send(f'No lyrics for "{track}" found.')
             embeds = []
             results = list(pagify(results, page_length=2048))
             for i, page in enumerate(results, 1):
