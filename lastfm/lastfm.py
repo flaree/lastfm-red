@@ -894,7 +894,7 @@ class LastFM(commands.Cog):
 
     @fm.command(usage="[album | artist | recent] [timeframe] [width]x[height]")
     async def chart(self, ctx, *args):
-        """Most listened albums."""
+        """Visual chart of your top albums or artists."""
         username = await self.config.user(ctx.author).lastfm_username()
         if username is None:
             return await ctx.send(
