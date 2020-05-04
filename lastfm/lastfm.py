@@ -1265,7 +1265,7 @@ async def fetch(session, url, params=None, handling="json"):
     async with session.get(url, params=params) as response:
         if handling == "json":
             return await response.json()
-        elif handling == "text":
+        if handling == "text":
             return await response.text()
         return await response
 
