@@ -759,10 +759,9 @@ class LastFM(commands.Cog):
         if not artist_data:
             if period == "overall":
                 return await ctx.send(f"You have never listened to **{artistname}**!")
-            else:
-                return await ctx.send(
-                    f"You have not listened to **{artistname}** in the past {period}s!"
-                )
+            return await ctx.send(
+                f"You have not listened to **{artistname}** in the past {period}s!"
+            )
         try:
             artist_info = await self.api_request(
                 ctx, {"method": "artist.getinfo", "artist": artistname}
@@ -888,10 +887,9 @@ class LastFM(commands.Cog):
                     content = await response.json()
                     if response.status == 200:
                         return content
-                    else:
-                        raise LastFMError(
-                            f"Error {content.get('error')} : {content.get('message')}"
-                        )
+                    raise LastFMError(
+                        f"Error {content.get('error')} : {content.get('message')}"
+                    )
 
                 except aiohttp.ContentTypeError:
                     return None
@@ -980,10 +978,9 @@ class LastFM(commands.Cog):
         except ValueError:
             if period == "overall":
                 return await ctx.send(f"You have never listened to **{artistname}**!")
-            else:
-                return await ctx.send(
-                    f"You have not listened to **{artistname}** in the past {period}s!"
-                )
+            return await ctx.send(
+                f"You have not listened to **{artistname}** in the past {period}s!"
+            )
 
         for container, destination in zip([albumsdiv, tracksdiv], [albums, tracks]):
             items = container.findAll("tr", {"class": "chartlist-row"})
@@ -1112,10 +1109,9 @@ class LastFM(commands.Cog):
             count = 0
             name = None
 
-        if reference is None:
+        if not reference:
             return count
-        else:
-            return count, reference, name
+        return count, reference, name
 
     async def lyrics_musixmatch(self, artistsong) -> (str, str):
         artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
@@ -1157,8 +1153,7 @@ class LastFM(commands.Cog):
 def format_plays(amount):
     if amount == 1:
         return "play"
-    else:
-        return "plays"
+    return "plays"
 
 
 def get_period(timeframe):
@@ -1272,8 +1267,7 @@ async def fetch(session, url, params=None, handling="json"):
             return await response.json()
         elif handling == "text":
             return await response.text()
-        else:
-            return await response
+        return await response
 
 
 def period_http_format(period):
