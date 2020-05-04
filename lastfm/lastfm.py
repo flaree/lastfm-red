@@ -398,11 +398,16 @@ class LastFM(commands.Cog):
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
             )
+            artists = data["topartists"]["artist"]
+            if not artists:
+                return await ctx.send(f"{name} has not listened to any artists yet!")
             data = {
-                a["name"]: int(a["playcount"]) for a in data["topartists"]["artist"]
+                a["name"]: int(a["playcount"]) for a in artists
             }
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
@@ -419,10 +424,15 @@ class LastFM(commands.Cog):
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
             )
-            data = {a["name"]: int(a["playcount"]) for a in data["toptracks"]["track"]}
+            tracks = data["topartists"]["track"]
+            if not tracks:
+                return await ctx.send(f"{name} has not listened to any tracks yet!")
+            data = {a["name"]: int(a["playcount"]) for a in tracks}
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
             )
@@ -438,10 +448,15 @@ class LastFM(commands.Cog):
         author = user or ctx.author
         async with ctx.typing():
             name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
             )
-            data = {a["name"]: int(a["playcount"]) for a in data["topalbums"]["album"]}
+            albums = data["topartists"]["album"]
+            if not albums:
+                return await ctx.send(f"{name} has not listened to any albums yet!")
+            data = {a["name"]: int(a["playcount"]) for a in albums}
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
             )
