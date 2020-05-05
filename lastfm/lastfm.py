@@ -902,11 +902,9 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if arguments["width"] * arguments["height"] > (7 * 7):
+        if arguments["width"] + arguments["height"] > 40: # TODO: Figure out a reasonable value.
             return await ctx.send(
-                "Size is too big! Chart `width` * `height` total must not exceed `{}`".format(
-                    str(7 * 7)
-                )
+                "Size is too big! Chart `width` + `height` total must not exceed `40`"
             )
         try:
             data = await self.api_request(
@@ -926,7 +924,7 @@ class LastFM(commands.Cog):
             if arguments["method"] == "user.gettopalbums":
                 chart_type = "top album"
                 albums = data["topalbums"]["album"]
-                for album in albums:
+                for album in albums[:arguments["width"] * arguments["height"]]:
                     name = album["name"]
                     artist = album["artist"]["name"]
                     plays = album["playcount"]
@@ -950,7 +948,7 @@ class LastFM(commands.Cog):
                 scraped_images = await self.scrape_artists_for_chart(
                     username, arguments["period"], arguments["amount"]
                 )
-                for i, artist in enumerate(artists):
+                for i, artist in enumerate(artists[:arguments["width"] * arguments["height"]]):
                     name = artist["name"]
                     plays = artist["playcount"]
                     chart.append(
@@ -967,7 +965,7 @@ class LastFM(commands.Cog):
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
-                for track in tracks:
+                for track in tracks[:arguments["width"] * arguments["height"]]:
                     name = track["name"]
                     artist = track["artist"]["#text"]
                     chart.append((f"{name} - {artist}", track["image"][3]["#text"]))

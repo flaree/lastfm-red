@@ -18,7 +18,7 @@ async def charts(session, data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    for item in data[: w * h]:
+    for item in data:
         r = await get_img(session, item[1])
         img = BytesIO(r)
         image = Image.open(img).convert("RGBA")
@@ -50,14 +50,14 @@ async def track_chart(session, data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    for item in data[: w * h]:
+    for item in data:
         r = await get_img(session, item[1])
         img = BytesIO(r)
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
         if len(item[0]) > 30:
             height = 257
-            text = f"{item[1][:30]}\n{item[1][30:]}"
+            text = f"{item[0][:30]}\n{item[0][30:]}"
         else:
             height = 277
             text = item[0]
@@ -97,8 +97,8 @@ async def create_graph(data, w, h):
             x += 300
         y += 300
     file = BytesIO()
-    final.save(file, "png")
-    file.name = f"chart.png"
+    final.save(file, "webp")
+    file.name = f"chart.webp"
     file.seek(0)
     image = discord.File(file)
     return image
