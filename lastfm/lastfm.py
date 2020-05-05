@@ -902,9 +902,9 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if arguments["width"] + arguments["height"] > 40: # TODO: Figure out a reasonable value.
+        if arguments["width"] + arguments["height"] > 31: # TODO: Figure out a reasonable value.
             return await ctx.send(
-                "Size is too big! Chart `width` + `height` total must not exceed `40`"
+                "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
         try:
             data = await self.api_request(
