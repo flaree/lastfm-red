@@ -1,7 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import discord
-from redbot.core.utils import AsyncIter
 
 
 NO_IMAGE_PLACEHOLDER = (
@@ -9,23 +8,12 @@ NO_IMAGE_PLACEHOLDER = (
 )
 
 
-async def get_img(session, url):
-    async with session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
-        if resp.status == 200:
-            img = await resp.read()
-            return img
-        async with session.get(NO_IMAGE_PLACEHOLDER) as resp:
-            img = await resp.read()
-            return img
-
-
-async def charts(session, data, w, h, loc):
+def charts(data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    async for item in AsyncIter(data):
-        r = await get_img(session, item[1])
-        img = BytesIO(r)
+    for item in data:
+        img = BytesIO(item[1])
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
         texts = item[0].split("\n")
@@ -48,16 +36,15 @@ async def charts(session, data, w, h, loc):
         _file.name = f"{item[0]}.png"
         _file.seek(0)
         imgs.append(_file)
-    return await create_graph(imgs, w, h)
+    return create_graph(imgs, w, h)
 
 
-async def track_chart(session, data, w, h, loc):
+def track_chart(data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    async for item in AsyncIter(data):
-        r = await get_img(session, item[1])
-        img = BytesIO(r)
+    for item in data:
+        img = BytesIO(item[1])
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
         if len(item[0]) > 30:
@@ -79,7 +66,7 @@ async def track_chart(session, data, w, h, loc):
         _file.name = f"{item[0]}.png"
         _file.seek(0)
         imgs.append(_file)
-    return await create_graph(imgs, w, h)
+    return create_graph(imgs, w, h)
 
 
 def chunks(l, n):
@@ -88,14 +75,14 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
-async def create_graph(data, w, h):
+def create_graph(data, w, h):
     dimensions = (300 * w, 300 * h)
     final = Image.new("RGBA", dimensions)
     images = chunks(data, w)
     y = 0
-    async for chunked in AsyncIter(images):
+    for chunked in images:
         x = 0
-        async for img in AsyncIter(chunked):
+        for img in chunked:
             new = Image.open(img)
             w, h = new.size
             final.paste(new, (x, y, x + w, y + h))

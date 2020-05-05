@@ -20,7 +20,7 @@ from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-from .charts import charts, track_chart
+from .charts import charts, track_chart, NO_IMAGE_PLACEHOLDER
 
 with suppress(Exception):
     from wordcloud import WordCloud
@@ -892,6 +892,15 @@ class LastFM(commands.Cog):
             else:
                 await ctx.send(embed=embeds[0])
 
+    async def get_img(self, url):
+        async with self.session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
+            if resp.status == 200:
+                img = await resp.read()
+                return img
+            async with self.session.get(NO_IMAGE_PLACEHOLDER) as resp:
+                img = await resp.read()
+                return img
+
     @fm.command(usage="[album | artist | recent] [timeframe] [width]x[height]")
     async def chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""
@@ -932,11 +941,12 @@ class LastFM(commands.Cog):
                     chart.append(
                         (
                             f"{plays} {format_plays(plays)}\n{name} - {artist}",
-                            album["image"][3]["#text"],
+                            await self.get_img(album["image"][3]["#text"]),
                         )
                     )
-                img = await charts(
-                    self.session,
+                img = await self.bot.loop.run_in_executor(
+                    None,
+                    charts,
                     chart,
                     arguments["width"],
                     arguments["height"],
@@ -954,10 +964,11 @@ class LastFM(commands.Cog):
                     name = artist["name"]
                     plays = artist["playcount"]
                     chart.append(
-                        (f"{plays} {format_plays(plays)}\n{name}", scraped_images[i])
+                        (f"{plays} {format_plays(plays)}\n{name}", await self.get_img(scraped_images[i]))
                     )
-                img = await charts(
-                    self.session,
+                img = await self.bot.loop.run_in_executor(
+                    None,
+                    charts,
                     chart,
                     arguments["width"],
                     arguments["height"],
@@ -970,9 +981,10 @@ class LastFM(commands.Cog):
                 async for track in AsyncIter(tracks[:arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]
-                    chart.append((f"{name} - {artist}", track["image"][3]["#text"]))
-                img = await track_chart(
-                    self.session,
+                    chart.append((f"{name} - {artist}", await self.get_img(track["image"][3]["#text"])))
+                img = await self.bot.loop.run_in_executor(
+                    None,
+                    track_chart,
                     chart,
                     arguments["width"],
                     arguments["height"],
