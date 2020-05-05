@@ -109,7 +109,8 @@ class LastFM(commands.Cog):
         """Instructions on how to set the api key."""
         message = (
             "1. Vist the [LastFM](https://www.last.fm/api/) site and click on 'Get an API Account'.\n"
-            "2. Fill in the application. Once completed do not exit the page. - Copy all information on the page and save it.\n"
+            "2. Fill in the application. Once completed do not exit the page. - "
+            "Copy all information on the page and save it.\n"
             f"3. Enter the key via `{ctx.prefix}set api lastfm appid <appid_here>`"
         )
         await ctx.maybe_send_embed(message)
@@ -409,9 +410,7 @@ class LastFM(commands.Cog):
             artists = data["topartists"]["artist"]
             if not artists:
                 return await ctx.send(f"{name} has not listened to any artists yet!")
-            data = {
-                a["name"]: int(a["playcount"]) for a in artists
-            }
+            data = {a["name"]: int(a["playcount"]) for a in artists}
             wc = await self.bot.loop.run_in_executor(
                 None, self.wc.generate_from_frequencies, data
             )
@@ -903,8 +902,12 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if arguments['width'] * arguments['height'] > (7 * 7):
-            return await ctx.send("Size is too big! Chart `width` * `height` total must not exceed `{}`".format(str(7 * 7)))
+        if arguments["width"] * arguments["height"] > (7 * 7):
+            return await ctx.send(
+                "Size is too big! Chart `width` * `height` total must not exceed `{}`".format(
+                    str(7 * 7)
+                )
+            )
         try:
             data = await self.api_request(
                 ctx,
@@ -920,43 +923,68 @@ class LastFM(commands.Cog):
         chart = []
         chart_type = "ERROR"
         async with ctx.typing():
-            if arguments['method'] == "user.gettopalbums":
+            if arguments["method"] == "user.gettopalbums":
                 chart_type = "top album"
-                albums = data['topalbums']['album']
+                albums = data["topalbums"]["album"]
                 for album in albums:
-                    name = album['name']
-                    artist = album['artist']['name']
-                    plays = album['playcount']
-                    chart.append((f"{plays} {format_plays(plays)}\n{name} - {artist}", album['image'][3]['#text']))
-                img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+                    name = album["name"]
+                    artist = album["artist"]["name"]
+                    plays = album["playcount"]
+                    chart.append(
+                        (
+                            f"{plays} {format_plays(plays)}\n{name} - {artist}",
+                            album["image"][3]["#text"],
+                        )
+                    )
+                img = await charts(
+                    self.session,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
+                )
 
-            elif arguments['method'] == "user.gettopartists":
+            elif arguments["method"] == "user.gettopartists":
                 chart_type = "top artist"
-                artists = data['topartists']['artist']
-                scraped_images = await self.scrape_artists_for_chart(username, arguments['period'], arguments['amount'])
+                artists = data["topartists"]["artist"]
+                scraped_images = await self.scrape_artists_for_chart(
+                    username, arguments["period"], arguments["amount"]
+                )
                 for i, artist in enumerate(artists):
-                    name = artist['name']
-                    plays = artist['playcount']
-                    chart.append((f"{plays} {format_plays(plays)}\n{name}", scraped_images[i]))
-                img = await charts(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+                    name = artist["name"]
+                    plays = artist["playcount"]
+                    chart.append(
+                        (f"{plays} {format_plays(plays)}\n{name}", scraped_images[i])
+                    )
+                img = await charts(
+                    self.session,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
+                )
 
-            elif arguments['method'] == "user.getrecenttracks":
+            elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
-                tracks = data['recenttracks']['track']
+                tracks = data["recenttracks"]["track"]
                 for track in tracks:
-                    name = track['name']
-                    artist = track['artist']['#text']
-                    chart.append((f"{name} - {artist}", track['image'][3]['#text']))
-                img = await track_chart(self.session, chart, arguments['width'], arguments['height'], self.data_loc)
+                    name = track["name"]
+                    artist = track["artist"]["#text"]
+                    chart.append((f"{name} - {artist}", track["image"][3]["#text"]))
+                img = await track_chart(
+                    self.session,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
+                )
         try:
             await ctx.send(
-                    f"`{username} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
-                    file=img
-                    )
+                f"`{username} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
+                file=img,
+            )
         except discord.HTTPException:
             await ctx.send("File is to big to send, try lowering the size.")
-
-        
 
     async def api_request(self, ctx, params):
         """Get json data from the lastfm api"""
@@ -1234,12 +1262,11 @@ class LastFM(commands.Cog):
     async def scrape_artists_for_chart(self, username, period, amount):
         tasks = []
         url = f"https://www.last.fm/user/{username}/library/artists"
-        for i in range(1, math.ceil(amount/50)+1):
-            params = {
-                'date_preset': period_http_format(period),
-                'page': i
-            }
-            task = asyncio.ensure_future(fetch(self.session, url, params, handling='text'))
+        for i in range(1, math.ceil(amount / 50) + 1):
+            params = {"date_preset": period_http_format(period), "page": i}
+            task = asyncio.ensure_future(
+                fetch(self.session, url, params, handling="text")
+            )
             tasks.append(task)
 
         responses = await asyncio.gather(*tasks)
@@ -1249,11 +1276,13 @@ class LastFM(commands.Cog):
             if len(images) >= amount:
                 break
             else:
-                soup = BeautifulSoup(data, 'html.parser')
+                soup = BeautifulSoup(data, "html.parser")
                 imagedivs = soup.findAll("td", {"class": "chartlist-image"})
-                images += [div.find("img")['src'].replace("/avatar70s/", "/300x300/") for div in imagedivs]
+                images += [
+                    div.find("img")["src"].replace("/avatar70s/", "/300x300/")
+                    for div in imagedivs
+                ]
         return images
-
 
 
 def format_plays(amount):
@@ -1386,4 +1415,3 @@ def period_http_format(period):
         "overall": "ALL",
     }
     return period_format_map.get(period)
-

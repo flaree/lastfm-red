@@ -1,11 +1,15 @@
-import aiohttp
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import discord
 
 
+NO_IMAGE_PLACEHOLDER = (
+    "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
+)
+
+
 async def get_img(session, url):
-    async with session.get(url) as resp:
+    async with session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
         img = await resp.read()
         return img
 
@@ -47,10 +51,7 @@ async def track_chart(session, data, w, h, loc):
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
     for item in data[: w * h]:
-        try:
-            r = await get_img(session, item[1])
-        except:
-            print(item[1])
+        r = await get_img(session, item[1])
         img = BytesIO(r)
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
