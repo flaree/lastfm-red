@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import discord
+from redbot.core.utils import AsyncIter
 
 
 NO_IMAGE_PLACEHOLDER = (
@@ -10,15 +11,19 @@ NO_IMAGE_PLACEHOLDER = (
 
 async def get_img(session, url):
     async with session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
-        img = await resp.read()
-        return img
+        if resp.status == 200:
+            img = await resp.read()
+            return img
+        async with session.get(NO_IMAGE_PLACEHOLDER) as resp:
+            img = await resp.read()
+            return img
 
 
 async def charts(session, data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    for item in data:
+    async for item in AsyncIter(data):
         r = await get_img(session, item[1])
         img = BytesIO(r)
         image = Image.open(img).convert("RGBA")
@@ -50,7 +55,7 @@ async def track_chart(session, data, w, h, loc):
     fnt_file = f"{loc}/fonts/HelveticaNeueLTStd-Md.otf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
-    for item in data:
+    async for item in AsyncIter(data):
         r = await get_img(session, item[1])
         img = BytesIO(r)
         image = Image.open(img).convert("RGBA")
@@ -88,9 +93,9 @@ async def create_graph(data, w, h):
     final = Image.new("RGBA", dimensions)
     images = chunks(data, w)
     y = 0
-    for chunked in images:
+    async for chunked in AsyncIter(images):
         x = 0
-        for img in chunked:
+        async for img in AsyncIter(chunked):
             new = Image.open(img)
             w, h = new.size
             final.paste(new, (x, y, x + w, y + h))

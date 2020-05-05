@@ -2,12 +2,12 @@ import asyncio
 import math
 import re
 import urllib.parse
-from io import BytesIO
+from contextlib import suppress
 from copy import deepcopy
 from datetime import datetime
+from io import BytesIO
 from operator import itemgetter
 from typing import Optional
-from contextlib import suppress
 
 import aiohttp
 import discord
@@ -15,11 +15,12 @@ import humanize
 import tabulate
 from bs4 import BeautifulSoup
 from redbot.core import Config, commands
+from redbot.core.data_manager import bundled_data_path
+from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-from redbot.core.data_manager import bundled_data_path
 
-from .charts import track_chart, charts
+from .charts import charts, track_chart
 
 with suppress(Exception):
     from wordcloud import WordCloud
@@ -924,7 +925,7 @@ class LastFM(commands.Cog):
             if arguments["method"] == "user.gettopalbums":
                 chart_type = "top album"
                 albums = data["topalbums"]["album"]
-                for album in albums[:arguments["width"] * arguments["height"]]:
+                async for album in AsyncIter(albums[:arguments["width"] * arguments["height"]]):
                     name = album["name"]
                     artist = album["artist"]["name"]
                     plays = album["playcount"]
@@ -948,7 +949,8 @@ class LastFM(commands.Cog):
                 scraped_images = await self.scrape_artists_for_chart(
                     username, arguments["period"], arguments["amount"]
                 )
-                for i, artist in enumerate(artists[:arguments["width"] * arguments["height"]]):
+                iterator = AsyncIter(artists[:arguments["width"] * arguments["height"]])
+                async for i, artist in iterator.enumerate():
                     name = artist["name"]
                     plays = artist["playcount"]
                     chart.append(
@@ -965,7 +967,7 @@ class LastFM(commands.Cog):
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
-                for track in tracks[:arguments["width"] * arguments["height"]]:
+                async for track in AsyncIter(tracks[:arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]
                     chart.append((f"{name} - {artist}", track["image"][3]["#text"]))
