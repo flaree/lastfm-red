@@ -902,6 +902,7 @@ class LastFM(commands.Cog):
                 return img
 
     @fm.command(usage="[album | artist | recent] [timeframe] [width]x[height]")
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""
         username = await self.config.user(ctx.author).lastfm_username()
@@ -912,7 +913,7 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if arguments["width"] + arguments["height"] > 31: # TODO: Figure out a reasonable value.
+        if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
