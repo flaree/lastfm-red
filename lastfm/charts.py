@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from io import BytesIO
 import discord
 
@@ -88,6 +88,9 @@ def create_graph(data, w, h):
             final.paste(new, (x, y, x + w, y + h))
             x += 300
         y += 300
+    w, h = final.size
+    if w > 2100 and h > 2100:
+        final = ImageOps.fit(final, (2100, 2100), Image.ANTIALIAS) # Resize cause a 6x6k image is blocking when being sent
     file = BytesIO()
     final.save(file, "webp")
     file.name = f"chart.webp"
