@@ -90,7 +90,9 @@ def create_graph(data, w, h):
         y += 300
     w, h = final.size
     if w > 2100 and h > 2100:
-        final = ImageOps.fit(final, (2100, 2100), Image.ANTIALIAS) # Resize cause a 6x6k image is blocking when being sent
+        final = ImageOps.fit(
+            final, (2100, 2100), Image.ANTIALIAS
+        )  # Resize cause a 6x6k image is blocking when being sent
     file = BytesIO()
     final.save(file, "webp")
     file.name = f"chart.webp"

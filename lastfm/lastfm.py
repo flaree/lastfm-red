@@ -913,7 +913,9 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
+        if (
+            arguments["width"] + arguments["height"] > 31
+        ):  # TODO: Figure out a reasonable value.
             return await ctx.send(
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
@@ -936,7 +938,9 @@ class LastFM(commands.Cog):
             if arguments["method"] == "user.gettopalbums":
                 chart_type = "top album"
                 albums = data["topalbums"]["album"]
-                async for album in AsyncIter(albums[:arguments["width"] * arguments["height"]]):
+                async for album in AsyncIter(
+                    albums[: arguments["width"] * arguments["height"]]
+                ):
                     name = album["name"]
                     artist = album["artist"]["name"]
                     plays = album["playcount"]
@@ -961,12 +965,17 @@ class LastFM(commands.Cog):
                 scraped_images = await self.scrape_artists_for_chart(
                     username, arguments["period"], arguments["amount"]
                 )
-                iterator = AsyncIter(artists[:arguments["width"] * arguments["height"]])
+                iterator = AsyncIter(
+                    artists[: arguments["width"] * arguments["height"]]
+                )
                 async for i, artist in iterator.enumerate():
                     name = artist["name"]
                     plays = artist["playcount"]
                     chart.append(
-                        (f"{plays} {format_plays(plays)}\n{name}", await self.get_img(scraped_images[i]))
+                        (
+                            f"{plays} {format_plays(plays)}\n{name}",
+                            await self.get_img(scraped_images[i]),
+                        )
                     )
                 img = await self.bot.loop.run_in_executor(
                     None,
@@ -980,10 +989,17 @@ class LastFM(commands.Cog):
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
-                async for track in AsyncIter(tracks[:arguments["width"] * arguments["height"]]):
+                async for track in AsyncIter(
+                    tracks[: arguments["width"] * arguments["height"]]
+                ):
                     name = track["name"]
                     artist = track["artist"]["#text"]
-                    chart.append((f"{name} - {artist}", await self.get_img(track["image"][3]["#text"])))
+                    chart.append(
+                        (
+                            f"{name} - {artist}",
+                            await self.get_img(track["image"][3]["#text"]),
+                        )
+                    )
                 img = await self.bot.loop.run_in_executor(
                     None,
                     track_chart,
