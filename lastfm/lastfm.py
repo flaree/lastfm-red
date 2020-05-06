@@ -916,6 +916,7 @@ class LastFM(commands.Cog):
             return await ctx.send(
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
+        msg = await ctx.send("Gathering images and data, this may take some time.")
         try:
             data = await self.api_request(
                 ctx,
@@ -990,6 +991,7 @@ class LastFM(commands.Cog):
                     arguments["height"],
                     self.data_loc,
                 )
+        await msg.delete()
         try:
             await ctx.send(
                 f"`{username} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
