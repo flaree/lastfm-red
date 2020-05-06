@@ -112,7 +112,7 @@ class LastFM(commands.Cog):
             "1. Vist the [LastFM](https://www.last.fm/api/) site and click on 'Get an API Account'.\n"
             "2. Fill in the application. Once completed do not exit the page. - "
             "Copy all information on the page and save it.\n"
-            f"3. Enter the key via `{ctx.prefix}set api lastfm appid <appid_here>`"
+            f"3. Enter the key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`"
         )
         await ctx.maybe_send_embed(message)
 
@@ -163,7 +163,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         try:
@@ -307,7 +307,7 @@ class LastFM(commands.Cog):
             if name is None:
                 return await ctx.send(
                     "You do not have a LastFM account set. Please set one with {}fm set".format(
-                        ctx.prefix
+                        ctx.clean_prefix
                     )
                 )
             try:
@@ -476,7 +476,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         async with ctx.typing():
@@ -530,7 +530,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         arguments = parse_arguments(args)
@@ -587,7 +587,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         async with ctx.typing():
@@ -660,7 +660,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         async with ctx.typing():
@@ -710,7 +710,7 @@ class LastFM(commands.Cog):
         if name is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         period = get_period(timeframe)
@@ -823,7 +823,7 @@ class LastFM(commands.Cog):
             if name is None:
                 return await ctx.send(
                     "You do not have a LastFM account set. Please set one with {}fm set".format(
-                        ctx.prefix
+                        ctx.clean_prefix
                     )
                 )
             try:
@@ -908,7 +908,7 @@ class LastFM(commands.Cog):
         if username is None:
             return await ctx.send(
                 "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.prefix
+                    ctx.clean_prefix
                 )
             )
         arguments = parse_chart_arguments(args)
