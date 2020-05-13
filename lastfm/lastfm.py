@@ -432,7 +432,7 @@ class LastFM(commands.Cog):
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
             )
-            tracks = data["topartists"]["track"]
+            tracks = data["toptracks"]["track"]
             if not tracks:
                 return await ctx.send(f"{name} has not listened to any tracks yet!")
             data = {a["name"]: int(a["playcount"]) for a in tracks}
