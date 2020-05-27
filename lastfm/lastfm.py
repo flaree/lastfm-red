@@ -1266,6 +1266,8 @@ class LastFM(commands.Cog):
         ) as resp:
             if resp.status == 200:
                 result = await resp.text()
+            else:
+                return None, None
         soup = BeautifulSoup(result, "html.parser")
         songurl = soup.find("a", {"class": "title"})
         if songurl is None:
