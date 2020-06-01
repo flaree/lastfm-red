@@ -326,6 +326,7 @@ class LastFM(commands.Cog):
                 album = tracks[0]["album"]["#text"]
                 track = tracks[0]["name"]
                 image_url = tracks[0]["image"][-1]["#text"]
+                url = tracks[0]["url"]
                 # image_url_small = tracks[0]['image'][1]['#text']
                 # image_colour = await color_from_image_url(image_url_small)
             except KeyError:
@@ -333,8 +334,9 @@ class LastFM(commands.Cog):
                 album = tracks["album"]["#text"]
                 track = tracks["name"]
                 image_url = tracks["image"][-1]["#text"]
+                url = tracks["url"]
 
-            content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
+            content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel), url=url)
             # content.colour = int(image_colour, 16)
             content.description = f"**{escape(album, formatting=True)}**"
             content.title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
@@ -681,8 +683,9 @@ class LastFM(commands.Cog):
                 if i >= size:
                     break
                 name = escape(track["name"], formatting=True)
+                track_url = track["url"]
                 artist_name = escape(track["artist"]["#text"], formatting=True)
-                rows.append(f"**{artist_name}** — ***{name}***")
+                rows.append(f"[**{artist_name}** — ***{name}***]({track_url})")
 
             image_url = tracks[0]["image"][-1]["#text"]
             # image_url_small = tracks[0]['image'][1]['#text']
