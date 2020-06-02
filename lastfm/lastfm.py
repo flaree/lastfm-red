@@ -853,9 +853,9 @@ class LastFM(commands.Cog):
             # tags and playcount
             if "@attr" in tracks[0]:
                 if "nowplaying" in tracks[0]["@attr"]:
-                    results, songtitle = await self.lyrics_musixmatch(track)
+                    results, songtitle = await self.lyrics_musixmatch(f"{artist} {track}")
                     if results is None:
-                        return await ctx.send(f'No lyrics for "{track}" found.')
+                        return await ctx.send(f'No lyrics for "{artist} {track}" found.')
                     embeds = []
                     results = list(pagify(results, page_length=2048))
                     for i, page in enumerate(results, 1):
