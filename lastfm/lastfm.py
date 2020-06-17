@@ -105,7 +105,6 @@ class LastFM(commands.Cog):
             group = self.config._get_base_group(self.config.GUILD)
             async with group.all() as new_data:
                 for guild in a:
-                    print(a[guild])
                     new_data[guild] = a[guild]
             await self.config.version.set(2)
 
@@ -1151,9 +1150,7 @@ class LastFM(commands.Cog):
         content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
 
         crowns = await self.config.guild(ctx.guild).crowns()
-        print(crowns)
         crown_holder = crowns.get(artistname, None)
-        print(crown_holder)
         if crown_holder is None or crown_holder["user"] != ctx.author.id:
             crownstate = None
         else:
