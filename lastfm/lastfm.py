@@ -71,9 +71,7 @@ class LastFM(commands.Cog):
     # noinspection PyMissingConstructor
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(
-            self, identifier=95932766180343808, force_registration=True
-        )
+        self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         defaults = {"lastfm_username": None}
         self.config.register_global(version=1)
         self.config.register_user(**defaults)
@@ -87,17 +85,14 @@ class LastFM(commands.Cog):
         self.token = None
         self.wc = None
         if "WordCloud" in globals().keys():
-            self.wc = WordCloud(
-                width=1920, height=1080, mode="RGBA", background_color=None
-            )
+            self.wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
         self.data_loc = bundled_data_path(self)
 
     async def initialize(self):
         token = await self.bot.get_shared_api_tokens("lastfm")
         self.token = token.get("appid")
         await self.migrate_config()
-        
-    
+
     async def migrate_config(self):
         if await self.config.version() == 1:
             a = {}
@@ -147,23 +142,18 @@ class LastFM(commands.Cog):
         except LastFMError as e:
             return await ctx.send(str(e))
         if content is None:
-            return await ctx.send(
-                f"\N{WARNING SIGN} Invalid Last.fm username `{username}`"
-            )
+            return await ctx.send(f"\N{WARNING SIGN} Invalid Last.fm username `{username}`")
 
         await self.config.user(ctx.author).lastfm_username.set(username)
         await ctx.send(
-            f"{ctx.message.author.mention} Username saved as `{username}`",
-            embed=content,
+            f"{ctx.message.author.mention} Username saved as `{username}`", embed=content,
         )
 
     @fm.command()
     async def unset(self, ctx):
         """Unlink your last.fm."""
         await self.config.user(ctx.author).lastfm_username.set(None)
-        await ctx.send(
-            "\N{BROKEN HEART} Removed your last.fm username from the database"
-        )
+        await ctx.send("\N{BROKEN HEART} Removed your last.fm username from the database")
         async with self.config.guild(ctx.guild).crowns() as crowns:
             crownlist = []
             for crown in crowns:
@@ -207,17 +197,15 @@ class LastFM(commands.Cog):
                 if member is None:
                     continue
 
-                tasks.append(
-                    self.get_playcount(ctx, artistname, lastfm_username, member)
-                )
+                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
             if tasks:
                 try:
                     data = await asyncio.gather(*tasks)
                 except LastFMError as e:
                     return await ctx.send(str(e))
                 for playcount, user, name in data:
+                    artistname = name
                     if playcount > 0:
-                        artistname = name
                         listeners.append((playcount, user))
             else:
                 return await ctx.send(
@@ -241,15 +229,11 @@ class LastFM(commands.Cog):
                     play = playcount
                 else:
                     rank = f"`#{i:2}`"
-                rows.append(
-                    f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}"
-                )
+                rows.append(f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}")
                 total += playcount
 
             if not rows:
-                return await ctx.send(
-                    f"Nobody on this server has listened to **{artistname}**"
-                )
+                return await ctx.send(f"Nobody on this server has listened to **{artistname}**")
 
             content = discord.Embed(
                 title=f"Who knows **{artistname}**?",
@@ -257,8 +241,7 @@ class LastFM(commands.Cog):
             )
             image_url = await self.scrape_artist_image(artistname, ctx)
             content.set_thumbnail(url=image_url)
-            if len(listeners) > 1:
-                content.set_footer(text=f"Collective plays: {total}")
+            content.set_footer(text=f"Collective plays: {total}")
 
         pages = await create_pages(content, rows)
         if len(pages) > 1:
@@ -266,16 +249,12 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
         if old_king is None:
-            await ctx.send(
-                f"> **{new_king.name}** just earned the **{artistname}** crown."
-            )
+            await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
             async with self.config.guild(ctx.guild).crowns() as crowns:
                 crowns[artistname] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
             if not (old_king.id == new_king.id):
-                await ctx.send(
-                    f"> **{new_king.name}** just earned the **{artistname}** crown."
-                )
+                await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
             if old_king.id == new_king.id:
@@ -356,19 +335,16 @@ class LastFM(commands.Cog):
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel), url=url)
             # content.colour = int(image_colour, 16)
             content.description = f"**{escape(album, formatting=True)}**"
-            content.title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
+            content.title = (
+                f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
+            )
             content.set_thumbnail(url=image_url)
 
             # tags and playcount
             try:
                 trackdata = await self.api_request(
                     ctx,
-                    {
-                        "user": name,
-                        "method": "track.getInfo",
-                        "artist": artist,
-                        "track": track,
-                    },
+                    {"user": name, "method": "track.getInfo", "artist": artist, "track": track,},
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -378,9 +354,7 @@ class LastFM(commands.Cog):
                     trackdata = trackdata["track"]
                     playcount = int(trackdata["userplaycount"])
                     if playcount > 0:
-                        content.description += (
-                            f"\n> {playcount} {format_plays(playcount)}"
-                        )
+                        content.description += f"\n> {playcount} {format_plays(playcount)}"
                     for tag in trackdata["toptags"]["tag"]:
                         tags.append(tag["name"])
                     content.set_footer(text=", ".join(tags))
@@ -399,8 +373,7 @@ class LastFM(commands.Cog):
                         state = "— Now Playing"
 
             content.set_author(
-                name=f"{user_attr['user']} {state}",
-                icon_url=ctx.message.author.avatar_url,
+                name=f"{user_attr['user']} {state}", icon_url=ctx.message.author.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."
@@ -431,9 +404,7 @@ class LastFM(commands.Cog):
             if not artists:
                 return await ctx.send(f"{name} has not listened to any artists yet!")
             data = {a["name"]: int(a["playcount"]) for a in artists}
-            wc = await self.bot.loop.run_in_executor(
-                None, self.wc.generate_from_frequencies, data
-            )
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
             pic = BytesIO()
             pic.name = f"{name}_artists.png"
             wc.to_file(pic)
@@ -455,9 +426,7 @@ class LastFM(commands.Cog):
             if not tracks:
                 return await ctx.send(f"{name} has not listened to any tracks yet!")
             data = {a["name"]: int(a["playcount"]) for a in tracks}
-            wc = await self.bot.loop.run_in_executor(
-                None, self.wc.generate_from_frequencies, data
-            )
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
             pic = BytesIO()
             pic.name = f"{name}_tracks.png"
             wc.to_file(pic)
@@ -479,9 +448,7 @@ class LastFM(commands.Cog):
             if not albums:
                 return await ctx.send(f"{name} has not listened to any albums yet!")
             data = {a["name"]: int(a["playcount"]) for a in albums}
-            wc = await self.bot.loop.run_in_executor(
-                None, self.wc.generate_from_frequencies, data
-            )
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
             pic = BytesIO()
             pic.name = f"{name}_albums.png"
             wc.to_file(pic)
@@ -651,6 +618,8 @@ class LastFM(commands.Cog):
                 return await ctx.send(str(e))
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             try:
+                if trackdata is None:
+                    raise KeyError
                 image_url = trackdata["track"]["album"]["image"][-1]["#text"]
                 # image_url_small = trackdata['track']['album']['image'][1]['#text']
                 # image_colour = await color_from_image_url(image_url_small)
@@ -743,9 +712,9 @@ class LastFM(commands.Cog):
             return await ctx.send("Missing artist name!")
 
         if datatype in ["toptracks", "tt", "tracks", "track"]:
-            datatype = 'tracks'
+            datatype = "tracks"
         elif datatype in ["topalbums", "talb", "albums", "album"]:
-            datatype = 'albums'
+            datatype = "albums"
         elif datatype in ["overview", "stats", "ov"]:
             return await self.artist_overview(ctx, period, artistname, name)
         else:
@@ -766,10 +735,11 @@ class LastFM(commands.Cog):
 
         content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
         content.set_author(
-            name=f"{ctx.author.name} — " + (f"{humanized_period(period)} " if period != 'overall' else '') + \
-                 f"Top 50 {datatype} for {artist['formatted_name']}",
+            name=f"{ctx.author.name} — "
+            + (f"{humanized_period(period)} " if period != "overall" else "")
+            + f"Top 50 {datatype} for {artist['formatted_name']}",
             icon_url=ctx.author.avatar_url,
-            url=f"https://last.fm/user/{name}/library/music/{urllib.parse.quote_plus(artistname)}/+{datatype}?date_preset={period_http_format(period)}"
+            url=f"https://last.fm/user/{name}/library/music/{urllib.parse.quote_plus(artistname)}/+{datatype}?date_preset={period_http_format(period)}",
         )
         content.set_thumbnail(url=artist["image_url"])
         # content.colour = int(image_colour, 16)
@@ -779,27 +749,38 @@ class LastFM(commands.Cog):
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
-            
+
     async def artist_top(self, ctx, period, artistname, datatype, name):
         """Scrape either top tracks or top albums from lastfm library page."""
-        url = f"https://last.fm/user/{name}/library/music/{artistname}/+{datatype}?date_preset={period_http_format(period)}"
-        data = await fetch(ctx, self.session, url, handling='text')
-        soup = BeautifulSoup(data, 'html.parser')
+        url = (
+            f"https://last.fm/user/{name}/library/music/{artistname}/"
+            f"+{datatype}?date_preset={period_http_format(period)}"
+        )
+        data = await fetch(ctx, self.session, url, handling="text")
+        soup = BeautifulSoup(data, "html.parser")
         data = []
         try:
             chartlist = soup.find("tbody", {"data-playlisting-add-entries": ""})
         except ValueError:
             return None, []
-        
+
         artist = {
-            'image_url': soup.find("span", {"class": "library-header-image"}).find('img').get('src').replace("avatar70s", "avatar300s"),
-            'formatted_name': soup.find("a", {"class": "library-header-crumb"}).text.strip()
+            "image_url": soup.find("span", {"class": "library-header-image"})
+            .find("img")
+            .get("src")
+            .replace("avatar70s", "avatar300s"),
+            "formatted_name": soup.find("a", {"class": "library-header-crumb"}).text.strip(),
         }
 
         items = chartlist.findAll("tr", {"class": "chartlist-row"})
         for item in items:
-            name = item.find("td", {"class": "chartlist-name"}).find("a").get('title')
-            playcount = item.find("span", {"class": "chartlist-count-bar-value"}).text.replace('scrobbles', '').replace("scrobble", "").strip()
+            name = item.find("td", {"class": "chartlist-name"}).find("a").get("title")
+            playcount = (
+                item.find("span", {"class": "chartlist-count-bar-value"})
+                .text.replace("scrobbles", "")
+                .replace("scrobble", "")
+                .strip()
+            )
             data.append((name, int(playcount.replace(",", ""))))
 
         return artist, data
@@ -834,7 +815,9 @@ class LastFM(commands.Cog):
 
             # content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             # content.colour = int(image_colour, 16)
-            title = f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
+            title = (
+                f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
+            )
 
             # tags and playcount
             if "@attr" in tracks[0]:
@@ -902,9 +885,7 @@ class LastFM(commands.Cog):
                 )
             )
         arguments = parse_chart_arguments(args)
-        if (
-            arguments["width"] + arguments["height"] > 31
-        ):  # TODO: Figure out a reasonable value.
+        if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
@@ -927,9 +908,7 @@ class LastFM(commands.Cog):
             if arguments["method"] == "user.gettopalbums":
                 chart_type = "top album"
                 albums = data["topalbums"]["album"]
-                async for album in AsyncIter(
-                    albums[: arguments["width"] * arguments["height"]]
-                ):
+                async for album in AsyncIter(albums[: arguments["width"] * arguments["height"]]):
                     name = album["name"]
                     artist = album["artist"]["name"]
                     plays = album["playcount"]
@@ -940,12 +919,7 @@ class LastFM(commands.Cog):
                         )
                     )
                 img = await self.bot.loop.run_in_executor(
-                    None,
-                    charts,
-                    chart,
-                    arguments["width"],
-                    arguments["height"],
-                    self.data_loc,
+                    None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
                 )
 
             elif arguments["method"] == "user.gettopartists":
@@ -954,9 +928,7 @@ class LastFM(commands.Cog):
                 scraped_images = await self.scrape_artists_for_chart(
                     username, arguments["period"], arguments["amount"]
                 )
-                iterator = AsyncIter(
-                    artists[: arguments["width"] * arguments["height"]]
-                )
+                iterator = AsyncIter(artists[: arguments["width"] * arguments["height"]])
                 async for i, artist in iterator.enumerate():
                     name = artist["name"]
                     plays = artist["playcount"]
@@ -967,27 +939,17 @@ class LastFM(commands.Cog):
                         )
                     )
                 img = await self.bot.loop.run_in_executor(
-                    None,
-                    charts,
-                    chart,
-                    arguments["width"],
-                    arguments["height"],
-                    self.data_loc,
+                    None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
                 )
 
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
-                async for track in AsyncIter(
-                    tracks[: arguments["width"] * arguments["height"]]
-                ):
+                async for track in AsyncIter(tracks[: arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]
                     chart.append(
-                        (
-                            f"{name} - {artist}",
-                            await self.get_img(track["image"][3]["#text"]),
-                        )
+                        (f"{name} - {artist}", await self.get_img(track["image"][3]["#text"]),)
                     )
                 img = await self.bot.loop.run_in_executor(
                     None,
@@ -1017,9 +979,7 @@ class LastFM(commands.Cog):
                     content = await response.json()
                     if response.status == 200:
                         return content
-                    raise LastFMError(
-                        f"Error {content.get('error')} : {content.get('message')}"
-                    )
+                    raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
 
                 except aiohttp.ContentTypeError:
                     return None
@@ -1034,11 +994,7 @@ class LastFM(commands.Cog):
         image = soup.find("img", {"class": "image-list-image"})
         if image is None:
             try:
-                image = (
-                    soup.find("li", {"class": "image-list-item-wrapper"})
-                    .find("a")
-                    .find("img")
-                )
+                image = soup.find("li", {"class": "image-list-item-wrapper"}).find("a").find("img")
             except AttributeError:
                 return ""
         return image["src"].replace("/avatar170s/", "/300x300/") if image else ""
@@ -1056,9 +1012,7 @@ class LastFM(commands.Cog):
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
             params = {"date_preset": period_format_map[period], "page": i}
-            task = asyncio.ensure_future(
-                fetch(self.session, url, params, handling="text")
-            )
+            task = asyncio.ensure_future(fetch(self.session, url, params, handling="text"))
             tasks.append(task)
 
         responses = await asyncio.gather(*tasks)
@@ -1071,8 +1025,7 @@ class LastFM(commands.Cog):
                 soup = BeautifulSoup(data, "html.parser")
                 imagedivs = soup.findAll("td", {"class": "chartlist-image"})
                 images += [
-                    div.find("img")["src"].replace("/avatar70s/", "/300x300/")
-                    for div in imagedivs
+                    div.find("img")["src"].replace("/avatar70s/", "/300x300/") for div in imagedivs
                 ]
 
         return images
@@ -1082,14 +1035,10 @@ class LastFM(commands.Cog):
         url = f"https://last.fm/music/{artistname}"
         data = await fetch(ctx, self.session, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
-        for artist in soup.findAll(
-            "h3", {"class": "artist-similar-artists-sidebar-item-name"}
-        ):
+        for artist in soup.findAll("h3", {"class": "artist-similar-artists-sidebar-item-name"}):
             similar.append(artist.find("a").text)
         listeners = (
-            soup.find("li", {"class": "header-metadata-tnew-item--listeners"})
-            .find("abbr")
-            .text
+            soup.find("li", {"class": "header-metadata-tnew-item--listeners"}).find("abbr").text
         )
         return similar, listeners
 
@@ -1098,13 +1047,14 @@ class LastFM(commands.Cog):
         albums = []
         tracks = []
         metadata = [None, None, None]
-        url = f"https://last.fm/user/{fmname}/library/music/{artistname}?date_preset={period_http_format(period)}"
+        url = (
+            f"https://last.fm/user/{fmname}/library/music/{artistname}"
+            f"?date_preset={period_http_format(period)}"
+        )
         data = await fetch(ctx, self.session, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
         try:
-            albumsdiv, tracksdiv, _ = soup.findAll(
-                "tbody", {"data-playlisting-add-entries": ""}
-            )
+            albumsdiv, tracksdiv, _ = soup.findAll("tbody", {"data-playlisting-add-entries": ""})
         except ValueError:
             if period == "overall":
                 return await ctx.send(f"You have never listened to **{artistname}**!")
@@ -1115,9 +1065,7 @@ class LastFM(commands.Cog):
         for container, destination in zip([albumsdiv, tracksdiv], [albums, tracks]):
             items = container.findAll("tr", {"class": "chartlist-row"})
             for item in items:
-                name = (
-                    item.find("td", {"class": "chartlist-name"}).find("a").get("title")
-                )
+                name = item.find("td", {"class": "chartlist-name"}).find("a").get("title")
                 playcount = (
                     item.find("span", {"class": "chartlist-count-bar-value"})
                     .text.replace("scrobbles", "")
@@ -1133,23 +1081,26 @@ class LastFM(commands.Cog):
             metadata[i] = int(metadata_item.text.replace(",", ""))
 
         artist = {
-            'image_url': soup.find("span", {"class": "library-header-image"}).find('img').get('src').replace("avatar70s", "avatar300s"),
-            'formatted_name': soup.find("h2", {"class": "library-header-title"}).text.strip()
+            "image_url": soup.find("span", {"class": "library-header-image"})
+            .find("img")
+            .get("src")
+            .replace("avatar70s", "avatar300s"),
+            "formatted_name": soup.find("h2", {"class": "library-header-title"}).text.strip(),
         }
 
         content = discord.Embed()
         content.set_thumbnail(url=artist["image_url"])
         # content.colour = int(image_colour, 16)
         content.set_author(
-            name=f"{ctx.author.name} — {artist['formatted_name']} " + (f"{humanized_period(period)} " if period != 'overall' else '') + "Overview",
+            name=f"{ctx.author.name} — {artist['formatted_name']} "
+            + (f"{humanized_period(period)} " if period != "overall" else "")
+            + "Overview",
             icon_url=ctx.author.avatar_url,
-            url=f"https://last.fm/user/{fmname}/library/music/{urllib.parse.quote_plus(artistname)}?date_preset={period_http_format(period)}"
+            url=f"https://last.fm/user/{fmname}/library/music/{urllib.parse.quote_plus(artistname)}?date_preset={period_http_format(period)}",
         )
-        similar, listeners = await self.get_similar_artists(artist['formatted_name'], ctx)
+        similar, listeners = await self.get_similar_artists(artist["formatted_name"], ctx)
 
-        content.set_footer(
-            text=f"{listeners} Listeners | Similar to: {', '.join(similar)}"
-        )
+        content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
 
         crowns = await self.config.guild(ctx.guild).crowns()
         print(crowns)
@@ -1165,9 +1116,7 @@ class LastFM(commands.Cog):
         else:
             stats = [[str(metadata[0]), str(metadata[1]), str(metadata[2])]]
             headers = ["Scrobbles", "Albums", "Tracks"]
-        content.description = box(
-            tabulate.tabulate(stats, headers=headers), lang="prolog"
-        )
+        content.description = box(tabulate.tabulate(stats, headers=headers), lang="prolog")
 
         content.add_field(
             name="Top albums",
@@ -1196,15 +1145,11 @@ class LastFM(commands.Cog):
         playcount = data["user"]["playcount"]
         profile_url = data["user"]["url"]
         profile_pic_url = data["user"]["image"][3]["#text"]
-        timestamp = datetime.utcfromtimestamp(
-            int(data["user"]["registered"]["unixtime"])
-        )
+        timestamp = datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
         # image_colour = await color_from_image_url(profile_pic_url)
 
         content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
-        content.add_field(
-            name="Last.fm profile", value=f"[Link]({profile_url})", inline=True
-        )
+        content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
         content.add_field(
             name="Registered",
             value=f"{humanize.naturaltime(timestamp)}\n{timestamp.strftime('%d.%m.%Y')}",
@@ -1217,12 +1162,7 @@ class LastFM(commands.Cog):
     async def get_playcount(self, ctx, artist, username, reference=None):
         data = await self.api_request(
             ctx,
-            {
-                "method": "artist.getinfo",
-                "user": username,
-                "artist": artist,
-                "autocorrect": 1,
-            },
+            {"method": "artist.getinfo", "user": username, "artist": artist, "autocorrect": 1,},
         )
         try:
             count = int(data["artist"]["stats"]["userplaycount"])
@@ -1278,9 +1218,7 @@ class LastFM(commands.Cog):
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
             params = {"date_preset": period_http_format(period), "page": i}
-            task = asyncio.ensure_future(
-                fetch(self.session, url, params, handling="text")
-            )
+            task = asyncio.ensure_future(fetch(self.session, url, params, handling="text"))
             tasks.append(task)
 
         responses = await asyncio.gather(*tasks)
@@ -1293,8 +1231,7 @@ class LastFM(commands.Cog):
                 soup = BeautifulSoup(data, "html.parser")
                 imagedivs = soup.findAll("td", {"class": "chartlist-image"})
                 images += [
-                    div.find("img")["src"].replace("/avatar70s/", "/300x300/")
-                    for div in imagedivs
+                    div.find("img")["src"].replace("/avatar70s/", "/300x300/") for div in imagedivs
                 ]
         return images
 
