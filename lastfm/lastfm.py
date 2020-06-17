@@ -381,6 +381,53 @@ class LastFM(commands.Cog):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
+    @fm.command(aliases=["snp"])
+    async def servernp(self, ctx):
+        """What people on this server are listening to at the moment."""
+        listeners = []
+        tasks = []
+        userlist = await self.config.all_users()
+        guildusers = [x.id for x in ctx.guild.members]
+        userslist = [user for user in userlist if user in guildusers]
+        for user in userslist:
+            lastfm_username = userlist[user]["lastfm_username"]
+            if lastfm_username is None:
+                continue
+            member = ctx.guild.get_member(user)
+            if member is None:
+                continue
+
+            tasks.append(self.get_np(ctx, lastfm_username, member))
+
+        total_linked = len(tasks)
+        if tasks:
+            data = await asyncio.gather(*tasks)
+            for song, member_ref in data:
+                if song is not None:
+                    listeners.append((song, member_ref))
+        else:
+            return await ctx.send("Nobody on this server has connected their last.fm account yet!")
+
+        if not listeners:
+            return await ctx.send("Nobody on this server is listening to anything at the moment!")
+
+        total_listening = len(listeners)
+        rows = []
+        for song, member in listeners:
+            rows.append(f"{member.mention} **{song.get('artist')}** — ***{song.get('name')}***")
+
+        content = discord.Embed()
+        content.set_author(
+            name=f"What is {ctx.guild.name} listening to?",
+            icon_url=ctx.guild.icon_url_as(size=64),
+        )
+        content.set_footer(text=f"{total_listening} / {total_linked} Members")
+        pages = await create_pages(content, rows)
+        if len(pages) > 1:
+            await menu(ctx, pages, DEFAULT_CONTROLS)
+        else:
+            await ctx.send(embed=pages[0])
+
     @fm.group(aliases=["cloud", "wc"])
     @commands.check(wordcloud_available)
     async def wordcloud(self, ctx):
@@ -1234,6 +1281,23 @@ class LastFM(commands.Cog):
                     div.find("img")["src"].replace("/avatar70s/", "/300x300/") for div in imagedivs
                 ]
         return images
+
+    async def get_np(self, ctx, username, ref):
+        data = await self.api_request(
+            ctx, {"method": "user.getrecenttracks", "user": username, "limit": 1},
+        )
+        song = None
+        if data is not None:
+            tracks = data["recenttracks"]["track"]
+            if tracks:
+                if "@attr" in tracks[0]:
+                    if "nowplaying" in tracks[0]["@attr"]:
+                        song = {
+                            "artist": tracks[0]["artist"]["#text"],
+                            "name": tracks[0]["name"],
+                        }
+
+        return song, ref
 
 
 def format_plays(amount):
