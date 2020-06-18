@@ -1,34 +1,29 @@
 import asyncio
-import math
-import re
 import urllib.parse
+from abc import ABC
 from contextlib import suppress
-from copy import deepcopy
-from datetime import datetime
 from io import BytesIO
 from operator import itemgetter
 from typing import Optional
 
 import aiohttp
 import discord
-import humanize
-import tabulate
-from bs4 import BeautifulSoup
 from redbot.core import Config, commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import box, escape, pagify
+from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-from .charts import charts, track_chart, NO_IMAGE_PLACEHOLDER
+from .charts import charts, track_chart
 from .utils import *
+from .whoknows import WhoKnowsMixin
 
 with suppress(Exception):
     from wordcloud import WordCloud
 
 
-class LastFMError(Exception):
-    pass
+async def wordcloud_available(ctx):
+    return "WordCloud" in globals().keys()
 
 
 async def tokencheck(ctx):
@@ -36,39 +31,14 @@ async def tokencheck(ctx):
     return bool(token.get("appid"))
 
 
-async def wordcloud_available(ctx):
-    return "WordCloud" in globals().keys()
+class CompositeMetaClass(type(commands.Cog), type(ABC)):
+    """This allows the metaclass used for proper type detection to coexist with discord.py's
+    metaclass."""
 
 
-async def create_pages(content, rows, maxrows=15, maxpages=10):
-    pages = []
-    content.description = ""
-    thisrow = 0
-    rowcount = len(rows)
-    for row in rows:
-        thisrow += 1
-        if len(content.description) + len(row) < 2000 and thisrow < maxrows + 1:
-            content.description += f"\n{row}"
-            rowcount -= 1
-        else:
-            thisrow = 1
-            if len(pages) == maxpages - 1:
-                content.description += f"\n*+ {rowcount} more entries...*"
-                pages.append(content)
-                content = None
-                break
-
-            pages.append(content)
-            content = deepcopy(content)
-            content.description = f"{row}"
-            rowcount -= 1
-    if content is not None and not content.description == "":
-        pages.append(content)
-
-    return pages
-
-
-class LastFM(commands.Cog):
+class LastFM(
+    UtilsMixin, WhoKnowsMixin, commands.Cog, metaclass=CompositeMetaClass,
+):
     # noinspection PyMissingConstructor
     def __init__(self, bot):
         self.bot = bot
@@ -132,7 +102,6 @@ class LastFM(commands.Cog):
     @commands.group(case_insensitive=True)
     async def fm(self, ctx):
         """Last.fm commands"""
-        pass
 
     @fm.command()
     async def set(self, ctx, username):
@@ -178,123 +147,7 @@ class LastFM(commands.Cog):
         except LastFMError as e:
             return await ctx.send(str(e))
 
-    @commands.command(usage="<artist name>")
-    @commands.guild_only()
-    @commands.cooldown(2, 10, type=commands.BucketType.user)
-    async def whoknows(self, ctx, *, artistname):
-        """Check who has listened to a given artist the most."""
-        listeners = []
-        tasks = []
-        async with ctx.typing():
-            userlist = await self.config.all_users()
-            guildusers = [x.id for x in ctx.guild.members]
-            userslist = [user for user in userlist if user in guildusers]
-            for user in userslist:
-                lastfm_username = userlist[user]["lastfm_username"]
-                if lastfm_username is None:
-                    continue
-                member = ctx.guild.get_member(user)
-                if member is None:
-                    continue
-
-                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
-            if tasks:
-                try:
-                    data = await asyncio.gather(*tasks)
-                except LastFMError as e:
-                    return await ctx.send(str(e))
-                for playcount, user, name in data:
-                    artistname = name
-                    if playcount > 0:
-                        listeners.append((playcount, user))
-            else:
-                return await ctx.send(
-                    "Nobody on this server has connected their last.fm account yet!"
-                )
-            rows = []
-            total = 0
-            for i, (playcount, user) in enumerate(
-                sorted(listeners, key=lambda p: p[0], reverse=True), start=1
-            ):
-                if i == 1:
-                    rank = "\N{CROWN}"
-                    old_kingdata = await self.config.guild(ctx.guild).crowns()
-                    old_kingartist = old_kingdata.get(artistname)
-                    if old_kingartist is not None:
-                        old_king = old_kingartist["user"]
-                        old_king = ctx.guild.get_member(old_king)
-                    else:
-                        old_king = None
-                    new_king = user
-                    play = playcount
-                else:
-                    rank = f"`#{i:2}`"
-                rows.append(f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}")
-                total += playcount
-
-            if not rows:
-                return await ctx.send(f"Nobody on this server has listened to **{artistname}**")
-
-            content = discord.Embed(
-                title=f"Who knows **{artistname}**?",
-                color=await self.bot.get_embed_color(ctx.channel),
-            )
-            image_url = await self.scrape_artist_image(artistname, ctx)
-            content.set_thumbnail(url=image_url)
-            content.set_footer(text=f"Collective plays: {total}")
-
-        pages = await create_pages(content, rows)
-        if len(pages) > 1:
-            await menu(ctx, pages, DEFAULT_CONTROLS)
-        else:
-            await ctx.send(embed=pages[0])
-        if old_king is None:
-            await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
-            async with self.config.guild(ctx.guild).crowns() as crowns:
-                crowns[artistname] = {"user": new_king.id, "playcount": play}
-        if isinstance(old_king, discord.Member):
-            if not (old_king.id == new_king.id):
-                await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
-                async with self.config.guild(ctx.guild).crowns() as crowns:
-                    crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
-            if old_king.id == new_king.id:
-                async with self.config.guild(ctx.guild).crowns() as crowns:
-                    crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
-
-    @commands.command()
-    @commands.guild_only()
-    async def crowns(self, ctx, user: discord.Member = None):
-        """Check yourself or another users crowns."""
-        user = user or ctx.author
-        crowns = await self.config.guild(ctx.guild).crowns()
-        crownartists = []
-        for key in crowns:
-            if crowns[key]["user"] == user.id:
-                crownartists.append((key, crowns[key]["playcount"]))
-        if crownartists is None:
-            return await ctx.send(
-                "You haven't acquired any crowns yet! "
-                f"Use the `{ctx.clean_prefix}whoknows` command to claim crowns \N{CROWN}"
-            )
-
-        rows = []
-        for artist, playcount in sorted(crownartists, key=itemgetter(1), reverse=True):
-            rows.append(f"**{artist}** with **{playcount}** {format_plays(playcount)}")
-
-        content = discord.Embed(
-            title=f"Artist crowns for {user.name} — Total {len(crownartists)} crowns",
-            color=user.color,
-        )
-        content.set_footer(text="Playcounts are updated on the whoknows command.")
-        if not rows:
-            return await ctx.send("You do not have any crowns.")
-        pages = await create_pages(content, rows)
-        if len(pages) > 1:
-            await menu(ctx, pages, DEFAULT_CONTROLS)
-        else:
-            await ctx.send(embed=pages[0])
-
-    @fm.command(aliases=["np", "now"])
+    @commands.command(aliases=["np", "now"],)
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
@@ -428,79 +281,38 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.group(aliases=["cloud", "wc"])
-    @commands.check(wordcloud_available)
-    async def wordcloud(self, ctx):
-        """WordCloud Commands
-
-        Original idea: http://lastfm.dontdrinkandroot.net"""
-        pass
-
-    @wordcloud.command(aliases=["artist"])
-    async def artists(self, ctx, user: Optional[discord.Member] = None):
-        """Get a picture with the most listened to artists."""
-        author = user or ctx.author
-        async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
-            data = await self.api_request(
-                ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
+    @commands.command()
+    @commands.guild_only()
+    async def crowns(self, ctx, user: discord.Member = None):
+        """Check yourself or another users crowns."""
+        user = user or ctx.author
+        crowns = await self.config.guild(ctx.guild).crowns()
+        crownartists = []
+        for key in crowns:
+            if crowns[key]["user"] == user.id:
+                crownartists.append((key, crowns[key]["playcount"]))
+        if crownartists is None:
+            return await ctx.send(
+                "You haven't acquired any crowns yet! "
+                f"Use the `{ctx.clean_prefix}whoknows` command to claim crowns \N{CROWN}"
             )
-            artists = data["topartists"]["artist"]
-            if not artists:
-                return await ctx.send(f"{name} has not listened to any artists yet!")
-            data = {a["name"]: int(a["playcount"]) for a in artists}
-            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
-            pic = BytesIO()
-            pic.name = f"{name}_artists.png"
-            wc.to_file(pic)
-            pic.seek(0)
-            await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
 
-    @wordcloud.command()
-    async def tracks(self, ctx, user: Optional[discord.Member] = None):
-        """Get a picture with the most listened to tracks."""
-        author = user or ctx.author
-        async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
-            data = await self.api_request(
-                ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
-            )
-            tracks = data["toptracks"]["track"]
-            if not tracks:
-                return await ctx.send(f"{name} has not listened to any tracks yet!")
-            data = {a["name"]: int(a["playcount"]) for a in tracks}
-            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
-            pic = BytesIO()
-            pic.name = f"{name}_tracks.png"
-            wc.to_file(pic)
-            pic.seek(0)
-            await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
+        rows = []
+        for artist, playcount in sorted(crownartists, key=itemgetter(1), reverse=True):
+            rows.append(f"**{artist}** with **{playcount}** {format_plays(playcount)}")
 
-    @wordcloud.command()
-    async def albums(self, ctx, user: Optional[discord.Member] = None):
-        """Get a picture with the most listened to albums."""
-        author = user or ctx.author
-        async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
-            data = await self.api_request(
-                ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
-            )
-            albums = data["topartists"]["album"]
-            if not albums:
-                return await ctx.send(f"{name} has not listened to any albums yet!")
-            data = {a["name"]: int(a["playcount"]) for a in albums}
-            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
-            pic = BytesIO()
-            pic.name = f"{name}_albums.png"
-            wc.to_file(pic)
-            pic.seek(0)
-            await ctx.send(f"{name}'s albums cloud:", file=discord.File(pic))
+        content = discord.Embed(
+            title=f"Artist crowns for {user.name} — Total {len(crownartists)} crowns",
+            color=user.color,
+        )
+        content.set_footer(text="Playcounts are updated on the whoknows command.")
+        if not rows:
+            return await ctx.send("You do not have any crowns.")
+        pages = await create_pages(content, rows)
+        if len(pages) > 1:
+            await menu(ctx, pages, DEFAULT_CONTROLS)
+        else:
+            await ctx.send(embed=pages[0])
 
     @fm.command(aliases=["ta"], usage="[timeframe] [amount]")
     async def topartists(self, ctx, *args):
@@ -797,129 +609,6 @@ class LastFM(commands.Cog):
         else:
             await ctx.send(embed=pages[0])
 
-    async def artist_top(self, ctx, period, artistname, datatype, name):
-        """Scrape either top tracks or top albums from lastfm library page."""
-        url = (
-            f"https://last.fm/user/{name}/library/music/{artistname}/"
-            f"+{datatype}?date_preset={period_http_format(period)}"
-        )
-        data = await fetch(ctx, self.session, url, handling="text")
-        soup = BeautifulSoup(data, "html.parser")
-        data = []
-        try:
-            chartlist = soup.find("tbody", {"data-playlisting-add-entries": ""})
-        except ValueError:
-            return None, []
-
-        artist = {
-            "image_url": soup.find("span", {"class": "library-header-image"})
-            .find("img")
-            .get("src")
-            .replace("avatar70s", "avatar300s"),
-            "formatted_name": soup.find("a", {"class": "library-header-crumb"}).text.strip(),
-        }
-
-        items = chartlist.findAll("tr", {"class": "chartlist-row"})
-        for item in items:
-            name = item.find("td", {"class": "chartlist-name"}).find("a").get("title")
-            playcount = (
-                item.find("span", {"class": "chartlist-count-bar-value"})
-                .text.replace("scrobbles", "")
-                .replace("scrobble", "")
-                .strip()
-            )
-            data.append((name, int(playcount.replace(",", ""))))
-
-        return artist, data
-
-    @fm.command(aliases=["lyr"])
-    async def lyrics(self, ctx, *, track: str = None):
-        """Currently playing song or most recent song."""
-        if track is None:
-            name = await self.config.user(ctx.author).lastfm_username()
-            if name is None:
-                return await ctx.send(
-                    "You do not have a LastFM account set. Please set one with {}fm set".format(
-                        ctx.clean_prefix
-                    )
-                )
-            try:
-                data = await self.api_request(
-                    ctx, {"user": name, "method": "user.getrecenttracks", "limit": 1}
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
-            tracks = data["recenttracks"]["track"]
-
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-
-            artist = tracks[0]["artist"]["#text"]
-            track = tracks[0]["name"]
-            image_url = tracks[0]["image"][-1]["#text"]
-            # image_url_small = tracks[0]['image'][1]['#text']
-            # image_colour = await color_from_image_url(image_url_small)
-
-            # content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
-            # content.colour = int(image_colour, 16)
-            title = (
-                f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
-            )
-
-            # tags and playcount
-            if "@attr" in tracks[0]:
-                if "nowplaying" in tracks[0]["@attr"]:
-                    results, songtitle = await self.lyrics_musixmatch(f"{artist} {track}")
-                    if results is None:
-                        return await ctx.send(f'No lyrics for "{artist} {track}" found.')
-                    embeds = []
-                    results = list(pagify(results, page_length=2048))
-                    for i, page in enumerate(results, 1):
-                        content = discord.Embed(
-                            color=await self.bot.get_embed_color(ctx.channel),
-                            description=page,
-                            title=title,
-                        )
-                        content.set_thumbnail(url=image_url)
-                        content.set_footer(text=f"Page {i}/{len(results)}")
-
-                        embeds.append(content)
-                    if len(embeds) > 1:
-                        await menu(ctx, embeds, DEFAULT_CONTROLS)
-                    else:
-                        await ctx.send(embed=embeds[0])
-            else:
-                await ctx.send("You're not currently playing a song.")
-        else:
-            # content.colour = int(image_colour, 16)
-
-            results, songtitle = await self.lyrics_musixmatch(track)
-            if results is None:
-                return await ctx.send(f'No lyrics for "{track}" found.')
-            embeds = []
-            results = list(pagify(results, page_length=2048))
-            for i, page in enumerate(results, 1):
-                content = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
-                    title=f"***{escape(songtitle, formatting=True)} ***",
-                    description=page,
-                )
-                content.set_footer(text=f"Page {i}/{len(results)}")
-                embeds.append(content)
-            if len(embeds) > 1:
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
-            else:
-                await ctx.send(embed=embeds[0])
-
-    async def get_img(self, url):
-        async with self.session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
-            if resp.status == 200:
-                img = await resp.read()
-                return img
-            async with self.session.get(NO_IMAGE_PLACEHOLDER) as resp:
-                img = await resp.read()
-                return img
-
     @fm.command(usage="[album | artist | recent] [timeframe] [width]x[height]")
     @commands.max_concurrency(1, commands.BucketType.user)
     async def chart(self, ctx, *args):
@@ -1015,262 +704,154 @@ class LastFM(commands.Cog):
         except discord.HTTPException:
             await ctx.send("File is to big to send, try lowering the size.")
 
-    async def api_request(self, ctx, params):
-        """Get json data from the lastfm api"""
-        url = "http://ws.audioscrobbler.com/2.0/"
-        params["api_key"] = self.token
-        params["format"] = "json"
-        async with ctx.typing():
-            async with self.session.get(url, params=params) as response:
-                try:
-                    content = await response.json()
-                    if response.status == 200:
-                        return content
-                    raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
-
-                except aiohttp.ContentTypeError:
-                    return None
-
-    async def scrape_artist_image(self, artist, ctx):
-        url = f"https://www.last.fm/music/{urllib.parse.quote_plus(artist)}/+images"
-        data = await fetch(ctx, self.session, url, handling="text")
-
-        soup = BeautifulSoup(data, "html.parser")
-        if soup is None:
-            return ""
-        image = soup.find("img", {"class": "image-list-image"})
-        if image is None:
+    @fm.command(aliases=["lyr"])
+    async def lyrics(self, ctx, *, track: str = None):
+        """Currently playing song or most recent song."""
+        if track is None:
+            name = await self.config.user(ctx.author).lastfm_username()
+            if name is None:
+                return await ctx.send(
+                    "You do not have a LastFM account set. Please set one with {}fm set".format(
+                        ctx.clean_prefix
+                    )
+                )
             try:
-                image = soup.find("li", {"class": "image-list-item-wrapper"}).find("a").find("img")
-            except AttributeError:
-                return ""
-        return image["src"].replace("/avatar170s/", "/300x300/") if image else ""
+                data = await self.api_request(
+                    ctx, {"user": name, "method": "user.getrecenttracks", "limit": 1}
+                )
+            except LastFMError as e:
+                return await ctx.send(str(e))
+            tracks = data["recenttracks"]["track"]
 
-    async def scrape_artists_for_chart(self, ctx, username, period, amount):
-        period_format_map = {
-            "7day": "LAST_7_DAYS",
-            "1month": "LAST_30_DAYS",
-            "3month": "LAST_90_DAYS",
-            "6month": "LAST_180_DAYS",
-            "12month": "LAST_365_DAYS",
-            "overall": "ALL",
-        }
-        tasks = []
-        url = f"https://www.last.fm/user/{username}/library/artists"
-        for i in range(1, math.ceil(amount / 50) + 1):
-            params = {"date_preset": period_format_map[period], "page": i}
-            task = asyncio.ensure_future(fetch(ctx, self.session, url, params, handling="text"))
-            tasks.append(task)
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
 
-        responses = await asyncio.gather(*tasks)
+            artist = tracks[0]["artist"]["#text"]
+            track = tracks[0]["name"]
+            image_url = tracks[0]["image"][-1]["#text"]
+            # image_url_small = tracks[0]['image'][1]['#text']
+            # image_colour = await color_from_image_url(image_url_small)
 
-        images = []
-        for data in responses:
-            if len(images) >= amount:
-                break
-            else:
-                soup = BeautifulSoup(data, "html.parser")
-                imagedivs = soup.findAll("td", {"class": "chartlist-image"})
-                images += [
-                    div.find("img")["src"].replace("/avatar70s/", "/300x300/") for div in imagedivs
-                ]
-
-        return images
-
-    async def get_similar_artists(self, artistname, ctx):
-        similar = []
-        url = f"https://last.fm/music/{artistname}"
-        data = await fetch(ctx, self.session, url, handling="text")
-        soup = BeautifulSoup(data, "html.parser")
-        for artist in soup.findAll("h3", {"class": "artist-similar-artists-sidebar-item-name"}):
-            similar.append(artist.find("a").text)
-        listeners = (
-            soup.find("li", {"class": "header-metadata-tnew-item--listeners"}).find("abbr").text
-        )
-        return similar, listeners
-
-    async def artist_overview(self, ctx, period, artistname, fmname):
-        """Overall artist view"""
-        albums = []
-        tracks = []
-        metadata = [None, None, None]
-        url = (
-            f"https://last.fm/user/{fmname}/library/music/{artistname}"
-            f"?date_preset={period_http_format(period)}"
-        )
-        data = await fetch(ctx, self.session, url, handling="text")
-        soup = BeautifulSoup(data, "html.parser")
-        try:
-            albumsdiv, tracksdiv, _ = soup.findAll("tbody", {"data-playlisting-add-entries": ""})
-        except ValueError:
-            if period == "overall":
-                return await ctx.send(f"You have never listened to **{artistname}**!")
-            return await ctx.send(
-                f"You have not listened to **{artistname}** in the past {period}s!"
+            # content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
+            # content.colour = int(image_colour, 16)
+            title = (
+                f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
             )
 
-        for container, destination in zip([albumsdiv, tracksdiv], [albums, tracks]):
-            items = container.findAll("tr", {"class": "chartlist-row"})
-            for item in items:
-                name = item.find("td", {"class": "chartlist-name"}).find("a").get("title")
-                playcount = (
-                    item.find("span", {"class": "chartlist-count-bar-value"})
-                    .text.replace("scrobbles", "")
-                    .replace("scrobble", "")
-                    .strip()
-                )
-                destination.append((name, playcount))
+            # tags and playcount
+            if "@attr" in tracks[0]:
+                if "nowplaying" in tracks[0]["@attr"]:
+                    results, songtitle = await self.lyrics_musixmatch(f"{artist} {track}")
+                    if results is None:
+                        return await ctx.send(f'No lyrics for "{artist} {track}" found.')
+                    embeds = []
+                    results = list(pagify(results, page_length=2048))
+                    for i, page in enumerate(results, 1):
+                        content = discord.Embed(
+                            color=await self.bot.get_embed_color(ctx.channel),
+                            description=page,
+                            title=title,
+                        )
+                        content.set_thumbnail(url=image_url)
+                        content.set_footer(text=f"Page {i}/{len(results)}")
 
-        metadata_list = soup.find("ul", {"class": "metadata-list"})
-        for i, metadata_item in enumerate(
-            metadata_list.findAll("p", {"class": "metadata-display"})
-        ):
-            metadata[i] = int(metadata_item.text.replace(",", ""))
-
-        artist = {
-            "image_url": soup.find("span", {"class": "library-header-image"})
-            .find("img")
-            .get("src")
-            .replace("avatar70s", "avatar300s"),
-            "formatted_name": soup.find("h2", {"class": "library-header-title"}).text.strip(),
-        }
-
-        content = discord.Embed()
-        content.set_thumbnail(url=artist["image_url"])
-        # content.colour = int(image_colour, 16)
-        content.set_author(
-            name=f"{ctx.author.name} — {artist['formatted_name']} "
-            + (f"{humanized_period(period)} " if period != "overall" else "")
-            + "Overview",
-            icon_url=ctx.author.avatar_url,
-            url=f"https://last.fm/user/{fmname}/library/music/{urllib.parse.quote_plus(artistname)}?date_preset={period_http_format(period)}",
-        )
-        similar, listeners = await self.get_similar_artists(artist["formatted_name"], ctx)
-
-        content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
-
-        crowns = await self.config.guild(ctx.guild).crowns()
-        crown_holder = crowns.get(artistname, None)
-        if crown_holder is None or crown_holder["user"] != ctx.author.id:
-            crownstate = None
-        else:
-            crownstate = "👑"
-        if crownstate is not None:
-            stats = [[crownstate, str(metadata[0]), str(metadata[1]), str(metadata[2])]]
-            headers = ["-", "Scrobbles", "Albums", "Tracks"]
-        else:
-            stats = [[str(metadata[0]), str(metadata[1]), str(metadata[2])]]
-            headers = ["Scrobbles", "Albums", "Tracks"]
-        content.description = box(tabulate.tabulate(stats, headers=headers), lang="prolog")
-
-        content.add_field(
-            name="Top albums",
-            value="\n".join(
-                f"`#{i:2}` **{item}** ({playcount})"
-                for i, (item, playcount) in enumerate(albums, start=1)
-            ),
-            inline=True,
-        )
-        content.add_field(
-            name="Top tracks",
-            value="\n".join(
-                f"`#{i:2}` **{item}** ({playcount})"
-                for i, (item, playcount) in enumerate(tracks, start=1)
-            ),
-            inline=True,
-        )
-        await ctx.send(embed=content)
-
-    async def get_userinfo_embed(self, ctx, username):
-        data = await self.api_request(ctx, {"user": username, "method": "user.getinfo"})
-        if data is None:
-            return None
-
-        username = data["user"]["name"]
-        playcount = data["user"]["playcount"]
-        profile_url = data["user"]["url"]
-        profile_pic_url = data["user"]["image"][3]["#text"]
-        timestamp = datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
-        # image_colour = await color_from_image_url(profile_pic_url)
-
-        content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
-        content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
-        content.add_field(
-            name="Registered",
-            value=f"{humanize.naturaltime(timestamp)}\n{timestamp.strftime('%d.%m.%Y')}",
-            inline=True,
-        )
-        content.set_thumbnail(url=profile_pic_url)
-        content.set_footer(text=f"Total plays: {playcount}")
-        return content
-
-    async def get_playcount(self, ctx, artist, username, reference=None):
-        data = await self.api_request(
-            ctx,
-            {"method": "artist.getinfo", "user": username, "artist": artist, "autocorrect": 1,},
-        )
-        try:
-            count = int(data["artist"]["stats"]["userplaycount"])
-            name = data["artist"]["name"]
-        except KeyError:
-            count = 0
-            name = None
-
-        if not reference:
-            return count
-        return count, reference, name
-
-    async def lyrics_musixmatch(self, artistsong) -> (str, str):
-        artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
-        artistsong = re.sub(r"\s+", " ", artistsong).strip()
-        headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Arch Linux; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0"
-        }
-        async with self.session.get(
-            "https://musixmatch.com/search/{}".format(artistsong).replace(" ", "%20"),
-            headers=headers,
-        ) as resp:
-            if resp.status == 200:
-                result = await resp.text()
+                        embeds.append(content)
+                    if len(embeds) > 1:
+                        await menu(ctx, embeds, DEFAULT_CONTROLS)
+                    else:
+                        await ctx.send(embed=embeds[0])
             else:
-                return None, None
-        soup = BeautifulSoup(result, "html.parser")
-        songurl = soup.find("a", {"class": "title"})
-        if songurl is None:
-            return None, None
-        url = "https://www.musixmatch.com" + songurl["href"]
-        async with self.session.get(url, headers=headers) as resp:
-            result = await resp.text()
-        soup = BeautifulSoup(result, "html.parser")
-        lyrics = soup.text.split('"body":"')
-        lyrics = lyrics[0]
-        songname = lyrics.split("|")[0]
-        lyrics = lyrics.split('","language"')[0]
-        try:
-            lyrics = lyrics.split("languages")[1]
-        except IndexError:
-            return None, None
-        lyrics = lyrics.split("Report")[0]
-        lyrics = lyrics.replace("\\n", "\n")
-        lyrics = lyrics.replace("\\", "")
-        lyrics = lyrics.replace("&amp;", "&")
-        lyrics = lyrics.replace("`", "'")
-        lyrics = lyrics.strip()
-        return lyrics, songname.strip()
+                await ctx.send("You're not currently playing a song.")
+        else:
+            # content.colour = int(image_colour, 16)
 
-    async def get_np(self, ctx, username, ref):
-        data = await self.api_request(
-            ctx, {"method": "user.getrecenttracks", "user": username, "limit": 1},
-        )
-        song = None
-        if data is not None:
-            tracks = data["recenttracks"]["track"]
-            if tracks:
-                if "@attr" in tracks[0]:
-                    if "nowplaying" in tracks[0]["@attr"]:
-                        song = {
-                            "artist": tracks[0]["artist"]["#text"],
-                            "name": tracks[0]["name"],
-                        }
+            results, songtitle = await self.lyrics_musixmatch(track)
+            if results is None:
+                return await ctx.send(f'No lyrics for "{track}" found.')
+            embeds = []
+            results = list(pagify(results, page_length=2048))
+            for i, page in enumerate(results, 1):
+                content = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title=f"***{escape(songtitle, formatting=True)} ***",
+                    description=page,
+                )
+                content.set_footer(text=f"Page {i}/{len(results)}")
+                embeds.append(content)
+            if len(embeds) > 1:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            else:
+                await ctx.send(embed=embeds[0])
 
-        return song, ref
+    @fm.group(aliases=["cloud", "wc"])
+    @commands.check(wordcloud_available)
+    async def wordcloud(self, ctx):
+        """WordCloud Commands
+
+        Original idea: http://lastfm.dontdrinkandroot.net"""
+
+    @wordcloud.command(aliases=["artist"])
+    async def artists(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to artists."""
+        author = user or ctx.author
+        async with ctx.typing():
+            name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
+            )
+            artists = data["topartists"]["artist"]
+            if not artists:
+                return await ctx.send(f"{name} has not listened to any artists yet!")
+            data = {a["name"]: int(a["playcount"]) for a in artists}
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
+            pic = BytesIO()
+            pic.name = f"{name}_artists.png"
+            wc.to_file(pic)
+            pic.seek(0)
+            await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
+
+    @wordcloud.command()
+    async def tracks(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to tracks."""
+        author = user or ctx.author
+        async with ctx.typing():
+            name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
+            )
+            tracks = data["toptracks"]["track"]
+            if not tracks:
+                return await ctx.send(f"{name} has not listened to any tracks yet!")
+            data = {a["name"]: int(a["playcount"]) for a in tracks}
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
+            pic = BytesIO()
+            pic.name = f"{name}_tracks.png"
+            wc.to_file(pic)
+            pic.seek(0)
+            await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
+
+    @wordcloud.command()
+    async def albums(self, ctx, user: Optional[discord.Member] = None):
+        """Get a picture with the most listened to albums."""
+        author = user or ctx.author
+        async with ctx.typing():
+            name = await self.config.user(author).lastfm_username()
+            if name is None:
+                return await ctx.send(f"{author} does not have a LastFM account set.")
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
+            )
+            albums = data["topartists"]["album"]
+            if not albums:
+                return await ctx.send(f"{name} has not listened to any albums yet!")
+            data = {a["name"]: int(a["playcount"]) for a in albums}
+            wc = await self.bot.loop.run_in_executor(None, self.wc.generate_from_frequencies, data)
+            pic = BytesIO()
+            pic.name = f"{name}_albums.png"
+            wc.to_file(pic)
+            pic.seek(0)
+            await ctx.send(f"{name}'s albums cloud:", file=discord.File(pic))

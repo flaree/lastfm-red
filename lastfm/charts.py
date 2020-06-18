@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import discord
 
