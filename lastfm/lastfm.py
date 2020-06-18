@@ -147,7 +147,7 @@ class LastFM(
         except LastFMError as e:
             return await ctx.send(str(e))
 
-    @commands.command(aliases=["np", "now"],)
+    @commands.command(aliases=["np"],)
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
