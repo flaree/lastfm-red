@@ -1,9 +1,9 @@
 import asyncio
-import datetime
 import math
 import re
 import urllib
 from copy import deepcopy
+from datetime import datetime
 
 import aiohttp
 import discord
