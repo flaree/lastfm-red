@@ -1,9 +1,9 @@
 import asyncio
+import datetime
 import math
 import re
 import urllib
 from copy import deepcopy
-from datetime import datetime
 from typing import Tuple
 
 import aiohttp
@@ -278,7 +278,7 @@ class UtilsMixin(MixinMeta):
         playcount = data["user"]["playcount"]
         profile_url = data["user"]["url"]
         profile_pic_url = data["user"]["image"][3]["#text"]
-        timestamp = datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
+        timestamp = datetime.datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
         # image_colour = await color_from_image_url(profile_pic_url)
 
         content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
