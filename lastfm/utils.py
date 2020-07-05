@@ -4,6 +4,7 @@ import re
 import urllib
 from copy import deepcopy
 from datetime import datetime
+from typing import Tuple
 
 import aiohttp
 import discord
@@ -55,7 +56,7 @@ class UtilsMixin(MixinMeta):
 
         return artist, data
 
-    async def lyrics_musixmatch(self, artistsong) -> (str, str):
+    async def lyrics_musixmatch(self, artistsong) -> Tuple[str, str]:
         artistsong = re.sub("[^a-zA-Z0-9 \n.]", "", artistsong)
         artistsong = re.sub(r"\s+", " ", artistsong).strip()
         headers = {

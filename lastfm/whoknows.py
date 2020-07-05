@@ -1,8 +1,8 @@
 import asyncio
 
 import discord
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core import commands
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .utils import *

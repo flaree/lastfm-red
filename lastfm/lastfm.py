@@ -711,7 +711,7 @@ class LastFM(
             name = await self.config.user(ctx.author).lastfm_username()
             if name is None:
                 return await ctx.send(
-                    "You do not have a LastFM account set. Please set one with {}fm set".format(
+                    "You do not have a LastFM account set. Please set one with `{}fm set`.".format(
                         ctx.clean_prefix
                     )
                 )

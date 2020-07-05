@@ -1,7 +1,7 @@
-from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-import discord
 
+import discord
+from PIL import Image, ImageDraw, ImageFont
 
 NO_IMAGE_PLACEHOLDER = (
     "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
