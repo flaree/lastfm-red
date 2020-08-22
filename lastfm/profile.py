@@ -1,16 +1,12 @@
-import asyncio
-
 import discord
-from redbot.core import commands
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .utils import *
 from .fmmixin import fm
+from .utils import *
 
 
 class ProfileMixin(MixinMeta):
-    """WhoKnows Commands"""
+    """Profile Commands"""
 
     @fm.command()
     async def set(self, ctx, username):
