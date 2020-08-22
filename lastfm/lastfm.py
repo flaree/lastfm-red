@@ -14,9 +14,12 @@ from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+from .abc import MixinMeta
 from .charts import charts, track_chart
 from .utils import *
 from .whoknows import WhoKnowsMixin
+from .profile import ProfileMixin
+from .fmmixin import FMMixin, fm
 
 with suppress(Exception):
     from wordcloud import WordCloud
@@ -30,17 +33,17 @@ async def tokencheck(ctx):
     token = await ctx.bot.get_shared_api_tokens("lastfm")
     return bool(token.get("appid"))
 
-
 class CompositeMetaClass(type(commands.Cog), type(ABC)):
     """This allows the metaclass used for proper type detection to coexist with discord.py's
     metaclass."""
 
 
-class LastFM(
+class LastFM(FMMixin, ProfileMixin,
     UtilsMixin, WhoKnowsMixin, commands.Cog, metaclass=CompositeMetaClass,
 ):
     # noinspection PyMissingConstructor
-    def __init__(self, bot):
+    def __init__(self, bot, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         defaults = {"lastfm_username": None}
@@ -107,55 +110,6 @@ class LastFM(
             f"3. Enter the key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`"
         )
         await ctx.maybe_send_embed(message)
-
-    @commands.check(tokencheck)
-    @commands.group(case_insensitive=True)
-    async def fm(self, ctx):
-        """Last.fm commands"""
-
-    @fm.command()
-    async def set(self, ctx, username):
-        """Save your last.fm username."""
-        try:
-            content = await self.get_userinfo_embed(ctx, username)
-        except LastFMError as e:
-            return await ctx.send(str(e))
-        if content is None:
-            return await ctx.send(f"\N{WARNING SIGN} Invalid Last.fm username `{username}`")
-
-        await self.config.user(ctx.author).lastfm_username.set(username)
-        await ctx.send(
-            f"{ctx.message.author.mention} Username saved as `{username}`", embed=content,
-        )
-
-    @fm.command()
-    async def unset(self, ctx):
-        """Unlink your last.fm."""
-        await self.config.user(ctx.author).lastfm_username.set(None)
-        await ctx.send("\N{BROKEN HEART} Removed your last.fm username from the database")
-        async with self.config.guild(ctx.guild).crowns() as crowns:
-            crownlist = []
-            for crown in crowns:
-                if crowns[crown]["user"] == ctx.author.id:
-                    crownlist.append(crown)
-            for crown in crownlist:
-                del crowns[crown]
-
-    @fm.command()
-    async def profile(self, ctx, user: Optional[discord.Member] = None):
-        """Lastfm profile."""
-        author = user or ctx.author
-        name = await self.config.user(author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
-                    ctx.clean_prefix
-                )
-            )
-        try:
-            await ctx.send(embed=await self.get_userinfo_embed(ctx, name))
-        except LastFMError as e:
-            return await ctx.send(str(e))
 
     @commands.command(aliases=["np"],)
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):

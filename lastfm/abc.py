@@ -12,7 +12,3 @@ class MixinMeta(ABC):
     def __init__(self, *_args):
         self.config: Config
         self.bot: Red
-
-    @abstractmethod
-    async def fm(self, ctx):
-        raise NotImplementedError
