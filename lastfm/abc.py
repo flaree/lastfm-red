@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from redbot.core import Config
 from redbot.core.bot import Red
@@ -12,7 +12,3 @@ class MixinMeta(ABC):
     def __init__(self, *_args):
         self.config: Config
         self.bot: Red
-
-    @abstractmethod
-    async def fm(self, ctx):
-        raise NotImplementedError

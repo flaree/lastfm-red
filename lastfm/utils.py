@@ -14,7 +14,6 @@ from bs4 import BeautifulSoup
 from redbot.core.utils.chat_formatting import *
 
 from .abc import MixinMeta
-from .charts import NO_IMAGE_PLACEHOLDER
 from .utils import *
 
 
@@ -93,15 +92,6 @@ class UtilsMixin(MixinMeta):
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
         return lyrics, songname.strip()
-
-    async def get_img(self, url):
-        async with self.session.get(url or NO_IMAGE_PLACEHOLDER) as resp:
-            if resp.status == 200:
-                img = await resp.read()
-                return img
-            async with self.session.get(NO_IMAGE_PLACEHOLDER) as resp:
-                img = await resp.read()
-                return img
 
     async def api_request(self, ctx, params):
         """Get json data from the lastfm api"""
@@ -473,3 +463,8 @@ async def create_pages(content, rows, maxrows=15, maxpages=10):
         pages.append(content)
 
     return pages
+
+
+async def tokencheck(ctx):
+    token = await ctx.bot.get_shared_api_tokens("lastfm")
+    return bool(token.get("appid"))
