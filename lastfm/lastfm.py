@@ -58,6 +58,14 @@ class LastFM(
         if "WordCloud" in globals().keys():
             self.wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
         self.data_loc = bundled_data_path(self)
+        self.chart_data = {}
+        self.chart_data_loop = self.bot.loop.create_task(self.chart_clear_loop())
+
+    async def chart_clear_loop(self):
+        await self.bot.wait_until_ready()
+        while True:
+            self.chart_data = {}
+            await asyncio.sleep(1800)
 
     async def initialize(self):
         token = await self.bot.get_shared_api_tokens("lastfm")
@@ -85,6 +93,8 @@ class LastFM(
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
+        if self.chart_data_loop:
+            self.chart_data_loop.cancel()
 
     @commands.is_owner()
     @commands.command(aliases=["fmset"])
@@ -648,12 +658,12 @@ class LastFM(
                     name = album["name"]
                     artist = album["artist"]["name"]
                     plays = album["playcount"]
-                    chart.append(
-                        (
-                            f"{plays} {format_plays(plays)}\n{name} - {artist}",
-                            await self.get_img(album["image"][3]["#text"]),
-                        )
-                    )
+                    if album["image"][3]["#text"] in self.chart_data:
+                        chart_img = self.chart_data[album["image"][3]["#text"]]
+                    else:
+                        chart_img = await self.get_img(album["image"][3]["#text"])
+                        self.chart_data[album["image"][3]["#text"]] = chart_img
+                    chart.append((f"{plays} {format_plays(plays)}\n{name} - {artist}", chart_img,))
                 img = await self.bot.loop.run_in_executor(
                     None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
                 )
@@ -668,12 +678,12 @@ class LastFM(
                 async for i, artist in iterator.enumerate():
                     name = artist["name"]
                     plays = artist["playcount"]
-                    chart.append(
-                        (
-                            f"{plays} {format_plays(plays)}\n{name}",
-                            await self.get_img(scraped_images[i]),
-                        )
-                    )
+                    if scraped_images[i] in self.chart_data:
+                        chart_img = self.chart_data[scraped_images[i]]
+                    else:
+                        chart_img = await self.get_img(scraped_images[i])
+                        self.chart_data[scraped_images[i]] = chart_img
+                    chart.append((f"{plays} {format_plays(plays)}\n{name}", chart_img,))
                 img = await self.bot.loop.run_in_executor(
                     None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
                 )
@@ -684,9 +694,12 @@ class LastFM(
                 async for track in AsyncIter(tracks[: arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]
-                    chart.append(
-                        (f"{name} - {artist}", await self.get_img(track["image"][3]["#text"]),)
-                    )
+                    if track["image"][3]["#text"] in self.chart_data:
+                        chart_img = self.chart_data[track["image"][3]["#text"]]
+                    else:
+                        chart_img = await self.get_img(track["image"][3]["#text"])
+                        self.chart_data[track["image"][3]["#text"]] = chart_img
+                    chart.append((f"{name} - {artist}", chart_img,))
                 img = await self.bot.loop.run_in_executor(
                     None,
                     track_chart,
