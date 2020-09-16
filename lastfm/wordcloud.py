@@ -50,7 +50,7 @@ class WordCloudMixin(MixinMeta):
             wc.to_file(pic)
             pic.seek(0)
             await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
-            pic.close()
+        pic.close()
 
     @wordcloud.command()
     async def tracks(self, ctx, user: Optional[discord.Member] = None):
@@ -73,7 +73,7 @@ class WordCloudMixin(MixinMeta):
             wc.to_file(pic)
             pic.seek(0)
             await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
-            pic.close()
+        pic.close()
 
     @wordcloud.command()
     async def albums(self, ctx, user: Optional[discord.Member] = None):
@@ -96,4 +96,4 @@ class WordCloudMixin(MixinMeta):
             wc.to_file(pic)
             pic.seek(0)
             await ctx.send(f"{name}'s albums cloud:", file=discord.File(pic))
-            pic.close()
+        pic.close()
