@@ -30,6 +30,7 @@ class WordCloudMixin(MixinMeta):
         Original idea: http://lastfm.dontdrinkandroot.net"""
 
     @wordcloud.command(aliases=["artist"])
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def artists(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to artists."""
         author = user or ctx.author
@@ -53,6 +54,7 @@ class WordCloudMixin(MixinMeta):
         pic.close()
 
     @wordcloud.command()
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def tracks(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to tracks."""
         author = user or ctx.author
@@ -76,6 +78,7 @@ class WordCloudMixin(MixinMeta):
         pic.close()
 
     @wordcloud.command()
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def albums(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to albums."""
         author = user or ctx.author
