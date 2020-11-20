@@ -11,8 +11,10 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 class NowPlayingMixin(MixinMeta):
     """NowPlaying Commands"""
-    
-    @fm.command(aliases=["np"],)
+
+    @fm.command(
+        aliases=["np"],
+    )
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
@@ -62,7 +64,12 @@ class NowPlayingMixin(MixinMeta):
             try:
                 trackdata = await self.api_request(
                     ctx,
-                    {"user": name, "method": "track.getInfo", "artist": artist, "track": track,},
+                    {
+                        "user": name,
+                        "method": "track.getInfo",
+                        "artist": artist,
+                        "track": track,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -91,7 +98,8 @@ class NowPlayingMixin(MixinMeta):
                         state = "— Now Playing"
 
             content.set_author(
-                name=f"{user_attr['user']} {state}", icon_url=author.avatar_url,
+                name=f"{user_attr['user']} {state}",
+                icon_url=author.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."

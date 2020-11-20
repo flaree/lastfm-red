@@ -12,8 +12,10 @@ from contextlib import suppress
 with suppress(Exception):
     from wordcloud import WordCloud
 
+
 async def wordcloud_available(ctx):
     return "WordCloud" in globals().keys()
+
 
 class WordCloudMixin(MixinMeta):
     """WordCloud Commands"""

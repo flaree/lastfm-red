@@ -20,7 +20,8 @@ class ProfileMixin(MixinMeta):
 
         await self.config.user(ctx.author).lastfm_username.set(username)
         await ctx.send(
-            f"{ctx.message.author.mention} Username saved as `{username}`", embed=content,
+            f"{ctx.message.author.mention} Username saved as `{username}`",
+            embed=content,
         )
 
     @fm.command()

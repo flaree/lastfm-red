@@ -288,7 +288,12 @@ class WhoKnowsMixin(MixinMeta):
     async def get_playcount(self, ctx, artist, username, reference=None):
         data = await self.api_request(
             ctx,
-            {"method": "artist.getinfo", "user": username, "artist": artist, "autocorrect": 1,},
+            {
+                "method": "artist.getinfo",
+                "user": username,
+                "artist": artist,
+                "autocorrect": 1,
+            },
         )
         try:
             count = int(data["artist"]["stats"]["userplaycount"])

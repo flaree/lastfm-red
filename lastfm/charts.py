@@ -70,9 +70,19 @@ class ChartMixin(MixinMeta):
                     else:
                         chart_img = await self.get_img(album["image"][3]["#text"])
                         self.chart_data[album["image"][3]["#text"]] = chart_img
-                    chart.append((f"{plays} {format_plays(plays)}\n{name} - {artist}", chart_img,))
+                    chart.append(
+                        (
+                            f"{plays} {format_plays(plays)}\n{name} - {artist}",
+                            chart_img,
+                        )
+                    )
                 img = await self.bot.loop.run_in_executor(
-                    None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
+                    None,
+                    charts,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
                 )
 
             elif arguments["method"] == "user.gettopartists":
@@ -90,9 +100,19 @@ class ChartMixin(MixinMeta):
                     else:
                         chart_img = await self.get_img(scraped_images[i])
                         self.chart_data[scraped_images[i]] = chart_img
-                    chart.append((f"{plays} {format_plays(plays)}\n{name}", chart_img,))
+                    chart.append(
+                        (
+                            f"{plays} {format_plays(plays)}\n{name}",
+                            chart_img,
+                        )
+                    )
                 img = await self.bot.loop.run_in_executor(
-                    None, charts, chart, arguments["width"], arguments["height"], self.data_loc,
+                    None,
+                    charts,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
                 )
 
             elif arguments["method"] == "user.getrecenttracks":
@@ -106,7 +126,12 @@ class ChartMixin(MixinMeta):
                     else:
                         chart_img = await self.get_img(track["image"][3]["#text"])
                         self.chart_data[track["image"][3]["#text"]] = chart_img
-                    chart.append((f"{name} - {artist}", chart_img,))
+                    chart.append(
+                        (
+                            f"{name} - {artist}",
+                            chart_img,
+                        )
+                    )
                 img = await self.bot.loop.run_in_executor(
                     None,
                     track_chart,

@@ -284,7 +284,8 @@ class UtilsMixin(MixinMeta):
 
     async def get_np(self, ctx, username, ref):
         data = await self.api_request(
-            ctx, {"method": "user.getrecenttracks", "user": username, "limit": 1},
+            ctx,
+            {"method": "user.getrecenttracks", "user": username, "limit": 1},
         )
         song = None
         if data is not None:
