@@ -91,7 +91,7 @@ class NowPlayingMixin(MixinMeta):
                         state = "— Now Playing"
 
             content.set_author(
-                name=f"{user_attr['user']} {state}", icon_url=ctx.message.author.avatar_url,
+                name=f"{user_attr['user']} {state}", icon_url=author.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."
