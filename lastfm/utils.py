@@ -8,10 +8,12 @@ from typing import Tuple
 
 import aiohttp
 import discord
+
+import arrow
 import humanize
 import tabulate
 from bs4 import BeautifulSoup
-from redbot.core.utils.chat_formatting import *
+from redbot.core.utils.chat_formatting import box
 
 from .abc import MixinMeta
 from .utils import *
@@ -19,6 +21,10 @@ from .utils import *
 
 class UtilsMixin(MixinMeta):
     """Utils"""
+
+    def remove_mentions(self, text):
+        """Remove mentions from string."""
+        return (re.sub(r"<@\!?[0-9]+>", "", text)).strip()
 
     async def artist_top(self, ctx, period, artistname, datatype, name):
         """Scrape either top tracks or top albums from lastfm library page."""
@@ -172,6 +178,9 @@ class UtilsMixin(MixinMeta):
         albums = []
         tracks = []
         metadata = [None, None, None]
+        artistinfo = await self.api_request(
+            ctx, {"method": "artist.getInfo", "artist": artistname}
+        )
         url = (
             f"https://last.fm/user/{fmname}/library/music/{artistname}"
             f"?date_preset={period_http_format(period)}"
@@ -213,7 +222,12 @@ class UtilsMixin(MixinMeta):
             "formatted_name": soup.find("h2", {"class": "library-header-title"}).text.strip(),
         }
 
-        content = discord.Embed()
+        listeners = artistinfo["artist"]["stats"]["listeners"]
+        globalscrobbles = artistinfo["artist"]["stats"]["playcount"]
+        similar = [a["name"] for a in artistinfo["artist"]["similar"]["artist"]]
+        tags = [t["name"] for t in artistinfo["artist"]["tags"]["tag"]]
+
+        content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
         content.set_thumbnail(url=artist["image_url"])
         # content.colour = int(image_colour, 16)
         content.set_author(
@@ -223,12 +237,12 @@ class UtilsMixin(MixinMeta):
             icon_url=ctx.author.avatar_url,
             url=f"https://last.fm/user/{fmname}/library/music/{urllib.parse.quote_plus(artistname)}?date_preset={period_http_format(period)}",
         )
-        similar, listeners = await self.get_similar_artists(artist["formatted_name"], ctx)
-
-        content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
+        # similar, listeners = await self.get_similar_artists(artist["formatted_name"], ctx)
+        content.set_footer(text=f"{', '.join(tags)}")
+        # content.set_footer(text=f"{listeners} Listeners | Similar to: {', '.join(similar)}")
 
         crowns = await self.config.guild(ctx.guild).crowns()
-        crown_holder = crowns.get(artistname, None)
+        crown_holder = crowns.get(artistname.lower(), None)
         if crown_holder is None or crown_holder["user"] != ctx.author.id:
             crownstate = None
         else:
@@ -257,6 +271,8 @@ class UtilsMixin(MixinMeta):
             ),
             inline=True,
         )
+        if similar:
+            content.add_field(name="Similar artists", value=", ".join(similar), inline=False)
         await ctx.send(embed=content)
 
     async def get_userinfo_embed(self, ctx, username):
@@ -281,6 +297,67 @@ class UtilsMixin(MixinMeta):
         content.set_thumbnail(url=profile_pic_url)
         content.set_footer(text=f"Total plays: {playcount}")
         return content
+
+    async def listening_report(self, ctx, timeframe, name):
+        current_day_floor = arrow.utcnow().floor("day")
+        week = []
+        # for i in range(7, 0, -1):
+        for i in range(1, 8):
+            dt = current_day_floor.shift(days=-i)
+            week.append(
+                {
+                    "dt": dt,
+                    "ts": dt.timestamp,
+                    "ts_to": dt.shift(days=+1, minutes=-1).timestamp,
+                    "day": dt.format("ddd, MMM Do"),
+                    "scrobbles": 0,
+                }
+            )
+
+        params = {
+            "method": "user.getrecenttracks",
+            "user": name,
+            "from": week[-1]["ts"],
+            "to": current_day_floor.shift(minutes=-1).timestamp,
+            "limit": 1000,
+        }
+        content = await self.api_request(ctx, params)
+        tracks = content["recenttracks"]["track"]
+
+        # get rid of nowplaying track if user is currently scrobbling.
+        # for some reason even with from and to parameters it appears
+        if tracks[0].get("@attr") is not None:
+            tracks = tracks[1:]
+
+        day_counter = 1
+        for trackdata in reversed(tracks):
+            scrobble_ts = int(trackdata["date"]["uts"])
+            if scrobble_ts > week[-day_counter]["ts_to"]:
+                day_counter += 1
+
+            week[day_counter - 1]["scrobbles"] += 1
+
+        scrobbles_total = sum(day["scrobbles"] for day in week)
+        scrobbles_average = round(scrobbles_total / len(week))
+
+        rows = []
+        for day in week:
+            rows.append(f"`{day['day']}`: **{day['scrobbles']}** Scrobbles")
+
+        content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
+        content.set_author(
+            name=f"{ctx.author.display_name} | Last {timeframe.title()}",
+            icon_url=ctx.author.avatar_url,
+        )
+        content.description = "\n".join(rows)
+        content.add_field(
+            name="Total scrobbles", value=f"{scrobbles_total} Scrobbles", inline=False
+        )
+        content.add_field(
+            name="Avg. daily scrobbles", value=f"{scrobbles_average} Scrobbles", inline=False
+        )
+        # content.add_field(name="Listening time", value=listening_time)
+        await ctx.send(embed=content)
 
     async def get_np(self, ctx, username, ref):
         data = await self.api_request(

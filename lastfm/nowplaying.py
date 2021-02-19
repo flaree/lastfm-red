@@ -1,12 +1,13 @@
 import asyncio
+from typing import Optional
 
 import discord
-from redbot.core import commands
+
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .utils import *
 from .fmmixin import fm
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from .utils import *
 
 
 class NowPlayingMixin(MixinMeta):

@@ -17,6 +17,7 @@
     "humanize",
     "bs4",
     "tabulate",
-    "wordcloud"
+    "wordcloud",
+    "arrow"
   ]
 }

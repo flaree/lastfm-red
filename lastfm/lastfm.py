@@ -5,6 +5,7 @@ from operator import itemgetter
 
 import aiohttp
 import discord
+
 from redbot.core import Config, commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import escape, pagify
@@ -191,7 +192,12 @@ class LastFM(
 
     @fm.command(usage="[timeframe] <toptracks|topalbums|overview> <artist name>")
     async def artist(self, ctx, timeframe, datatype, *, artistname=""):
-        """Your top tracks or albums for specific artist."""
+        """Your top tracks or albums for specific artist.
+
+        Usage:
+            [p]fm artist [timeframe] toptracks <artist name>
+            [p]fm artist [timeframe] topalbums <artist name>
+            [p]fm artist [timeframe] overview  <artist name>"""
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
@@ -199,53 +205,81 @@ class LastFM(
                     ctx.clean_prefix
                 )
             )
+
         period = get_period(timeframe)
-        if period is None:
+        if period in [None, "today"]:
             artistname = " ".join([datatype, artistname]).strip()
             datatype = timeframe
             period = "overall"
+
+        artistname = self.remove_mentions(artistname)
 
         if artistname == "":
             return await ctx.send("Missing artist name!")
 
         if datatype in ["toptracks", "tt", "tracks", "track"]:
             datatype = "tracks"
+
         elif datatype in ["topalbums", "talb", "albums", "album"]:
             datatype = "albums"
+
         elif datatype in ["overview", "stats", "ov"]:
             return await self.artist_overview(ctx, period, artistname, name)
-        else:
-            return
 
-        artist, data = await self.artist_top(ctx, period, artistname, datatype, name)
+        else:
+            return await ctx.send_help()
+
+        artist, data = await self.artist_top(ctx, period, artistname, datatype)
         if artist is None or not data:
+            artistname = escape(artistname)
             if period == "overall":
                 return await ctx.send(f"You have never listened to **{artistname}**!")
-            return await ctx.send(
-                f"You have not listened to **{artistname}** in the past {period}s!"
-            )
+            else:
+                return await ctx.send(
+                    f"You have not listened to **{artistname}** in the past {period}s!"
+                )
+
+        total = 0
         rows = []
-        for i, (aname, playcount) in enumerate(data, start=1):
-            rows.append(f"`#{i:2}` **{playcount}** {format_plays(playcount)} — **{aname}**")
+        for i, (name, playcount) in enumerate(data, start=1):
+            rows.append(f"`#{i:2}` **{playcount}** {format_plays(playcount)} — **{escape(name)}**")
+            total += playcount
 
-        # image_colour = await color_from_image_url(image_url)
-
-        content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
-        content.set_author(
-            name=f"{ctx.author.name} — "
-            + (f"{humanized_period(period)} " if period != "overall" else "")
-            + f"Top 50 {datatype} for {artist['formatted_name']}",
-            icon_url=ctx.author.avatar_url,
-            url=f"https://last.fm/user/{name}/library/music/{urllib.parse.quote_plus(artistname)}/+{datatype}?date_preset={period_http_format(period)}",
-        )
+        artistname = urllib.parse.quote_plus(artistname)
+        content = discord.Embed()
         content.set_thumbnail(url=artist["image_url"])
-        # content.colour = int(image_colour, 16)
+        # content.colour = await self.cached_image_color(artist["image_url"])
+        content.set_author(
+            name=f"{ctx.author.display_name} — "
+            + (f"{humanized_period(period)} " if period != "overall" else "")
+            + f"Top {datatype} by {artist['formatted_name']}",
+            icon_url=ctx.usertarget.avatar_url,
+            url=f"https://last.fm/user/{ctx.username}/library/music/{artistname}/"
+            f"+{datatype}?date_preset={period_http_format(period)}",
+        )
+        content.set_footer(
+            text=f"Total {total} {format_plays(total)} across {len(rows)} {datatype}"
+        )
 
         pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
+
+    @fm.command()
+    async def last(self, ctx):
+        """
+        Your weekly listening overview.
+        """
+        name = await self.config.user(ctx.author).lastfm_username()
+        if name is None:
+            return await ctx.send(
+                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                    ctx.clean_prefix
+                )
+            )
+        await self.listening_report(ctx, "week", name)
 
     @fm.command(aliases=["lyr"])
     async def lyrics(self, ctx, *, track: str = None):

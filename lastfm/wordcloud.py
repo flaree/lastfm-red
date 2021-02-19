@@ -1,13 +1,13 @@
-import asyncio
+from contextlib import suppress
+from typing import Optional
 
 import discord
+
 from redbot.core import commands
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .utils import *
 from .fmmixin import fm
-from contextlib import suppress
+from .utils import *
 
 with suppress(Exception):
     from wordcloud import WordCloud

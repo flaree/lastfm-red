@@ -1,6 +1,7 @@
 import asyncio
 
 import discord
+
 from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
@@ -52,7 +53,7 @@ class WhoKnowsMixin(MixinMeta):
                 if i == 1:
                     rank = "\N{CROWN}"
                     old_kingdata = await self.config.guild(ctx.guild).crowns()
-                    old_kingartist = old_kingdata.get(artistname)
+                    old_kingartist = old_kingdata.get(artistname.lower())
                     if old_kingartist is not None:
                         old_king = old_kingartist["user"]
                         old_king = ctx.guild.get_member(old_king)
@@ -84,7 +85,7 @@ class WhoKnowsMixin(MixinMeta):
         if old_king is None:
             await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
             async with self.config.guild(ctx.guild).crowns() as crowns:
-                crowns[artistname] = {"user": new_king.id, "playcount": play}
+                crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
             if not (old_king.id == new_king.id):
                 await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
