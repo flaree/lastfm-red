@@ -5,7 +5,6 @@ from operator import itemgetter
 
 import aiohttp
 import discord
-
 from redbot.core import Config, commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import escape, pagify
