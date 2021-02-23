@@ -7,9 +7,8 @@ from copy import deepcopy
 from typing import Tuple
 
 import aiohttp
-import discord
-
 import arrow
+import discord
 import humanize
 import tabulate
 from bs4 import BeautifulSoup
@@ -323,6 +322,9 @@ class UtilsMixin(MixinMeta):
         }
         content = await self.api_request(ctx, params)
         tracks = content["recenttracks"]["track"]
+        if not isinstance(tracks, list):
+            await ctx.send("No data found.")
+            return
 
         # get rid of nowplaying track if user is currently scrobbling.
         # for some reason even with from and to parameters it appears

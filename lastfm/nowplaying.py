@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional
 
 import discord
-
 from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
@@ -14,9 +13,7 @@ from .utils import *
 class NowPlayingMixin(MixinMeta):
     """NowPlaying Commands"""
 
-    @fm.command(
-        aliases=["np"],
-    )
+    @fm.command(aliases=["np"])
     async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
