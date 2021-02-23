@@ -1,9 +1,9 @@
 from contextlib import suppress
+from io import BytesIO
 from typing import Optional
 
 import discord
 
-import BytesIO
 from redbot.core import commands
 
 from .abc import MixinMeta

@@ -7,8 +7,9 @@ from copy import deepcopy
 from typing import Tuple
 
 import aiohttp
-import arrow
 import discord
+
+import arrow
 import humanize
 import tabulate
 from bs4 import BeautifulSoup
