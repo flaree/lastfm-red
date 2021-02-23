@@ -3,8 +3,8 @@ from typing import Optional
 
 import discord
 
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.chat_formatting import escape
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .fmmixin import fm
