@@ -306,9 +306,9 @@ class UtilsMixin(MixinMeta):
             dt = current_day_floor.shift(days=-i)
             week.append(
                 {
-                    "dt": dt,
-                    "ts": dt.timestamp,
-                    "ts_to": dt.shift(days=+1, minutes=-1).timestamp,
+                    "dt": int(dt.timestamp()),
+                    "ts": int(dt.timestamp()),
+                    "ts_to": int(dt.shift(days=+1, minutes=-1).timestamp()),
                     "day": dt.format("ddd, MMM Do"),
                     "scrobbles": 0,
                 }
@@ -318,7 +318,7 @@ class UtilsMixin(MixinMeta):
             "method": "user.getrecenttracks",
             "user": name,
             "from": week[-1]["ts"],
-            "to": current_day_floor.shift(minutes=-1).timestamp,
+            "to": int(current_day_floor.shift(minutes=-1).timestamp()),
             "limit": 1000,
         }
         content = await self.api_request(ctx, params)
