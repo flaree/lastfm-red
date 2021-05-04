@@ -117,7 +117,7 @@ class WhoKnowsMixin(MixinMeta):
         for user in userslist:
             lastfm_username = userlist[user]["lastfm_username"]
             member = ctx.guild.get_member(user)
-            if member is None:
+            if member is None or lastfm_username is None:
                 continue
 
             tasks.append(
@@ -183,7 +183,7 @@ class WhoKnowsMixin(MixinMeta):
         for user in userslist:
             lastfm_username = userlist[user]["lastfm_username"]
             member = ctx.guild.get_member(user)
-            if member is None:
+            if member is None or lastfm_username is None:
                 continue
 
             tasks.append(
@@ -270,7 +270,7 @@ class WhoKnowsMixin(MixinMeta):
         )
         try:
             count = int(data["album"]["userplaycount"])
-        except KeyError:
+        except (KeyError, TypeError):
             count = 0
 
         artistname = data["album"]["artist"]
@@ -299,7 +299,7 @@ class WhoKnowsMixin(MixinMeta):
         try:
             count = int(data["artist"]["stats"]["userplaycount"])
             name = data["artist"]["name"]
-        except KeyError:
+        except (KeyError, TypeError):
             count = 0
             name = None
 
