@@ -128,6 +128,8 @@ class WhoKnowsMixin(MixinMeta):
             data = await asyncio.gather(*tasks)
             for playcount, user, metadata in data:
                 artistname, trackname, image_url = metadata
+                if artistname is None or trackname is None:
+                    return await ctx.send("Track could not be found on last.fm!")
                 if playcount > 0:
                     listeners.append((playcount, user))
         else:
@@ -194,6 +196,8 @@ class WhoKnowsMixin(MixinMeta):
             data = await asyncio.gather(*tasks)
             for playcount, user, metadata in data:
                 artistname, albumname, image_url = metadata
+                if artistname is None or albumname is None:
+                    return await ctx.send("Album could not be found on last.fm!")
                 if playcount > 0:
                     listeners.append((playcount, user))
         else:
@@ -243,9 +247,12 @@ class WhoKnowsMixin(MixinMeta):
             count = int(data["track"]["userplaycount"])
         except KeyError:
             count = 0
-
-        artistname = data["track"]["artist"]["name"]
-        trackname = data["track"]["name"]
+        try:
+            artistname = data["track"]["artist"]["name"]
+            trackname = data["track"]["name"]
+        except KeyError:
+            artistname = None
+            trackname = None
 
         try:
             image_url = data["track"]["album"]["image"][-1]["#text"]
@@ -273,8 +280,12 @@ class WhoKnowsMixin(MixinMeta):
         except (KeyError, TypeError):
             count = 0
 
-        artistname = data["album"]["artist"]
-        albumname = data["album"]["name"]
+        try:
+            artistname = data["album"]["artist"]
+            albumname = data["album"]["name"]
+        except KeyError:
+            artistname = None
+            albumname = None
 
         try:
             image_url = data["album"]["image"][-1]["#text"]
