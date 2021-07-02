@@ -80,9 +80,11 @@ class NowPlayingMixin(MixinMeta):
                     playcount = int(trackdata["userplaycount"])
                     if playcount > 0:
                         content.description += f"\n> {playcount} {format_plays(playcount)}"
-                    for tag in trackdata["toptags"]["tag"]:
-                        tags.append(tag["name"])
-                    content.set_footer(text=", ".join(tags))
+                    if isinstance(trackdata["toptags"], dict):
+                        for tag in trackdata["toptags"]["tag"]:
+                            tags.append(tag["name"])
+                        if tags:
+                            content.set_footer(text=", ".join(tags))
                 except KeyError:
                     pass
 
