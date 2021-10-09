@@ -1,5 +1,4 @@
 import discord
-
 from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
@@ -17,7 +16,7 @@ class TopMixin(MixinMeta):
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -71,7 +70,7 @@ class TopMixin(MixinMeta):
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -128,7 +127,7 @@ class TopMixin(MixinMeta):
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
