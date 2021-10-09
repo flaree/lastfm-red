@@ -29,8 +29,6 @@ class ScrobblerMixin(MixinMeta):
         fm_tokens = await self.bot.get_shared_api_tokens("lastfm")
         api_key = fm_tokens.get("appid")
         api_secret = fm_tokens.get("secret")
-        if not api_key or api_secret:
-            return
         timestamp = arrow.utcnow().timestamp()
         chosen = 0
         if user == requester:
@@ -59,8 +57,6 @@ class ScrobblerMixin(MixinMeta):
         fm_tokens = await self.bot.get_shared_api_tokens("lastfm")
         api_key = fm_tokens.get("appid")
         api_secret = fm_tokens.get("secret")
-        if not api_key or api_secret:
-            return
         timestamp = arrow.utcnow().timestamp()
         params = {
             "api_key": api_key,
