@@ -90,10 +90,11 @@ class LastFM(
                 "If you do not set this, everything except the `fm set` command "
                 "(now called `fm login`) and the new scrobbler feature will continue to function.\n\n"
                 "If you already have a last.fm application, you can view https://www.last.fm/api/accounts"
-                "to get your `shared secret`. Set this with `set api lastfm secret <shared_secret> and"
+                " to get your `shared secret`.\nSet this with `[p]set api lastfm secret <shared_secret>` and "
                 "you'll be all set!"
             )
             await self.bot.send_to_owners(message)
+            await self.config.sent_secret_key_dm.set(True)
 
     async def migrate_config(self):
         if await self.config.version() == 1:
@@ -108,6 +109,7 @@ class LastFM(
                 for guild in a:
                     new_data[guild] = a[guild]
             await self.config.version.set(2)
+            await self.config.sent_secret_key_dm.set(True)
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
@@ -134,6 +136,7 @@ class LastFM(
         await ctx.maybe_send_embed(message)
 
     @commands.command()
+    @commands.check(tokencheck)
     @commands.guild_only()
     async def crowns(self, ctx, user: discord.Member = None):
         """Check yourself or another users crowns."""

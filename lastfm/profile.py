@@ -12,7 +12,7 @@ from .utils import *
 class ProfileMixin(MixinMeta):
     """Profile Commands"""
 
-    @fm.command(aliases="set")
+    @fm.command(aliases=["set"])
     @commands.check(tokencheck_plus_secret)
     async def login(self, ctx):
         """Authenticates your last.fm account."""

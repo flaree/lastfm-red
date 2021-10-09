@@ -12,6 +12,7 @@ class WhoKnowsMixin(MixinMeta):
     """WhoKnows Commands"""
 
     @commands.command(usage="<artist name>", aliases=["wk"])
+    @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 10, type=commands.BucketType.user)
     async def whoknows(self, ctx, *, artistname):
@@ -95,6 +96,7 @@ class WhoKnowsMixin(MixinMeta):
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
 
     @commands.command(usage="<track name> | <artist name>", aliases=["wkt", "whoknowst"])
+    @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
     async def whoknowstrack(self, ctx, *, track):
@@ -163,6 +165,7 @@ class WhoKnowsMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     @commands.command(aliases=["wka", "whoknowsa"], usage="<album name> | <artist name>")
+    @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
     async def whoknowsalbum(self, ctx, *, album):
