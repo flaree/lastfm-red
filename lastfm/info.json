@@ -2,7 +2,8 @@
   "author": [
     "flare(flare#0001)",
     "joinem",
-    "fixator10"
+    "fixator10",
+    "alec"
   ],
   "install_msg": "LastFM - Port of Miso Bot",
   "name": "LastFm",
@@ -10,7 +11,8 @@
   "short": "LastFm Port.",
   "description": "LastFM Port.",
   "tags": [
-    "LastFM"
+    "LastFM",
+    "scrobbler"
   ],
   "hidden": false,
   "requirements": [

@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import contextlib
 import math
 import re
 import urllib
@@ -8,6 +9,7 @@ from typing import Tuple
 
 import aiohttp
 import discord
+import hashlib
 
 import arrow
 import humanize
@@ -114,6 +116,15 @@ class UtilsMixin(MixinMeta):
 
                 except aiohttp.ContentTypeError:
                     return None
+
+    async def api_post(self, params):
+        """Post data to the lastfm api"""
+        url = "http://ws.audioscrobbler.com/2.0/"
+        params["format"] = "json"
+        async with self.session.post(url, params=params) as response:
+            with contextlib.suppress(aiohttp.ContentTypeError):
+                content = await response.json()
+                return response.status, content
 
     async def scrape_artist_image(self, artist, ctx):
         url = f"https://www.last.fm/music/{urllib.parse.quote_plus(artist)}/+images"
@@ -275,17 +286,17 @@ class UtilsMixin(MixinMeta):
             content.add_field(name="Similar artists", value=", ".join(similar), inline=False)
         await ctx.send(embed=content)
 
-    async def get_userinfo_embed(self, ctx, username):
+    async def get_userinfo_embed(self, ctx, user, username):
         data = await self.api_request(ctx, {"user": username, "method": "user.getinfo"})
-        if data is None:
-            return None
+        if not data:
+            raise LastFMError
 
         username = data["user"]["name"]
         playcount = data["user"]["playcount"]
         profile_url = data["user"]["url"]
         profile_pic_url = data["user"]["image"][3]["#text"]
+        vc_scrobbles = await self.config.user(user).scrobbles()
         timestamp = datetime.datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
-        # image_colour = await color_from_image_url(profile_pic_url)
 
         content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
         content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
@@ -295,7 +306,13 @@ class UtilsMixin(MixinMeta):
             inline=True,
         )
         content.set_thumbnail(url=profile_pic_url)
-        content.set_footer(text=f"Total plays: {playcount}")
+
+        footer = f"Total plays: {playcount}"
+
+        if vc_scrobbles:
+            footer += f" | VC Plays: {vc_scrobbles}"
+
+        content.set_footer(text=footer)
         return content
 
     async def listening_report(self, ctx, timeframe, name):
@@ -545,7 +562,29 @@ async def create_pages(content, rows, maxrows=15, maxpages=10):
 
     return pages
 
-
 async def tokencheck(ctx):
     token = await ctx.bot.get_shared_api_tokens("lastfm")
     return bool(token.get("appid"))
+
+async def tokencheck_plus_secret(ctx):
+    token = await ctx.bot.get_shared_api_tokens("lastfm")
+    if token.get("appid") and token.get("secret"):
+        return True
+    return False
+
+def hashRequest(obj, secretKey):
+    """
+    This hashing function is courtesy of GitHub user huberf.
+    It is Licesned under the MIT license.
+    Source: https://github.com/huberf/lastfm-scrobbler/blob/master/lastpy/__init__.py#L50-L60
+    """
+    string = ""
+    items = obj.keys()
+    sorted(items)
+    for i in items:
+        string += i
+        string += obj[i]
+    string += secretKey
+    stringToHash = string.encode("utf8")
+    requestHash = hashlib.md5(stringToHash).hexdigest()
+    return requestHash

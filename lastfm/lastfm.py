@@ -15,6 +15,7 @@ from .charts import ChartMixin
 from .fmmixin import FMMixin, fm
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
+from .scrobbler import ScrobblerMixin
 from .top import TopMixin
 from .utils import *
 from .whoknows import WhoKnowsMixin
@@ -30,6 +31,7 @@ class LastFM(
     ChartMixin,
     FMMixin,
     ProfileMixin,
+    ScrobblerMixin,
     NowPlayingMixin,
     TopMixin,
     WordCloudMixin,
@@ -43,8 +45,8 @@ class LastFM(
         super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        defaults = {"lastfm_username": None}
-        self.config.register_global(version=1)
+        defaults = {"lastfm_username": None, "session_key": None, "scrobbles": 0}
+        self.config.register_global(version=1, sent_secret_key_dm=False)
         self.config.register_user(**defaults)
         self.config.register_guild(crowns={})
         self.session = aiohttp.ClientSession(
@@ -68,7 +70,33 @@ class LastFM(
     async def initialize(self):
         token = await self.bot.get_shared_api_tokens("lastfm")
         self.token = token.get("appid")
+        self.secret = token.get("secret")
+        await self.send_secret_key_dm()
         await self.migrate_config()
+
+    async def is_this_first_load(self):
+        v = await self.config.version()
+        if v == 1:
+            return True
+        return False
+
+    async def send_secret_key_dm(self):
+        if await self.config.sent_secret_key_dm():
+            return
+        first_load = await self.is_this_first_load()
+        if not first_load:
+            message = (
+                "Hello!\n\n"
+                "The last.fm cog has been updated and now requires a new API key.\n"
+                "If you do not set this, everything except the `fm set` command "
+                "(now called `fm login`) and the new scrobbler feature will continue to function.\n\n"
+                "If you already have a last.fm application, you can view https://www.last.fm/api/accounts"
+                "to get your `shared secret`. Set this with `set api lastfm secret <shared_secret> and"
+                "you'll be all set!"
+            )
+            await self.bot.send_to_owners(message)
+
+
 
     async def migrate_config(self):
         if await self.config.version() == 1:
@@ -88,6 +116,7 @@ class LastFM(
     async def on_red_api_tokens_update(self, service_name, api_tokens):
         if service_name == "lastfm":
             self.token = api_tokens.get("appid")
+            self.secret = api_tokens.get("secret")
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -103,6 +132,7 @@ class LastFM(
             "2. Fill in the application. Once completed do not exit the page. - "
             "Copy all information on the page and save it.\n"
             f"3. Enter the key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`"
+            f"4. Enter the secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`"
         )
         await ctx.maybe_send_embed(message)
 
@@ -145,7 +175,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -201,7 +231,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -275,7 +305,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with {}fm set".format(
+                "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
