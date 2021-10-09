@@ -15,7 +15,7 @@ class WhoKnowsMixin(MixinMeta):
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 10, type=commands.BucketType.user)
-    async def whoknows(self, ctx, *, artistname):
+    async def whoknows(self, ctx, *, artistname=None):
         """Check who has listened to a given artist the most."""
         listeners = []
         tasks = []
@@ -23,6 +23,24 @@ class WhoKnowsMixin(MixinMeta):
             userlist = await self.config.all_users()
             guildusers = [x.id for x in ctx.guild.members]
             userslist = [user for user in userlist if user in guildusers]
+            if not artistname:
+                username = await self.config.user(ctx.author).lastfm_username()
+                if username is None:
+                    return await ctx.send(
+                        "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                            ctx.clean_prefix
+                        )
+                    )
+                try:
+                    data = await self.api_request(
+                        ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                    )
+                except LastFMError as e:
+                    return await ctx.send(str(e))
+                tracks = data["recenttracks"]["track"]
+                if not tracks:
+                    return await ctx.send("You have not listened to anything yet!")
+                artistname = tracks[0]["artist"]["#text"]
             for user in userslist:
                 lastfm_username = userlist[user]["lastfm_username"]
                 if lastfm_username is None:
@@ -99,16 +117,36 @@ class WhoKnowsMixin(MixinMeta):
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowstrack(self, ctx, *, track):
+    async def whoknowstrack(self, ctx, *, track=None):
         """
         Check who has listened to a given song the most.
         """
-        try:
-            trackname, artistname = [x.strip() for x in track.split("|")]
-            if trackname == "" or artistname == "":
-                raise ValueError
-        except ValueError:
-            return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
+        if not track:
+            username = await self.config.user(ctx.author).lastfm_username()
+            if username is None:
+                return await ctx.send(
+                    "You have not logged into your Last.fm account. Please log in with {}fm login".format(
+                        ctx.clean_prefix
+                    )
+                )
+            try:
+                data = await self.api_request(
+                    ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                )
+            except LastFMError as e:
+                return await ctx.send(str(e))
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            trackname = tracks[0]["name"]
+            artistname = tracks[0]["artist"]["#text"]
+        else:
+            try:
+                trackname, artistname = [x.strip() for x in track.split("|")]
+                if trackname == "" or artistname == "":
+                    raise ValueError
+            except ValueError:
+                return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
 
         listeners = []
         tasks = []
@@ -168,16 +206,41 @@ class WhoKnowsMixin(MixinMeta):
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowsalbum(self, ctx, *, album):
+    async def whoknowsalbum(self, ctx, *, album=None):
         """
         Check who has listened to a given album the most.
         """
-        try:
-            albumname, artistname = [x.strip() for x in album.split("|")]
-            if not albumname or not artistname:
-                raise ValueError
-        except ValueError:
-            return await ctx.send("\N{WARNING SIGN} Incorrect format! use `album | artist`")
+        if not album:
+            username = await self.config.user(ctx.author).lastfm_username()
+            if username is None:
+                return await ctx.send(
+                    "You have not logged into your Last.fm account. Please log in with {}fm login".format(
+                        ctx.clean_prefix
+                    )
+                )
+            try:
+                data = await self.api_request(
+                    ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                )
+            except LastFMError as e:
+                return await ctx.send(str(e))
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            if "#text" in tracks[0]["album"]:
+                albumname = tracks[0]["album"]["#text"]
+                artistname = tracks[0]["artist"]["#text"]
+            else:
+                return await ctx.send(
+                    "Sorry, the track you're listening to doesn't have the album info provided."
+                )
+        else:
+            try:
+                albumname, artistname = [x.strip() for x in album.split("|")]
+                if not albumname or not artistname:
+                    raise ValueError
+            except ValueError:
+                return await ctx.send("\N{WARNING SIGN} Incorrect format! use `album | artist`")
 
         listeners = []
         tasks = []
