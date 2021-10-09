@@ -1,6 +1,7 @@
 import asyncio
-import datetime
 import contextlib
+import datetime
+import hashlib
 import math
 import re
 import urllib
@@ -8,10 +9,8 @@ from copy import deepcopy
 from typing import Tuple
 
 import aiohttp
-import discord
-import hashlib
-
 import arrow
+import discord
 import humanize
 import tabulate
 from bs4 import BeautifulSoup
@@ -562,9 +561,11 @@ async def create_pages(content, rows, maxrows=15, maxpages=10):
 
     return pages
 
+
 async def tokencheck(ctx):
     token = await ctx.bot.get_shared_api_tokens("lastfm")
     return bool(token.get("appid"))
+
 
 async def tokencheck_plus_secret(ctx):
     token = await ctx.bot.get_shared_api_tokens("lastfm")
@@ -572,10 +573,11 @@ async def tokencheck_plus_secret(ctx):
         return True
     return False
 
+
 def hashRequest(obj, secretKey):
     """
     This hashing function is courtesy of GitHub user huberf.
-    It is Licesned under the MIT license.
+    It is licensed under the MIT license.
     Source: https://github.com/huberf/lastfm-scrobbler/blob/master/lastpy/__init__.py#L50-L60
     """
     string = ""

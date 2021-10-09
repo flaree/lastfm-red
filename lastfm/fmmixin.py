@@ -12,6 +12,6 @@ async def fm(self, ctx: commands.Context):
 
 
 class FMMixin:
-    """ This is mostly here to easily mess with things... """
+    """This is mostly here to easily mess with things..."""
 
     c = fm

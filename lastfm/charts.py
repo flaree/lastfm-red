@@ -1,7 +1,6 @@
 from io import BytesIO
 
 import discord
-
 from PIL import Image, ImageDraw, ImageFont
 from redbot.core import commands
 from redbot.core.utils import AsyncIter

@@ -70,9 +70,7 @@ class ProfileMixin(MixinMeta):
         """
         Deauthenticates your last.fm account.
         """
-        await ctx.send(
-            "Are you sure you want to log out? (yes/no)"
-        )
+        await ctx.send("Are you sure you want to log out? (yes/no)")
         try:
             pred = MessagePredicate.yes_or_no(ctx, user=ctx.message.author)
             await ctx.bot.wait_for("message", check=pred, timeout=60)

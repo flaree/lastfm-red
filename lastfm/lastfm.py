@@ -5,7 +5,6 @@ from operator import itemgetter
 
 import aiohttp
 import discord
-
 from redbot.core import Config, commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import escape, pagify
@@ -95,8 +94,6 @@ class LastFM(
                 "you'll be all set!"
             )
             await self.bot.send_to_owners(message)
-
-
 
     async def migrate_config(self):
         if await self.config.version() == 1:

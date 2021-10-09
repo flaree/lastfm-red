@@ -1,10 +1,10 @@
+import contextlib
 import re
 import time
 
 import arrow
 import discord
 import lavalink
-import contextlib
 from redbot.core import commands
 
 from .abc import MixinMeta
@@ -118,7 +118,7 @@ class ScrobblerMixin(MixinMeta):
         print(track.title)
         if not guild:
             return
-        try:    
+        try:
             t = self.started_time[guild.id]
             started = t[0]
             uri = t[1]
@@ -134,9 +134,7 @@ class ScrobblerMixin(MixinMeta):
         track_title = track_array[1]
         voice_members = guild.me.voice.channel.members
         how_much_to_subtrack = track.length / 5000
-        should_end_song_threshold = (
-            (int(track.length / 1000)) + started
-        ) - how_much_to_subtrack
+        should_end_song_threshold = ((int(track.length / 1000)) + started) - how_much_to_subtrack
         if int(time.time()) >= should_end_song_threshold:
             for member in voice_members:
                 if member == guild.me or member.bot is True:

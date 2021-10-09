@@ -1,7 +1,6 @@
 import asyncio
 
 import discord
-
 from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
