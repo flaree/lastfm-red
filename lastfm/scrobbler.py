@@ -115,7 +115,6 @@ class ScrobblerMixin(MixinMeta):
     async def on_red_audio_track_end(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
-        print(track.title)
         if not guild:
             return
         try:
