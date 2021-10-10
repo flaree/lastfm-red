@@ -228,8 +228,8 @@ class LastFM(
             [p]fm artist [timeframe] toptracks <artist name>
             [p]fm artist [timeframe] topalbums <artist name>
             [p]fm artist [timeframe] overview  <artist name>"""
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
+        username = await self.config.user(ctx.author).lastfm_username()
+        if username is None:
             return await ctx.send(
                 "You do not have a last.fm account set. Please set one with {}fm login".format(
                     ctx.clean_prefix
@@ -254,12 +254,12 @@ class LastFM(
             datatype = "albums"
 
         elif datatype in ["overview", "stats", "ov"]:
-            return await self.artist_overview(ctx, period, artistname, name)
+            return await self.artist_overview(ctx, period, artistname, username)
 
         else:
             return await ctx.send_help()
 
-        artist, data = await self.artist_top(ctx, period, artistname, datatype)
+        artist, data = await self.artist_top(ctx, period, artistname, datatype, username)
         if artist is None or not data:
             artistname = escape(artistname)
             if period == "overall":
@@ -276,15 +276,15 @@ class LastFM(
             total += playcount
 
         artistname = urllib.parse.quote_plus(artistname)
-        content = discord.Embed()
+        content = discord.Embed(color=await ctx.embed_color())
         content.set_thumbnail(url=artist["image_url"])
         # content.colour = await self.cached_image_color(artist["image_url"])
         content.set_author(
             name=f"{ctx.author.display_name} — "
             + (f"{humanized_period(period)} " if period != "overall" else "")
             + f"Top {datatype} by {artist['formatted_name']}",
-            icon_url=ctx.usertarget.avatar_url,
-            url=f"https://last.fm/user/{ctx.username}/library/music/{artistname}/"
+            icon_url=ctx.author.avatar_url,
+            url=f"https://last.fm/user/{username}/library/music/{artistname}/"
             f"+{datatype}?date_preset={period_http_format(period)}",
         )
         content.set_footer(
