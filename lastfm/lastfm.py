@@ -127,11 +127,11 @@ class LastFM(
     async def lastfmset(self, ctx):
         """Instructions on how to set the api key."""
         message = (
-            "1. Vist the [LastFM](https://www.last.fm/api/) site and click on 'Get an API Account'.\n"
+            "1. Visit the [LastFM](https://www.last.fm/api/) website and click on 'Get an API Account'.\n"
             "2. Fill in the application. Once completed do not exit the page. - "
             "Copy all information on the page and save it.\n"
-            f"3. Enter the key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`\n"
-            f"4. Enter the secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`"
+            f"3. Enter the api key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`\n"
+            f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`"
         )
         await ctx.maybe_send_embed(message)
 
