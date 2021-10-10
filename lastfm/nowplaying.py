@@ -53,7 +53,8 @@ class NowPlayingMixin(MixinMeta):
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel), url=url)
             # content.colour = int(image_colour, 16)
-            content.description = f"**{escape(album, formatting=True)}**"
+
+            content.description = f"**{escape(album, formatting=True)}**" if album else ""
             content.title = (
                 f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
             )
@@ -81,7 +82,10 @@ class NowPlayingMixin(MixinMeta):
                         content.description += f"\n> {playcount} {format_plays(playcount)}"
                     if isinstance(trackdata["toptags"], dict):
                         for tag in trackdata["toptags"]["tag"]:
-                            tags.append(tag["name"])
+                            if "name" in tag:
+                                tags.append(tag["name"])
+                            else:
+                                tags.append(tag)
                         if tags:
                             content.set_footer(text=", ".join(tags))
                 except KeyError:
@@ -129,6 +133,7 @@ class NowPlayingMixin(MixinMeta):
         total_linked = len(tasks)
         if tasks:
             data = await asyncio.gather(*tasks)
+            data = [i for i in data if i]
             for song, member_ref in data:
                 if song is not None:
                     listeners.append((song, member_ref))
@@ -143,7 +148,7 @@ class NowPlayingMixin(MixinMeta):
         for song, member in listeners:
             rows.append(f"{member.mention} **{song.get('artist')}** — ***{song.get('name')}***")
 
-        content = discord.Embed()
+        content = discord.Embed(color=await ctx.embed_color())
         content.set_author(
             name=f"What is {ctx.guild.name} listening to?",
             icon_url=ctx.guild.icon_url_as(size=64),

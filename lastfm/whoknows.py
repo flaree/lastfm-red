@@ -53,6 +53,7 @@ class WhoKnowsMixin(MixinMeta):
             if tasks:
                 try:
                     data = await asyncio.gather(*tasks)
+                    data = [i for i in data if i]
                 except LastFMError as e:
                     return await ctx.send(str(e))
                 for playcount, user, name in data:
@@ -101,7 +102,9 @@ class WhoKnowsMixin(MixinMeta):
         else:
             await ctx.send(embed=pages[0])
         if old_king is None:
-            await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
+            await ctx.send(
+                    f"> **{new_king.name}** just stole the **{artistname}** crown from **{old_king.name}**."
+                )
             async with self.config.guild(ctx.guild).crowns() as crowns:
                 crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
@@ -165,6 +168,7 @@ class WhoKnowsMixin(MixinMeta):
 
         if tasks:
             data = await asyncio.gather(*tasks)
+            data = [i for i in data if i]
             for playcount, user, metadata in data:
                 artistname, trackname, image_url = metadata
                 if artistname is None or trackname is None:
@@ -259,6 +263,7 @@ class WhoKnowsMixin(MixinMeta):
 
         if tasks:
             data = await asyncio.gather(*tasks)
+            data = [i for i in data if i]
             for playcount, user, metadata in data:
                 artistname, albumname, image_url = metadata
                 if artistname is None or albumname is None:
@@ -298,16 +303,20 @@ class WhoKnowsMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     async def get_playcount_track(self, ctx, artist, track, username, reference=None):
-        data = await self.api_request(
-            ctx,
-            {
-                "method": "track.getinfo",
-                "user": username,
-                "track": track,
-                "artist": artist,
-                "autocorrect": 1,
-            },
-        )
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "track.getinfo",
+                    "user": username,
+                    "track": track,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
+
         try:
             count = int(data["track"]["userplaycount"])
         except KeyError:
@@ -330,16 +339,19 @@ class WhoKnowsMixin(MixinMeta):
             return count, reference, (artistname, trackname, image_url)
 
     async def get_playcount_album(self, ctx, artist, album, username, reference=None):
-        data = await self.api_request(
-            ctx,
-            {
-                "method": "album.getinfo",
-                "user": username,
-                "album": album,
-                "artist": artist,
-                "autocorrect": 1,
-            },
-        )
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "album.getinfo",
+                    "user": username,
+                    "album": album,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
         try:
             count = int(data["album"]["userplaycount"])
         except (KeyError, TypeError):
@@ -363,15 +375,18 @@ class WhoKnowsMixin(MixinMeta):
             return count, reference, (artistname, albumname, image_url)
 
     async def get_playcount(self, ctx, artist, username, reference=None):
-        data = await self.api_request(
-            ctx,
-            {
-                "method": "artist.getinfo",
-                "user": username,
-                "artist": artist,
-                "autocorrect": 1,
-            },
-        )
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "artist.getinfo",
+                    "user": username,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
         try:
             count = int(data["artist"]["stats"]["userplaycount"])
             name = data["artist"]["name"]
