@@ -39,12 +39,18 @@ class LastFM(
     commands.Cog,
     metaclass=CompositeMetaClass,
 ):
+    """
+    Interacts with the last.fm API.
+    """
+
+    __version__ = "1.1.0"
+
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        defaults = {"lastfm_username": None, "session_key": None, "scrobbles": 0}
+        defaults = {"lastfm_username": None, "session_key": None, "scrobbles": 0, "scrobble": True}
         self.config.register_global(version=1, sent_secret_key_dm=False)
         self.config.register_user(**defaults)
         self.config.register_guild(crowns={})
@@ -59,6 +65,10 @@ class LastFM(
         self.data_loc = bundled_data_path(self)
         self.chart_data = {}
         self.chart_data_loop = self.bot.loop.create_task(self.chart_clear_loop())
+
+    def format_help_for_context(self, ctx):
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\n\nCog Version: {self.__version__}"
 
     async def chart_clear_loop(self):
         await self.bot.wait_until_ready()
@@ -175,7 +185,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a last.fm account set. Please set one with {}fm login".format(
+                "You have not logged into your last.fm account. Please log in with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -231,7 +241,7 @@ class LastFM(
         username = await self.config.user(ctx.author).lastfm_username()
         if username is None:
             return await ctx.send(
-                "You do not have a last.fm account set. Please set one with {}fm login".format(
+                "You have not logged into your last.fm account. Please log in with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -305,7 +315,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a last.fm account set. Please set one with {}fm login".format(
+                "You have not logged into your last.fm account. Please log in with {}fm login".format(
                     ctx.clean_prefix
                 )
             )

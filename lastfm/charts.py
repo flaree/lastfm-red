@@ -33,7 +33,7 @@ class ChartMixin(MixinMeta):
         username = await self.config.user(ctx.author).lastfm_username()
         if username is None:
             return await ctx.send(
-                "You do not have a last.fm account set. Please set one with {}fm login".format(
+                "You have not logged into your last.fm account. Please log in with {}fm login".format(
                     ctx.clean_prefix
                 )
             )

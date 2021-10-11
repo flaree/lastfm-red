@@ -100,7 +100,7 @@ class ProfileMixin(MixinMeta):
         name = await self.config.user(author).lastfm_username()
         if not name:
             await ctx.send(
-                f"You have not logged into your Last.fm account. Please log in with {ctx.clean_prefix}fm login"
+                f"You have not logged into your last.fm account. Please log in with {ctx.clean_prefix}fm login"
             )
             return
 
