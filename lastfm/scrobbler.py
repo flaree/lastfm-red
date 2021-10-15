@@ -19,11 +19,27 @@ class ScrobblerMixin(MixinMeta):
         self.regex = re.compile(
             (
                 r"((\[)|(\()).*(of?ficial|feat\.?|"
-                r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"
+                r"ft\.?|audio|video|explicit|clean|lyrics?|remix|HD).*(?(2)]|\))"
             ),
             flags=re.I,
         )
         self.started_time = {}
+
+    def is_valid_scrobble(self, started, track_length):
+        """
+        A track should only be scrobbled when the following conditions have been met:
+        The track has been played for at least half its duration, or for 4 minutes (whichever occurs earlier)
+        """
+        track_length = track_length / 1000
+        started = started - 3
+        now = int(time.time())
+        four_minutes = 240
+        half_track_length = int(track_length / 2)
+        listen_time = now - started
+        if listen_time >= four_minutes or listen_time >= half_track_length:
+            return True
+        return False
+
 
     @commands.command(usage="<track name> | <artist name>")
     @commands.cooldown(1, 60, type=commands.BucketType.user)
@@ -156,8 +172,9 @@ class ScrobblerMixin(MixinMeta):
     async def on_red_audio_track_start(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
-        if not (guild and track) or track.length <= 30000 or not guild.me.voice:
+        if not (guild and track) or int(track.length) <= 30000 or not guild.me.voice:
             return
+        track.length = int(track.length)
         self.started_time[guild.id] = (int(time.time()), track.uri)
         renamed_track = self.regex.sub("", track.title).strip()
         track_array = renamed_track.split("-")
@@ -172,7 +189,7 @@ class ScrobblerMixin(MixinMeta):
             user_settings = await self.config.user(member).all()
 
             if user_settings["scrobble"] and user_settings["session_key"]:
-                await self.set_nowplaying(track_title, track_artist, track.length, member, user_settings["scrobble"])
+                await self.set_nowplaying(track_title, track_artist, track.length, member, user_settings["session_key"])
 
     @commands.Cog.listener()
     async def on_red_audio_track_end(
@@ -186,8 +203,9 @@ class ScrobblerMixin(MixinMeta):
             uri = t[1]
         except KeyError:
             return
-        if not track or track.length <= 30000 or not guild.me.voice or uri != track.uri:
+        if not track or int(track.length) <= 30000 or not guild.me.voice or uri != track.uri:
             return
+        track.length = int(track.length)
         renamed_track = self.regex.sub("", track.title).strip()
         track_array = renamed_track.split("-")
         if len(track_array) == 1:
@@ -195,9 +213,7 @@ class ScrobblerMixin(MixinMeta):
         track_artist = track_array[0]
         track_title = track_array[1]
         voice_members = guild.me.voice.channel.members
-        how_much_to_subtrack = track.length / 5000
-        should_end_song_threshold = ((int(track.length / 1000)) + started) - how_much_to_subtrack
-        if int(time.time()) >= should_end_song_threshold:
+        if self.is_valid_scrobble(started, track.length) is True:
             for member in voice_members:
                 if member == guild.me or member.bot is True:
                     continue

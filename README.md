@@ -6,3 +6,4 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 ## changelog
 
 v1.1.0 - adds `[p]scrobble` and `[p]fm scrobbler` commands and improves error messages
+v1.1.1 - improves algorithm to detect if a song should be scrobbled
