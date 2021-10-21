@@ -103,13 +103,13 @@ class WhoKnowsMixin(MixinMeta):
             await ctx.send(embed=pages[0])
         if old_king is None:
             await ctx.send(
-                    f"> **{new_king.name}** just stole the **{artistname}** crown from **{old_king.name}**."
+                    f"> **{new_king.name}** just earned the **{artistname}** crown."
                 )
             async with self.config.guild(ctx.guild).crowns() as crowns:
                 crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
             if not (old_king.id == new_king.id):
-                await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
+                await ctx.send(f"> **{new_king.name}** just stole the **{artistname}** crown from **{old_king.name}**.")
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
             if old_king.id == new_king.id:
