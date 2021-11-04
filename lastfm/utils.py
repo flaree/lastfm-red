@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-import datetime
 import hashlib
 import math
 import re
@@ -11,7 +10,6 @@ from typing import Tuple
 import aiohttp
 import arrow
 import discord
-import humanize
 import tabulate
 from bs4 import BeautifulSoup
 from redbot.core.utils.chat_formatting import box
@@ -303,7 +301,7 @@ class UtilsMixin(MixinMeta):
         content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
         content.add_field(
             name="Registered",
-            value=f"{exact_time}\n{relative_time}",
+            value=f"{exact_time}\n({relative_time})",
             inline=True,
         )
         content.set_thumbnail(url=profile_pic_url)
