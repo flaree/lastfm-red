@@ -297,7 +297,7 @@ class UtilsMixin(MixinMeta):
         vc_scrobbles = await self.config.user(user).scrobbles()
         timestamp = datetime.datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
 
-        content = discord.Embed(title=f"\N{OPTICAL DISC} {username}")
+        content = discord.Embed(title=f"\N{OPTICAL DISC} {username}", color=await ctx.embed_color())
         content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
         content.add_field(
             name="Registered",
