@@ -295,13 +295,15 @@ class UtilsMixin(MixinMeta):
         profile_url = data["user"]["url"]
         profile_pic_url = data["user"]["image"][3]["#text"]
         vc_scrobbles = await self.config.user(user).scrobbles()
-        timestamp = datetime.datetime.utcfromtimestamp(int(data["user"]["registered"]["unixtime"]))
+        timestamp = int(data["user"]["registered"]["unixtime"])
+        exact_time = f"<t:{timestamp}>"
+        relative_time = f"<t:{timestamp}>:R"
 
         content = discord.Embed(title=f"\N{OPTICAL DISC} {username}", color=await ctx.embed_color())
         content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
         content.add_field(
             name="Registered",
-            value=f"{humanize.naturaltime(timestamp)}\n{timestamp.strftime('%d.%m.%Y')}",
+            value=f"{exact_time}\n{relative_time}",
             inline=True,
         )
         content.set_thumbnail(url=profile_pic_url)

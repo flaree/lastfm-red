@@ -9,3 +9,4 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 - v1.1.1 - improves algorithm to detect if a song should be scrobbled
 - v1.1.2 - fix `[p]whoknows` command bug
 - v1.1.3 - add color to `[p]fm profile` embed
+- v1.1.4 - use timestamps in `[p]fm profile` embed
