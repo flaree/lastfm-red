@@ -42,7 +42,7 @@ class ScrobblerMixin(MixinMeta):
 
 
     @commands.command(usage="<track name> | <artist name>")
-    @commands.cooldown(1, 60, type=commands.BucketType.user)
+    @commands.cooldown(1, 300, type=commands.BucketType.user)
     async def scrobble(self, ctx, *, track):
         """
         Scrobble a song to last.fm.
