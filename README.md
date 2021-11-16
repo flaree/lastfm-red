@@ -10,3 +10,4 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 - v1.1.2 - fix `[p]whoknows` command bug
 - v1.1.3 - add color to `[p]fm profile` embed
 - v1.1.4 - use timestamps in `[p]fm profile` embed
+- v1.1.5 - increase cooldown in `[p]fm scrobble` command
