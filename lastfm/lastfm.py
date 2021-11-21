@@ -45,7 +45,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):

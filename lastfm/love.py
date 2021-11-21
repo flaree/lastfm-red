@@ -206,6 +206,8 @@ class LoveMixin(MixinMeta):
         content = discord.Embed(color=await ctx.embed_color(), title=f"{user.name}'s loved tracks")
 
         pages = await create_pages(content, tracks)
+        for i, page in enumerate(pages):
+            page.set_footer(text=f"Page {i + 1}/{len(pages)}")
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
