@@ -106,15 +106,12 @@ class ScrobblerMixin(MixinMeta):
 
 
     async def scrobble_song(self, track, artist, duration, user, requester, key, is_vc):
-        fm_tokens = await self.bot.get_shared_api_tokens("lastfm")
-        api_key = fm_tokens.get("appid")
-        api_secret = fm_tokens.get("secret")
         timestamp = arrow.utcnow().timestamp()
         chosen = 0
         if user == requester:
             chosen = 1
         params = {
-            "api_key": api_key,
+            "api_key": self.token,
             "artist": artist,
             "chosenByUser": str(chosen),
             "method": "track.scrobble",
@@ -124,7 +121,7 @@ class ScrobblerMixin(MixinMeta):
         }
         if duration:
             params["duration"] = str(int(duration / 1000))
-        hashed = hashRequest(params, api_secret)
+        hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 200 and is_vc:

@@ -12,6 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .charts import ChartMixin
 from .fmmixin import FMMixin, fm
+from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
 from .scrobbler import ScrobblerMixin
@@ -31,6 +32,7 @@ class LastFM(
     FMMixin,
     ProfileMixin,
     ScrobblerMixin,
+    LoveMixin,
     NowPlayingMixin,
     TopMixin,
     WordCloudMixin,
@@ -43,7 +45,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.1.4"
+    __version__ = "1.2.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):

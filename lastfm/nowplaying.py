@@ -74,6 +74,9 @@ class NowPlayingMixin(MixinMeta):
             except LastFMError as e:
                 return await ctx.send(str(e))
             if trackdata is not None:
+                loved = trackdata["track"]["userloved"] == "1"
+                if loved:
+                    content.title += " :heart:"
                 tags = []
                 try:
                     trackdata = trackdata["track"]
