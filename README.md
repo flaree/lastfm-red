@@ -13,3 +13,4 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 - v1.1.5 - increase cooldown in `[p]fm scrobble` command
 - v1.2.0 - add `[p]fm love`,`[p]fm unlove` and `[p]fm loved` + add a heart to the title in `[p]fm np` if the song is loved
 - v1.2.1 - add page number to `[p]fm loved` embed
+- v1.3.0 - add `[p]fm streak` command

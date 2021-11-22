@@ -45,7 +45,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.2.1"
+    __version__ = "1.3.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -401,3 +401,72 @@ class LastFM(
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send(embed=embeds[0])
+    
+    @fm.command()
+    async def streak(self, ctx, user: discord.User = None):
+        """
+        View how many times you've listened to something in a row
+
+        Only the most 200 recent plays are tracked
+        """
+        if not user:
+            user = ctx.author
+        name = await self.config.user(user).lastfm_username()
+        if name is None:
+            return await ctx.send(
+                "You do not have a LastFM account set. Please set one with `{}fm set`.".format(
+                    ctx.clean_prefix
+                )
+            )
+        try:
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.getrecenttracks", "limit": 200}
+            )
+        except LastFMError as e:
+            return await ctx.send(str(e))
+        tracks = data["recenttracks"]["track"]
+        if not tracks:
+            return await ctx.send("You have not listened to anything yet!")
+        track_streak = [tracks[0]["name"], 1, True]
+        artist_streak = [tracks[0]["artist"]["#text"], 1, True]
+        album_streak = [tracks[0]["album"]["#text"], 1, True]
+        ignore = True
+        for x in tracks:
+            if ignore:
+                ignore = False
+                continue
+            if track_streak[2]:
+                if x["name"] == track_streak[0]:
+                    track_streak[1] += 1
+                else:
+                    track_streak[2] = False
+            if artist_streak[2]:
+                if x["artist"]["#text"] == artist_streak[0]:
+                    artist_streak[1] += 1
+                else:
+                    artist_streak[2] = False
+            if album_streak[2]:
+                if x["album"]["#text"] == album_streak[0]:
+                    album_streak[1] += 1
+                else:
+                    album_streak[2] = False
+            
+            if not track_streak[2] and not artist_streak[2] and not album_streak[2]:
+                break
+
+        if track_streak[1] == 1 and artist_streak[1] == 1 and album_streak[1] == 1:
+            return await ctx.send("You have not listened to anything in a row.")
+        embed = discord.Embed(color=await ctx.embed_color(), title=f"{user.name}'s streaks")
+        embed.set_thumbnail(url=tracks[0]["image"][3]["#text"])
+        if track_streak[1] > 1:
+            embed.add_field(name="Track", value=f"{track_streak[1]} times in a row \n({track_streak[0][:50]})")
+        if artist_streak[1] > 1:
+            embed.add_field(name="Artist", value=f"{artist_streak[1]} times in a row \n({artist_streak[0][:50]})")
+        if album_streak[1] > 1:
+            embed.add_field(name="Album", value=f"{album_streak[1]} times in a row \n({album_streak[0][:50]})")
+
+        await ctx.send(embed=embed)
+
+                
+
+
