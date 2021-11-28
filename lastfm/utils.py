@@ -108,6 +108,8 @@ class UtilsMixin(MixinMeta):
                 try:
                     content = await response.json()
                     if response.status == 200:
+                        if "error" in content:
+                            raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
                         return content
                     raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
 
@@ -297,7 +299,9 @@ class UtilsMixin(MixinMeta):
         exact_time = f"<t:{timestamp}>"
         relative_time = f"<t:{timestamp}:R>"
 
-        content = discord.Embed(title=f"\N{OPTICAL DISC} {username}", color=await ctx.embed_color())
+        content = discord.Embed(
+            title=f"\N{OPTICAL DISC} {username}", color=await ctx.embed_color()
+        )
         content.add_field(name="Last.fm profile", value=f"[Link]({profile_url})", inline=True)
         content.add_field(
             name="Registered",
@@ -582,7 +586,7 @@ def hashRequest(obj, secretKey):
     """
     string = ""
     items = obj.keys()
-    sorted(items)
+    items = sorted(items)
     for i in items:
         string += i
         string += obj[i]

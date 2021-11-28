@@ -40,7 +40,6 @@ class ScrobblerMixin(MixinMeta):
             return True
         return False
 
-
     @commands.command(usage="<track name> | <artist name>")
     @commands.cooldown(1, 300, type=commands.BucketType.user)
     async def scrobble(self, ctx, *, track):
@@ -53,7 +52,7 @@ class ScrobblerMixin(MixinMeta):
         conf = await self.config.user(ctx.author).all()
         if not conf["session_key"] and not conf["lastfm_username"]:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -71,7 +70,9 @@ class ScrobblerMixin(MixinMeta):
         except ValueError:
             return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
 
-        result = await self.scrobble_song(trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False)
+        result = await self.scrobble_song(
+            trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
+        )
         if result[0] == 403:
             if result[1]["error"] == 9:
                 await self.config.user(ctx.author).session_key.clear()
@@ -104,7 +105,6 @@ class ScrobblerMixin(MixinMeta):
         else:
             await ctx.send("\N{CROSS MARK} VC scrobbling disabled.")
 
-
     async def scrobble_song(self, track, artist, duration, user, requester, key, is_vc):
         timestamp = arrow.utcnow().timestamp()
         chosen = 0
@@ -133,12 +133,9 @@ class ScrobblerMixin(MixinMeta):
         return data
 
     async def set_nowplaying(self, track, artist, duration, user, key):
-        fm_tokens = await self.bot.get_shared_api_tokens("lastfm")
-        api_key = fm_tokens.get("appid")
-        api_secret = fm_tokens.get("secret")
         timestamp = arrow.utcnow().timestamp()
         params = {
-            "api_key": api_key,
+            "api_key": self.token,
             "artist": artist,
             "duration": str(duration / 1000),
             "method": "track.updateNowPlaying",
@@ -146,24 +143,23 @@ class ScrobblerMixin(MixinMeta):
             "timestamp": str(timestamp),
             "track": track,
         }
-        hashed = hashRequest(params, api_secret)
+        hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
         data = await self.api_post(params=params)
-        if data[0] == 403:
-            if data[1]["error"] == 9:
-                await self.config.user(user).session_key.clear()
-                await self.config.user(user).lastfm_username.clear()
-                with contextlib.suppress(discord.HTTPException):
-                    message = (
-                        "I was unable to scrobble your last song as it seems you have unauthorized me to do so.\n"
-                        "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-                    )
-                    embed = discord.Embed(
-                        title="Authorization Failed",
-                        description=message,
-                        color=await self.bot.get_embed_color(user.dm_channel),
-                    )
-                    await user.send(embed=embed)
+        if data[0] == 403 and data[1]["error"] == 9:
+            await self.config.user(user).session_key.clear()
+            await self.config.user(user).lastfm_username.clear()
+            with contextlib.suppress(discord.HTTPException):
+                message = (
+                    "I was unable to scrobble your last song as it seems you have unauthorized me to do so.\n"
+                    "You can reauthorize me using the `fm login` command, but I have logged you out for now."
+                )
+                embed = discord.Embed(
+                    title="Authorization Failed",
+                    description=message,
+                    color=await self.bot.get_embed_color(user.dm_channel),
+                )
+                await user.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_red_audio_track_start(
@@ -184,9 +180,10 @@ class ScrobblerMixin(MixinMeta):
             if member == guild.me or member.bot is True:
                 continue
             user_settings = await self.config.user(member).all()
-
             if user_settings["scrobble"] and user_settings["session_key"]:
-                await self.set_nowplaying(track_title, track_artist, track.length, member, user_settings["session_key"])
+                await self.set_nowplaying(
+                    track_title, track_artist, track.length, member, user_settings["session_key"]
+                )
 
     @commands.Cog.listener()
     async def on_red_audio_track_end(
@@ -217,5 +214,11 @@ class ScrobblerMixin(MixinMeta):
                 user_settings = await self.config.user(member).all()
                 if user_settings["scrobble"] and user_settings["session_key"]:
                     await self.scrobble_song(
-                        track_title, track_artist, track.length, member, requester, user_settings["session_key"], True
+                        track_title,
+                        track_artist,
+                        track.length,
+                        member,
+                        requester,
+                        user_settings["session_key"],
+                        True,
                     )

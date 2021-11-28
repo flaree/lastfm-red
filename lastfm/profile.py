@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 import discord
@@ -30,7 +31,10 @@ class ProfileMixin(MixinMeta):
 
         token = response["token"]
         link = f"https://www.last.fm/api/auth/?api_key={self.token}&token={token}"
-        message = f"Please click [here]({link}) to authorize me to access your account.\n\nYou have 90 seconds to successfully authenticate."
+        message = (
+            f"Please click [here]({link}) to authorize me to access your account.\n\n"
+            "You have 120 seconds to successfully authenticate."
+        )
         embed = discord.Embed(
             title="Authorization", description=message, color=await ctx.embed_color()
         )
@@ -44,20 +48,24 @@ class ProfileMixin(MixinMeta):
         if ctx.guild:
             await ctx.send("Check your Direct Messages for instructions on how to log in.")
 
-        await asyncio.sleep(90)
-
         params = {"api_key": self.token, "method": "auth.getSession", "token": token}
         hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
-        try:
-            data = await self.api_request(ctx, params=params)
-        except LastFMError as e:
-            message = "You took to long to log in. Rerun the command to try again."
-            embed = discord.Embed(
-                title="Authorization Timeout", description=message, color=await ctx.embed_color()
-            )
-            await ctx.author.send(embed=embed)
-            return
+        for x in range(12):
+            try:
+                data = await self.api_request(ctx, params=params)
+                break
+            except LastFMError as e:
+                if x == 19:
+                    message = "You took to long to log in. Rerun the command to try again."
+                    embed = discord.Embed(
+                        title="Authorization Timeout",
+                        description=message,
+                        color=await ctx.embed_color(),
+                    )
+                    await ctx.author.send(embed=embed)
+                    return
+            await asyncio.sleep(10)
 
         await self.config.user(ctx.author).lastfm_username.set(data["session"]["name"])
         await self.config.user(ctx.author).session_key.set(data["session"]["key"])
@@ -100,7 +108,9 @@ class ProfileMixin(MixinMeta):
         name = await self.config.user(author).lastfm_username()
         if not name:
             await ctx.send(
-                f"You have not logged into your last.fm account. Please log in with {ctx.clean_prefix}fm login"
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
+                    ctx.clean_prefix
+                )
             )
             return
 

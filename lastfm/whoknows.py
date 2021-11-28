@@ -27,7 +27,7 @@ class WhoKnowsMixin(MixinMeta):
                 username = await self.config.user(ctx.author).lastfm_username()
                 if username is None:
                     return await ctx.send(
-                        "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                        "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                             ctx.clean_prefix
                         )
                     )
@@ -102,14 +102,14 @@ class WhoKnowsMixin(MixinMeta):
         else:
             await ctx.send(embed=pages[0])
         if old_king is None:
-            await ctx.send(
-                    f"> **{new_king.name}** just earned the **{artistname}** crown."
-                )
+            await ctx.send(f"> **{new_king.name}** just earned the **{artistname}** crown.")
             async with self.config.guild(ctx.guild).crowns() as crowns:
                 crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
         if isinstance(old_king, discord.Member):
             if not (old_king.id == new_king.id):
-                await ctx.send(f"> **{new_king.name}** just stole the **{artistname}** crown from **{old_king.name}**.")
+                await ctx.send(
+                    f"> **{new_king.name}** just stole the **{artistname}** crown from **{old_king.name}**."
+                )
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
             if old_king.id == new_king.id:
@@ -128,7 +128,7 @@ class WhoKnowsMixin(MixinMeta):
             username = await self.config.user(ctx.author).lastfm_username()
             if username is None:
                 return await ctx.send(
-                    "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                         ctx.clean_prefix
                     )
                 )
@@ -218,7 +218,7 @@ class WhoKnowsMixin(MixinMeta):
             username = await self.config.user(ctx.author).lastfm_username()
             if username is None:
                 return await ctx.send(
-                    "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                         ctx.clean_prefix
                     )
                 )

@@ -43,7 +43,7 @@ class LoveMixin(MixinMeta):
         conf = await self.config.user(ctx.author).all()
         if not conf["session_key"] and not conf["lastfm_username"]:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -64,7 +64,12 @@ class LoveMixin(MixinMeta):
         else:
             try:
                 data = await self.api_request(
-                    ctx, {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -73,19 +78,28 @@ class LoveMixin(MixinMeta):
                 return await ctx.send("You have not listened to anything yet!")
             artistname = tracks[0]["artist"]["#text"]
             trackname = tracks[0]["name"]
-        
+
         try:
             data = await self.api_request(
-                ctx, {"username": conf["lastfm_username"], "method": "track.getInfo", "track": trackname, "artist": artistname}
+                ctx,
+                {
+                    "username": conf["lastfm_username"],
+                    "method": "track.getInfo",
+                    "track": trackname,
+                    "artist": artistname,
+                },
             )
         except LastFMError as e:
             return await ctx.send(str(e))
 
         if data["track"]["userloved"] == "1":
-            return await ctx.send(f"This song is already loved. Did you mean to run `{ctx.clean_prefix}fm unlove`?")
+            return await ctx.send(
+                f"This song is already loved. Did you mean to run `{ctx.clean_prefix}fm unlove`?"
+            )
 
-
-        result = await self.love_or_unlove_song(data["track"]["name"], data["track"]["artist"]["name"], True, conf["session_key"])
+        result = await self.love_or_unlove_song(
+            data["track"]["name"], data["track"]["artist"]["name"], True, conf["session_key"]
+        )
         if result[0] == 403 and result[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
             await self.config.user(ctx.author).lastfm_username.clear()
@@ -114,7 +128,7 @@ class LoveMixin(MixinMeta):
         conf = await self.config.user(ctx.author).all()
         if not conf["session_key"] and not conf["lastfm_username"]:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -135,7 +149,12 @@ class LoveMixin(MixinMeta):
         else:
             try:
                 data = await self.api_request(
-                    ctx, {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -147,16 +166,25 @@ class LoveMixin(MixinMeta):
 
         try:
             data = await self.api_request(
-                ctx, {"username": conf["lastfm_username"], "method": "track.getInfo", "track": trackname, "artist": artistname}
+                ctx,
+                {
+                    "username": conf["lastfm_username"],
+                    "method": "track.getInfo",
+                    "track": trackname,
+                    "artist": artistname,
+                },
             )
         except LastFMError as e:
             return await ctx.send(str(e))
 
         if data["track"]["userloved"] == "0":
-            return await ctx.send(f"This song is not loved. Did you mean to run `{ctx.clean_prefix}fm love`?")
+            return await ctx.send(
+                f"This song is not loved. Did you mean to run `{ctx.clean_prefix}fm love`?"
+            )
 
-
-        result = await self.love_or_unlove_song(data["track"]["name"], data["track"]["artist"]["name"], False, conf["session_key"])
+        result = await self.love_or_unlove_song(
+            data["track"]["name"], data["track"]["artist"]["name"], False, conf["session_key"]
+        )
         if result[0] == 403 and result[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
             await self.config.user(ctx.author).lastfm_username.clear()
@@ -187,7 +215,14 @@ class LoveMixin(MixinMeta):
         conf = await self.config.user(user).all()
         if not conf["session_key"] and not conf["lastfm_username"]:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
+                    ctx.clean_prefix
+                )
+            )
+        if not conf["session_key"] and conf["lastfm_username"]:
+            return await ctx.send(
+                "You appear to be an old user of this cog. "
+                "To use this command you will need to reauthorize with {}fm login".format(
                     ctx.clean_prefix
                 )
             )
@@ -200,9 +235,7 @@ class LoveMixin(MixinMeta):
         tracks = data["lovedtracks"]["track"]
         if not tracks:
             return await ctx.send("You have not loved anything yet!")
-        tracks = [
-            f"{x['name']} by {x['artist']['name']}\n" for x in tracks
-        ]
+        tracks = [f"{x['name']} by {x['artist']['name']}\n" for x in tracks]
         content = discord.Embed(color=await ctx.embed_color(), title=f"{user.name}'s loved tracks")
 
         pages = await create_pages(content, tracks)

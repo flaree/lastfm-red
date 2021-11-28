@@ -16,6 +16,7 @@ from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
 from .scrobbler import ScrobblerMixin
+from .tags import TagsMixin
 from .top import TopMixin
 from .utils import *
 from .whoknows import WhoKnowsMixin
@@ -34,6 +35,7 @@ class LastFM(
     ScrobblerMixin,
     LoveMixin,
     NowPlayingMixin,
+    TagsMixin,
     TopMixin,
     WordCloudMixin,
     UtilsMixin,
@@ -45,7 +47,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.3.0"
+    __version__ = "1.4.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -187,7 +189,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -243,7 +245,7 @@ class LastFM(
         username = await self.config.user(ctx.author).lastfm_username()
         if username is None:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -317,7 +319,7 @@ class LastFM(
         name = await self.config.user(ctx.author).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You have not logged into your last.fm account. Please log in with {}fm login".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -330,7 +332,7 @@ class LastFM(
             name = await self.config.user(ctx.author).lastfm_username()
             if name is None:
                 return await ctx.send(
-                    "You do not have a LastFM account set. Please set one with `{}fm set`.".format(
+                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                         ctx.clean_prefix
                     )
                 )
@@ -401,7 +403,7 @@ class LastFM(
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send(embed=embeds[0])
-    
+
     @fm.command()
     async def streak(self, ctx, user: discord.User = None):
         """
@@ -414,7 +416,7 @@ class LastFM(
         name = await self.config.user(user).lastfm_username()
         if name is None:
             return await ctx.send(
-                "You do not have a LastFM account set. Please set one with `{}fm set`.".format(
+                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
                     ctx.clean_prefix
                 )
             )
@@ -450,7 +452,7 @@ class LastFM(
                     album_streak[1] += 1
                 else:
                     album_streak[2] = False
-            
+
             if not track_streak[2] and not artist_streak[2] and not album_streak[2]:
                 break
 
@@ -459,14 +461,17 @@ class LastFM(
         embed = discord.Embed(color=await ctx.embed_color(), title=f"{user.name}'s streaks")
         embed.set_thumbnail(url=tracks[0]["image"][3]["#text"])
         if track_streak[1] > 1:
-            embed.add_field(name="Track", value=f"{track_streak[1]} times in a row \n({track_streak[0][:50]})")
+            embed.add_field(
+                name="Track", value=f"{track_streak[1]} times in a row \n({track_streak[0][:50]})"
+            )
         if artist_streak[1] > 1:
-            embed.add_field(name="Artist", value=f"{artist_streak[1]} times in a row \n({artist_streak[0][:50]})")
+            embed.add_field(
+                name="Artist",
+                value=f"{artist_streak[1]} times in a row \n({artist_streak[0][:50]})",
+            )
         if album_streak[1] > 1:
-            embed.add_field(name="Album", value=f"{album_streak[1]} times in a row \n({album_streak[0][:50]})")
+            embed.add_field(
+                name="Album", value=f"{album_streak[1]} times in a row \n({album_streak[0][:50]})"
+            )
 
         await ctx.send(embed=embed)
-
-                
-
-

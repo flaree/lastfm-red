@@ -16,5 +16,6 @@ class FMMixin:
 
     c = fm
 
+
 async def red_delete_data_for_user(self, *, requester, user_id):
     await self.config.user_from_id(user_id).clear()
