@@ -189,7 +189,6 @@ class ScrobblerMixin(MixinMeta):
     async def on_red_audio_track_end(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
-        print(self, guild, track, requester, self.started_time[guild.id])
         if not guild:
             return
         try:
@@ -208,9 +207,7 @@ class ScrobblerMixin(MixinMeta):
         track_artist = track_array[0]
         track_title = track_array[1]
         voice_members = guild.me.voice.channel.members
-        print("Before")
         if self.is_valid_scrobble(started, track.length) is True:
-            print("Iterating")
             for member in voice_members:
                 if member == guild.me or member.bot is True:
                     continue
