@@ -51,12 +51,12 @@ class ProfileMixin(MixinMeta):
         params = {"api_key": self.token, "method": "auth.getSession", "token": token}
         hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
-        for x in range(12):
+        for x in range(8):
             try:
                 data = await self.api_request(ctx, params=params)
                 break
             except LastFMError as e:
-                if x == 19:
+                if x == 7:
                     message = "You took to long to log in. Rerun the command to try again."
                     embed = discord.Embed(
                         title="Authorization Timeout",
@@ -65,7 +65,7 @@ class ProfileMixin(MixinMeta):
                     )
                     await ctx.author.send(embed=embed)
                     return
-            await asyncio.sleep(10)
+            await asyncio.sleep(15)
 
         await self.config.user(ctx.author).lastfm_username.set(data["session"]["name"])
         await self.config.user(ctx.author).session_key.set(data["session"]["key"])
