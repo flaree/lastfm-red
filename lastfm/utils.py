@@ -117,10 +117,10 @@ class UtilsMixin(MixinMeta):
     async def api_post(self, params):
         """Post data to the lastfm api"""
         url = "http://ws.audioscrobbler.com/2.0/"
-        params["format"] = "json"
         params["api_key"] = self.token
         hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
+        params["format"] = "json"
         async with self.session.post(url, params=params) as response:
             with contextlib.suppress(aiohttp.ContentTypeError):
                 content = await response.json()

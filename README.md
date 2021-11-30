@@ -5,6 +5,7 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 
 ## changelog
 
+- v1.4.6 - fix cipher (format is added to params after)
 - v1.4.5 - put cipher stuff into api_post function + fix some commands not being made sync
 - v1.4.4 - make check_for_login sync + fix error handler
 - v1.4.3 - clean up LastFMError code
