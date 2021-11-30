@@ -6,6 +6,7 @@ from redbot.core import commands
 from redbot.core.utils import AsyncIter
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -30,13 +31,8 @@ class ChartMixin(MixinMeta):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""
-        username = await self.config.user(ctx.author).lastfm_username()
-        if username is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        await check_if_logged_in(conf)
         arguments = parse_chart_arguments(args)
         if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(
@@ -47,7 +43,7 @@ class ChartMixin(MixinMeta):
             data = await self.api_request(
                 ctx,
                 {
-                    "user": username,
+                    "user": conf["lastfm_username"],
                     "method": arguments["method"],
                     "period": arguments["period"],
                     "limit": arguments["amount"],
@@ -89,7 +85,7 @@ class ChartMixin(MixinMeta):
                 chart_type = "top artist"
                 artists = data["topartists"]["artist"]
                 scraped_images = await self.scrape_artists_for_chart(
-                    ctx, username, arguments["period"], arguments["amount"]
+                    ctx, conf["lastfm_username"], arguments["period"], arguments["amount"]
                 )
                 iterator = AsyncIter(artists[: arguments["width"] * arguments["height"]])
                 async for i, artist in iterator.enumerate():
@@ -141,9 +137,10 @@ class ChartMixin(MixinMeta):
                     self.data_loc,
                 )
         await msg.delete()
+        u = conf["lastfm_username"]
         try:
             await ctx.send(
-                f"`{username} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
+                f"`{u} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
                 file=img,
             )
         except discord.HTTPException:

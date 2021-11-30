@@ -11,6 +11,7 @@ from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .charts import ChartMixin
+from .errors import *
 from .fmmixin import FMMixin, fm
 from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
@@ -47,7 +48,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.4.1"
+    __version__ = "1.4.2"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -186,13 +187,9 @@ class LastFM(
     @fm.command(aliases=["recents", "re"], usage="[amount]")
     async def recent(self, ctx, size: int = 15):
         """Recently listened tracks."""
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        name = conf["lastfm_username"]
+        await check_if_logged_in(conf)
         async with ctx.typing():
             try:
                 data = await self.api_request(
@@ -242,13 +239,8 @@ class LastFM(
             [p]fm artist [timeframe] toptracks <artist name>
             [p]fm artist [timeframe] topalbums <artist name>
             [p]fm artist [timeframe] overview  <artist name>"""
-        username = await self.config.user(ctx.author).lastfm_username()
-        if username is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        username = conf["lastfm_username"]
 
         period = get_period(timeframe)
         if period in [None, "today"]:
@@ -316,29 +308,24 @@ class LastFM(
         """
         Your weekly listening overview.
         """
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        await self.listening_report(ctx, "week", name)
+        conf = await self.config.user(ctx.author).all()
+        await check_if_logged_in(conf)
+        await self.listening_report(ctx, "week", conf["lastfm_username"])
 
     @fm.command(aliases=["lyr"])
     async def lyrics(self, ctx, *, track: str = None):
         """Currently playing song or most recent song."""
         if track is None:
-            name = await self.config.user(ctx.author).lastfm_username()
-            if name is None:
-                return await ctx.send(
-                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                        ctx.clean_prefix
-                    )
-                )
+            conf = await self.config.user(ctx.author).all()
+            await check_if_logged_in(conf)
             try:
                 data = await self.api_request(
-                    ctx, {"user": name, "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -413,16 +400,12 @@ class LastFM(
         """
         if not user:
             user = ctx.author
-        name = await self.config.user(user).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(user).all()
+        await check_if_logged_in(conf)
         try:
             data = await self.api_request(
-                ctx, {"user": name, "method": "user.getrecenttracks", "limit": 200}
+                ctx,
+                {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},
             )
         except LastFMError as e:
             return await ctx.send(str(e))
@@ -475,3 +458,9 @@ class LastFM(
             )
 
         await ctx.send(embed=embed)
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error.original, NotLoggedInError):
+            await ctx.send(str(error.original))
+        else:
+            await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)

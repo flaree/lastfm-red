@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from redbot.core.utils.chat_formatting import box
 
 from .abc import MixinMeta
+from .errors import *
 from .utils import *
 
 
@@ -109,7 +110,9 @@ class UtilsMixin(MixinMeta):
                     content = await response.json()
                     if response.status == 200:
                         if "error" in content:
-                            raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
+                            raise LastFMError(
+                                f"Error {content.get('error')} : {content.get('message')}"
+                            )
                         return content
                     raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
 
@@ -594,3 +597,22 @@ def hashRequest(obj, secretKey):
     stringToHash = string.encode("utf8")
     requestHash = hashlib.md5(stringToHash).hexdigest()
     return requestHash
+
+
+async def check_if_logged_in_and_sk(conf):
+    if not conf["session_key"] and not conf["lastfm_username"]:
+        raise NotLoggedInError(
+            "You need to log into a last.fm account. Please log in with `fm login`."
+        )
+    if not conf["session_key"] and conf["lastfm_username"]:
+        raise NotLoggedInError(
+            "You appear to be an old user of this cog. "
+            "To use this command you will need to reauthorize with `fm login`."
+        )
+
+
+async def check_if_logged_in(conf):
+    if not conf["lastfm_username"]:
+        raise NotLoggedInError(
+            "You need to log into a last.fm account. Please log in with `fm login`."
+        )

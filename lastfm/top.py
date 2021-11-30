@@ -3,6 +3,7 @@ from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -13,20 +14,15 @@ class TopMixin(MixinMeta):
     @fm.command(aliases=["ta"], usage="[timeframe] [amount]")
     async def topartists(self, ctx, *args):
         """Most listened artists."""
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        await check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
             try:
                 data = await self.api_request(
                     ctx,
                     {
-                        "user": name,
+                        "user": conf["lastfm_username"],
                         "method": "user.gettopartists",
                         "period": arguments["period"],
                         "limit": arguments["amount"],
@@ -67,19 +63,14 @@ class TopMixin(MixinMeta):
     @fm.command(aliases=["talb"], usage="[timeframe] [amount]")
     async def topalbums(self, ctx, *args):
         """Most listened albums."""
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        await check_if_logged_in(conf)
         arguments = parse_arguments(args)
         try:
             data = await self.api_request(
                 ctx,
                 {
-                    "user": name,
+                    "user": conf["lastfm_username"],
                     "method": "user.gettopalbums",
                     "period": arguments["period"],
                     "limit": arguments["amount"],
@@ -124,20 +115,15 @@ class TopMixin(MixinMeta):
     @fm.command(aliases=["tt"], usage="[timeframe] [amount]")
     async def toptracks(self, ctx, *args):
         """Most listened tracks."""
-        name = await self.config.user(ctx.author).lastfm_username()
-        if name is None:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
+        conf = await self.config.user(ctx.author).all()
+        await check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
             try:
                 data = await self.api_request(
                     ctx,
                     {
-                        "user": name,
+                        "user": conf["lastfm_username"],
                         "method": "user.gettoptracks",
                         "period": arguments["period"],
                         "limit": arguments["amount"],

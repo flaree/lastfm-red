@@ -6,6 +6,7 @@ from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -33,7 +34,7 @@ class ProfileMixin(MixinMeta):
         link = f"https://www.last.fm/api/auth/?api_key={self.token}&token={token}"
         message = (
             f"Please click [here]({link}) to authorize me to access your account.\n\n"
-            "You have 120 seconds to successfully authenticate."
+            "You have 90 seconds to successfully authenticate."
         )
         embed = discord.Embed(
             title="Authorization", description=message, color=await ctx.embed_color()
@@ -51,12 +52,12 @@ class ProfileMixin(MixinMeta):
         params = {"api_key": self.token, "method": "auth.getSession", "token": token}
         hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
-        for x in range(8):
+        for x in range(6):
             try:
                 data = await self.api_request(ctx, params=params)
                 break
             except LastFMError as e:
-                if x == 7:
+                if x == 5:
                     message = "You took to long to log in. Rerun the command to try again."
                     embed = discord.Embed(
                         title="Authorization Timeout",
@@ -105,16 +106,12 @@ class ProfileMixin(MixinMeta):
     async def profile(self, ctx, user: Optional[discord.Member] = None):
         """Lastfm profile."""
         author = user or ctx.author
-        name = await self.config.user(author).lastfm_username()
-        if not name:
-            await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-            return
+        conf = await self.config.user(author).all()
+        await check_if_logged_in(conf)
 
         try:
-            await ctx.send(embed=await self.get_userinfo_embed(ctx, author, name))
+            await ctx.send(
+                embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"])
+            )
         except LastFMError as e:
             return await ctx.send(str(e))

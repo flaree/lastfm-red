@@ -2,6 +2,7 @@ import discord
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -41,19 +42,7 @@ class LoveMixin(MixinMeta):
             [p]love <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         if track:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -126,19 +115,7 @@ class LoveMixin(MixinMeta):
             [p]unlove <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         if track:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -213,19 +190,7 @@ class LoveMixin(MixinMeta):
         if not user:
             user = ctx.author
         conf = await self.config.user(user).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         try:
             data = await self.api_request(
                 ctx, {"user": conf["lastfm_username"], "method": "user.getlovedtracks"}

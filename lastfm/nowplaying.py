@@ -6,6 +6,7 @@ from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -18,16 +19,16 @@ class NowPlayingMixin(MixinMeta):
         """Currently playing song or most recent song."""
         author = user or ctx.author
         async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(
-                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                        ctx.clean_prefix
-                    )
-                )
+            conf = await self.config.user(author).all()
+            await check_if_logged_in()
             try:
                 data = await self.api_request(
-                    ctx, {"user": name, "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -65,7 +66,7 @@ class NowPlayingMixin(MixinMeta):
                 trackdata = await self.api_request(
                     ctx,
                     {
-                        "user": name,
+                        "user": conf["lastfm_username"],
                         "method": "track.getInfo",
                         "artist": artist,
                         "track": track,

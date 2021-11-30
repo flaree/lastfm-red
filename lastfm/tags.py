@@ -1,15 +1,15 @@
 import discord
+from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-from redbot.core.utils.chat_formatting import pagify, humanize_list
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
 
 class TagsMixin(MixinMeta):
     """Tag Commands"""
-    
 
     @fm.group(name="tag")
     async def tag_group(self, ctx):
@@ -27,19 +27,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -93,7 +81,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @track_group.command(name="remove", usage="<tag>,[tag] | [track name] | [artist name]")
     async def track_remove_command(self, ctx, *, args):
@@ -103,19 +93,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -169,7 +147,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @track_group.command(name="list", usage="[track name] | [artist name]")
     async def track_list_command(self, ctx, *, args=None):
@@ -179,19 +159,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         if args:
             try:
                 trackname, artistname = [x.strip() for x in args.split("|")]
@@ -241,7 +209,7 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        if 'tag' not in data[1]["tags"]:
+        if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         trackname = data[1]["tags"]["@attr"]["track"]
         artistname = data[1]["tags"]["@attr"]["artist"]
@@ -267,7 +235,6 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-
     @tag_group.group(name="album", aliases=["albums"])
     async def album_group(self, ctx):
         """Commands to tag albums"""
@@ -280,19 +247,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -346,7 +301,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @album_group.command(name="remove", usage="<tag>,[tag] | [album name] | [artist name]")
     async def album_remove_command(self, ctx, *, args):
@@ -356,19 +313,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -422,7 +367,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @album_group.command(name="list", usage="[album name] | [artist name]")
     async def album_list_command(self, ctx, *, args=None):
@@ -432,19 +379,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last album you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         if args:
             try:
                 albumname, artistname = [x.strip() for x in args.split("|")]
@@ -495,7 +430,7 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        if 'tag' not in data[1]["tags"]:
+        if "tag" not in data[1]["tags"]:
             return await ctx.send("This album has no tags.")
         albumname = data[1]["tags"]["@attr"]["album"]
         artistname = data[1]["tags"]["@attr"]["artist"]
@@ -521,10 +456,6 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-
-
-
-
     @tag_group.group(name="artist")
     async def artist_group(self, ctx):
         """Commands to tag tracks"""
@@ -537,19 +468,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -600,7 +519,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @artist_group.command(name="remove", usage="<tag>,[tag] | [artist name]")
     async def artist_remove_command(self, ctx, *, args):
@@ -610,19 +531,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -673,7 +582,9 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}.")
+        await ctx.send(
+            f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
+        )
 
     @artist_group.command(name="list", usage="[artist name]")
     async def artist_list_command(self, ctx, *, artist=None):
@@ -683,19 +594,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        if not conf["session_key"] and not conf["lastfm_username"]:
-            return await ctx.send(
-                "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                    ctx.clean_prefix
-                )
-            )
-        if not conf["session_key"] and conf["lastfm_username"]:
-            return await ctx.send(
-                "You appear to be an old user of this cog. "
-                "To use this command you will need to reauthorize with {}fm login".format(
-                    ctx.clean_prefix
-                )
-            )
+        await check_if_logged_in_and_sk(conf)
         if not artist:
             try:
                 data = await self.api_request(
@@ -736,7 +635,7 @@ class TagsMixin(MixinMeta):
             )
             await ctx.send(embed=embed)
             return
-        if 'tag' not in data[1]["tags"]:
+        if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]
         embed = discord.Embed(

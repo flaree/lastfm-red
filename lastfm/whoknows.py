@@ -5,6 +5,7 @@ from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
+from .errors import *
 from .utils import *
 
 
@@ -24,16 +25,16 @@ class WhoKnowsMixin(MixinMeta):
             guildusers = [x.id for x in ctx.guild.members]
             userslist = [user for user in userlist if user in guildusers]
             if not artistname:
-                username = await self.config.user(ctx.author).lastfm_username()
-                if username is None:
-                    return await ctx.send(
-                        "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                            ctx.clean_prefix
-                        )
-                    )
+                conf = await self.config.user(ctx.author).all()
+                await check_if_logged_in(conf)
                 try:
                     data = await self.api_request(
-                        ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                        ctx,
+                        {
+                            "user": conf["lastfm_username"],
+                            "method": "user.getrecenttracks",
+                            "limit": 1,
+                        },
                     )
                 except LastFMError as e:
                     return await ctx.send(str(e))
@@ -125,16 +126,16 @@ class WhoKnowsMixin(MixinMeta):
         Check who has listened to a given song the most.
         """
         if not track:
-            username = await self.config.user(ctx.author).lastfm_username()
-            if username is None:
-                return await ctx.send(
-                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                        ctx.clean_prefix
-                    )
-                )
+            conf = await self.config.user(ctx.author).all()
+            await check_if_logged_in(conf)
             try:
                 data = await self.api_request(
-                    ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))
@@ -215,16 +216,16 @@ class WhoKnowsMixin(MixinMeta):
         Check who has listened to a given album the most.
         """
         if not album:
-            username = await self.config.user(ctx.author).lastfm_username()
-            if username is None:
-                return await ctx.send(
-                    "You are not logged into your last.fm account. Please log in with`{}fm login`.".format(
-                        ctx.clean_prefix
-                    )
-                )
+            conf = await self.config.user(ctx.author).all()
+            await check_if_logged_in(conf)
             try:
                 data = await self.api_request(
-                    ctx, {"user": username, "method": "user.getrecenttracks", "limit": 1}
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
                 )
             except LastFMError as e:
                 return await ctx.send(str(e))

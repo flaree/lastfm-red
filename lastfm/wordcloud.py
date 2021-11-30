@@ -6,6 +6,7 @@ import discord
 from redbot.core import commands
 
 from .abc import MixinMeta
+from .errors import *
 from .fmmixin import fm
 from .utils import *
 
@@ -37,9 +38,9 @@ class WordCloudMixin(MixinMeta):
         """Get a picture with the most listened to artists."""
         author = user or ctx.author
         async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
+            conf = await self.config.user(author).all()
+            await check_if_logged_in(ctx, conf)
+            name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
             )
@@ -61,9 +62,9 @@ class WordCloudMixin(MixinMeta):
         """Get a picture with the most listened to tracks."""
         author = user or ctx.author
         async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
+            conf = await self.config.user(author).all()
+            await check_if_logged_in(ctx, conf)
+            name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
             )
@@ -85,9 +86,9 @@ class WordCloudMixin(MixinMeta):
         """Get a picture with the most listened to albums."""
         author = user or ctx.author
         async with ctx.typing():
-            name = await self.config.user(author).lastfm_username()
-            if name is None:
-                return await ctx.send(f"{author} does not have a LastFM account set.")
+            conf = await self.config.user(author).all()
+            await check_if_logged_in(ctx, conf)
+            name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
             )
