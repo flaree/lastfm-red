@@ -20,7 +20,7 @@ class NowPlayingMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            await check_if_logged_in()
+            await check_if_logged_in(conf)
             try:
                 data = await self.api_request(
                     ctx,
