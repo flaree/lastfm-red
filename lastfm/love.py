@@ -51,35 +51,29 @@ class LoveMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
             artistname = tracks[0]["artist"]["#text"]
             trackname = tracks[0]["name"]
 
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "username": conf["lastfm_username"],
-                    "method": "track.getInfo",
-                    "track": trackname,
-                    "artist": artistname,
-                },
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx,
+            {
+                "username": conf["lastfm_username"],
+                "method": "track.getInfo",
+                "track": trackname,
+                "artist": artistname,
+            },
+        )
 
         if data["track"]["userloved"] == "1":
             return await ctx.send(
@@ -124,35 +118,29 @@ class LoveMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
             artistname = tracks[0]["artist"]["#text"]
             trackname = tracks[0]["name"]
 
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "username": conf["lastfm_username"],
-                    "method": "track.getInfo",
-                    "track": trackname,
-                    "artist": artistname,
-                },
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx,
+            {
+                "username": conf["lastfm_username"],
+                "method": "track.getInfo",
+                "track": trackname,
+                "artist": artistname,
+            },
+        )
 
         if data["track"]["userloved"] == "0":
             return await ctx.send(
@@ -191,12 +179,9 @@ class LoveMixin(MixinMeta):
             user = ctx.author
         conf = await self.config.user(user).all()
         await check_if_logged_in_and_sk(conf)
-        try:
-            data = await self.api_request(
-                ctx, {"user": conf["lastfm_username"], "method": "user.getlovedtracks"}
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx, {"user": conf["lastfm_username"], "method": "user.getlovedtracks"}
+        )
         tracks = data["lovedtracks"]["track"]
         if not tracks:
             return await ctx.send("You have not loved anything yet!")

@@ -111,10 +111,10 @@ class UtilsMixin(MixinMeta):
                     if response.status == 200:
                         if "error" in content:
                             raise LastFMError(
-                                f"Error {content.get('error')} : {content.get('message')}"
+                                f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
                             )
                         return content
-                    raise LastFMError(f"Error {content.get('error')} : {content.get('message')}")
+                    raise LastFMError(f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}")
 
                 except aiohttp.ContentTypeError:
                     return None
@@ -535,11 +535,6 @@ def period_http_format(period):
         "overall": "ALL",
     }
     return period_format_map.get(period)
-
-
-class LastFMError(Exception):
-    pass
-
 
 async def create_pages(content, rows, maxrows=15, maxpages=10):
     pages = []

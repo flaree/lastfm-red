@@ -27,17 +27,14 @@ class WhoKnowsMixin(MixinMeta):
             if not artistname:
                 conf = await self.config.user(ctx.author).all()
                 await check_if_logged_in(conf)
-                try:
-                    data = await self.api_request(
-                        ctx,
-                        {
-                            "user": conf["lastfm_username"],
-                            "method": "user.getrecenttracks",
-                            "limit": 1,
-                        },
-                    )
-                except LastFMError as e:
-                    return await ctx.send(str(e))
+                data = await self.api_request(
+                    ctx,
+                    {
+                        "user": conf["lastfm_username"],
+                        "method": "user.getrecenttracks",
+                        "limit": 1,
+                    },
+                )
                 tracks = data["recenttracks"]["track"]
                 if not tracks:
                     return await ctx.send("You have not listened to anything yet!")
@@ -52,11 +49,8 @@ class WhoKnowsMixin(MixinMeta):
 
                 tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
             if tasks:
-                try:
-                    data = await asyncio.gather(*tasks)
-                    data = [i for i in data if i]
-                except LastFMError as e:
-                    return await ctx.send(str(e))
+                data = await asyncio.gather(*tasks)
+                data = [i for i in data if i]
                 for playcount, user, name in data:
                     artistname = name
                     if playcount > 0:
@@ -128,17 +122,16 @@ class WhoKnowsMixin(MixinMeta):
         if not track:
             conf = await self.config.user(ctx.author).all()
             await check_if_logged_in(conf)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -218,17 +211,16 @@ class WhoKnowsMixin(MixinMeta):
         if not album:
             conf = await self.config.user(ctx.author).all()
             await check_if_logged_in(conf)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")

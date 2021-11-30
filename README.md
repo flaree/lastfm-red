@@ -5,6 +5,7 @@ This is a port of MisoBot, with some functionality removed or added and made to 
 
 ## changelog
 
+- v1.4.3 - clean up LastFMError code
 - v1.4.2 - clean up code for needing to log in
 - v1.4.1 - fix fm login error message
 - v1.4.0 - update login message, make `[p]fm login` much faster, adds `[p]fm tag` with a bunch of subcommands

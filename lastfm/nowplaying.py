@@ -21,17 +21,14 @@ class NowPlayingMixin(MixinMeta):
         async with ctx.typing():
             conf = await self.config.user(author).all()
             await check_if_logged_in(conf)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
             user_attr = data["recenttracks"]["@attr"]
             tracks = data["recenttracks"]["track"]
 
@@ -62,18 +59,15 @@ class NowPlayingMixin(MixinMeta):
             content.set_thumbnail(url=image_url)
 
             # tags and playcount
-            try:
-                trackdata = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "track.getInfo",
-                        "artist": artist,
-                        "track": track,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            trackdata = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "track.getInfo",
+                    "artist": artist,
+                    "track": track,
+                },
+            )
             if trackdata is not None:
                 loved = trackdata["track"]["userloved"] == "1"
                 if loved:

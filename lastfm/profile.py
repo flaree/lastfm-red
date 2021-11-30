@@ -24,11 +24,7 @@ class ProfileMixin(MixinMeta):
         }
         hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
-        try:
-            response = await self.api_request(ctx, params=params)
-        except LastFMError as e:
-            await ctx.send(str(e))
-            return
+        response = await self.api_request(ctx, params=params)
 
         token = response["token"]
         link = f"https://www.last.fm/api/auth/?api_key={self.token}&token={token}"
@@ -108,10 +104,6 @@ class ProfileMixin(MixinMeta):
         author = user or ctx.author
         conf = await self.config.user(author).all()
         await check_if_logged_in(conf)
-
-        try:
-            await ctx.send(
-                embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"])
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        await ctx.send(
+            embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"])
+        )

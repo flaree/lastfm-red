@@ -48,7 +48,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.4.2"
+    __version__ = "1.4.3"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -191,12 +191,9 @@ class LastFM(
         name = conf["lastfm_username"]
         await check_if_logged_in(conf)
         async with ctx.typing():
-            try:
-                data = await self.api_request(
-                    ctx, {"user": name, "method": "user.getrecenttracks", "limit": size}
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx, {"user": name, "method": "user.getrecenttracks", "limit": size}
+            )
             user_attr = data["recenttracks"]["@attr"]
             tracks = data["recenttracks"]["track"]
 
@@ -318,17 +315,14 @@ class LastFM(
         if track is None:
             conf = await self.config.user(ctx.author).all()
             await check_if_logged_in(conf)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
             tracks = data["recenttracks"]["track"]
 
             if not tracks:
@@ -402,13 +396,10 @@ class LastFM(
             user = ctx.author
         conf = await self.config.user(user).all()
         await check_if_logged_in(conf)
-        try:
-            data = await self.api_request(
-                ctx,
-                {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx,
+            {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},
+        )
         tracks = data["recenttracks"]["track"]
         if not tracks:
             return await ctx.send("You have not listened to anything yet!")
@@ -460,7 +451,7 @@ class LastFM(
         await ctx.send(embed=embed)
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error.original, NotLoggedInError):
+        if isinstance(error.original, LastFMError):
             await ctx.send(str(error.original))
         else:
             await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)

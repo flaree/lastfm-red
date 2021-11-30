@@ -18,18 +18,15 @@ class TopMixin(MixinMeta):
         await check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.gettopartists",
-                        "period": arguments["period"],
-                        "limit": arguments["amount"],
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.gettopartists",
+                    "period": arguments["period"],
+                    "limit": arguments["amount"],
+                },
+            )
             user_attr = data["topartists"]["@attr"]
             artists = data["topartists"]["artist"]
 
@@ -66,18 +63,15 @@ class TopMixin(MixinMeta):
         conf = await self.config.user(ctx.author).all()
         await check_if_logged_in(conf)
         arguments = parse_arguments(args)
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.gettopalbums",
-                    "period": arguments["period"],
-                    "limit": arguments["amount"],
-                },
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx,
+            {
+                "user": conf["lastfm_username"],
+                "method": "user.gettopalbums",
+                "period": arguments["period"],
+                "limit": arguments["amount"],
+            },
+        )
         user_attr = data["topalbums"]["@attr"]
         albums = data["topalbums"]["album"]
 
@@ -119,18 +113,15 @@ class TopMixin(MixinMeta):
         await check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.gettoptracks",
-                        "period": arguments["period"],
-                        "limit": arguments["amount"],
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.gettoptracks",
+                    "period": arguments["period"],
+                    "limit": arguments["amount"],
+                },
+            )
             user_attr = data["toptracks"]["@attr"]
             tracks = data["toptracks"]["track"]
 
@@ -145,18 +136,15 @@ class TopMixin(MixinMeta):
                 rows.append(
                     f"`#{i:2}` **{plays}** {format_plays(plays)} — **{artist_name}** — ***{name}***"
                 )
-            try:
-                trackdata = await self.api_request(
-                    ctx,
-                    {
-                        "user": name,
-                        "method": "track.getInfo",
-                        "artist": tracks[0]["artist"]["name"],
-                        "track": tracks[0]["name"],
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+            trackdata = await self.api_request(
+                ctx,
+                {
+                    "user": name,
+                    "method": "track.getInfo",
+                    "artist": tracks[0]["artist"]["name"],
+                    "track": tracks[0]["name"],
+                },
+            )
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
             try:
                 if trackdata is None:

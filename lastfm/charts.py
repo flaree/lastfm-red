@@ -39,18 +39,15 @@ class ChartMixin(MixinMeta):
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
             )
         msg = await ctx.send("Gathering images and data, this may take some time.")
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": arguments["method"],
-                    "period": arguments["period"],
-                    "limit": arguments["amount"],
-                },
-            )
-        except LastFMError as e:
-            return await ctx.send(str(e))
+        data = await self.api_request(
+            ctx,
+            {
+                "user": conf["lastfm_username"],
+                "method": arguments["method"],
+                "period": arguments["period"],
+                "limit": arguments["amount"],
+            },
+        )
         chart = []
         chart_type = "ERROR"
         async with ctx.typing():

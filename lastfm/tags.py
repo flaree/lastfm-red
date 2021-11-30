@@ -37,17 +37,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -103,17 +102,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -168,17 +166,16 @@ class TagsMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -257,17 +254,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -323,17 +319,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -388,17 +383,16 @@ class TagsMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -478,17 +472,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -541,17 +534,16 @@ class TagsMixin(MixinMeta):
             )
 
         if len(split_args) == 1:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
@@ -596,17 +588,16 @@ class TagsMixin(MixinMeta):
         conf = await self.config.user(ctx.author).all()
         await check_if_logged_in_and_sk(conf)
         if not artist:
-            try:
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-            except LastFMError as e:
-                return await ctx.send(str(e))
+
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
+            )
+
             tracks = data["recenttracks"]["track"]
             if not tracks:
                 return await ctx.send("You have not listened to anything yet!")
