@@ -451,7 +451,8 @@ class LastFM(
         await ctx.send(embed=embed)
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error.original, LastFMError):
-            await ctx.send(str(error.original))
-        else:
-            await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)
+        if hasattr(error, "original"):
+            if isinstance(error.original, LastFMError):
+                await ctx.send(str(error.original))
+                return
+        await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)

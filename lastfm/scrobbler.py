@@ -51,7 +51,7 @@ class ScrobblerMixin(MixinMeta):
             [p]scrobble <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         try:
             trackname, artistname = [x.strip() for x in track.split("|")]
             if trackname == "" or artistname == "":

@@ -27,7 +27,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -92,7 +92,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -157,7 +157,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if args:
             try:
                 trackname, artistname = [x.strip() for x in args.split("|")]
@@ -244,7 +244,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -309,7 +309,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -374,7 +374,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last album you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if args:
             try:
                 albumname, artistname = [x.strip() for x in args.split("|")]
@@ -462,7 +462,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -524,7 +524,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -586,7 +586,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if not artist:
 
             data = await self.api_request(

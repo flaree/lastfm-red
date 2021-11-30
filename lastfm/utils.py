@@ -594,20 +594,22 @@ def hashRequest(obj, secretKey):
     return requestHash
 
 
-async def check_if_logged_in_and_sk(conf):
+def check_if_logged_in_and_sk(conf):
     if not conf["session_key"] and not conf["lastfm_username"]:
         raise NotLoggedInError(
             "You need to log into a last.fm account. Please log in with `fm login`."
         )
     if not conf["session_key"] and conf["lastfm_username"]:
-        raise NotLoggedInError(
+        raise NeedToReauthorizeError(
             "You appear to be an old user of this cog. "
             "To use this command you will need to reauthorize with `fm login`."
         )
 
 
-async def check_if_logged_in(conf):
+def check_if_logged_in(conf):
     if not conf["lastfm_username"]:
         raise NotLoggedInError(
             "You need to log into a last.fm account. Please log in with `fm login`."
         )
+
+
