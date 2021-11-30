@@ -26,7 +26,7 @@ class WhoKnowsMixin(MixinMeta):
             userslist = [user for user in userlist if user in guildusers]
             if not artistname:
                 conf = await self.config.user(ctx.author).all()
-                await check_if_logged_in(conf)
+                check_if_logged_in(conf)
                 data = await self.api_request(
                     ctx,
                     {
@@ -121,7 +121,7 @@ class WhoKnowsMixin(MixinMeta):
         """
         if not track:
             conf = await self.config.user(ctx.author).all()
-            await check_if_logged_in(conf)
+            check_if_logged_in(conf)
 
             data = await self.api_request(
                 ctx,
@@ -210,7 +210,7 @@ class WhoKnowsMixin(MixinMeta):
         """
         if not album:
             conf = await self.config.user(ctx.author).all()
-            await check_if_logged_in(conf)
+            check_if_logged_in(conf)
 
             data = await self.api_request(
                 ctx,

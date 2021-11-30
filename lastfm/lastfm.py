@@ -48,7 +48,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.4.3"
+    __version__ = "1.4.5"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -189,7 +189,7 @@ class LastFM(
         """Recently listened tracks."""
         conf = await self.config.user(ctx.author).all()
         name = conf["lastfm_username"]
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         async with ctx.typing():
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.getrecenttracks", "limit": size}
@@ -306,7 +306,7 @@ class LastFM(
         Your weekly listening overview.
         """
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         await self.listening_report(ctx, "week", conf["lastfm_username"])
 
     @fm.command(aliases=["lyr"])
@@ -314,7 +314,7 @@ class LastFM(
         """Currently playing song or most recent song."""
         if track is None:
             conf = await self.config.user(ctx.author).all()
-            await check_if_logged_in(conf)
+            check_if_logged_in(conf)
             data = await self.api_request(
                 ctx,
                 {
@@ -395,7 +395,7 @@ class LastFM(
         if not user:
             user = ctx.author
         conf = await self.config.user(user).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         data = await self.api_request(
             ctx,
             {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},

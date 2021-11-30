@@ -15,7 +15,7 @@ class TopMixin(MixinMeta):
     async def topartists(self, ctx, *args):
         """Most listened artists."""
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
             data = await self.api_request(
@@ -61,7 +61,7 @@ class TopMixin(MixinMeta):
     async def topalbums(self, ctx, *args):
         """Most listened albums."""
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         arguments = parse_arguments(args)
         data = await self.api_request(
             ctx,
@@ -110,7 +110,7 @@ class TopMixin(MixinMeta):
     async def toptracks(self, ctx, *args):
         """Most listened tracks."""
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         async with ctx.typing():
             arguments = parse_arguments(args)
             data = await self.api_request(

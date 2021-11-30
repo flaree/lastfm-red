@@ -106,23 +106,21 @@ class UtilsMixin(MixinMeta):
         params["format"] = "json"
         async with ctx.typing():
             async with self.session.get(url, params=params) as response:
-                try:
+                with contextlib.suppress(aiohttp.ContentTypeError):
                     content = await response.json()
-                    if response.status == 200:
-                        if "error" in content:
-                            raise LastFMError(
-                                f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
-                            )
-                        return content
-                    raise LastFMError(f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}")
-
-                except aiohttp.ContentTypeError:
-                    return None
+                    if "error" in content or response.status != 200:
+                        raise LastFMError(
+                            f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
+                        )
+                    return content
 
     async def api_post(self, params):
         """Post data to the lastfm api"""
         url = "http://ws.audioscrobbler.com/2.0/"
         params["format"] = "json"
+        params["api_key"] = self.token
+        hashed = hashRequest(params, self.secret)
+        params["api_sig"] = hashed
         async with self.session.post(url, params=params) as response:
             with contextlib.suppress(aiohttp.ContentTypeError):
                 content = await response.json()
@@ -611,5 +609,8 @@ def check_if_logged_in(conf):
         raise NotLoggedInError(
             "You need to log into a last.fm account. Please log in with `fm login`."
         )
+
+async def maybe_send_403_dm(ctx, data):
+    ...
 
 

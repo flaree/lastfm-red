@@ -11,6 +11,9 @@ from .utils import *
 class TagsMixin(MixinMeta):
     """Tag Commands"""
 
+    async def tag_stuff(self, ctx, tag, *, stuff):
+        ...
+
     @fm.group(name="tag")
     async def tag_group(self, ctx):
         """Commands to tag things"""
@@ -55,16 +58,14 @@ class TagsMixin(MixinMeta):
         else:
             trackname = split_args[1]
             artistname = split_args[2]
+        
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "track.addtags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
             "track": trackname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -122,14 +123,11 @@ class TagsMixin(MixinMeta):
             artistname = split_args[2]
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "track.removetags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
             "track": trackname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -184,13 +182,10 @@ class TagsMixin(MixinMeta):
 
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "track.gettags",
             "sk": conf["session_key"],
             "track": trackname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -274,14 +269,11 @@ class TagsMixin(MixinMeta):
             artistname = split_args[2]
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "album.addtags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
             "album": albumname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -339,14 +331,11 @@ class TagsMixin(MixinMeta):
             artistname = split_args[2]
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "album.removetags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
             "album": albumname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -402,13 +391,10 @@ class TagsMixin(MixinMeta):
             return await ctx.send("Your current track doesn't have an album.")
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "album.gettags",
             "sk": conf["session_key"],
             "album": albumname,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -490,13 +476,10 @@ class TagsMixin(MixinMeta):
             artistname = split_args[1]
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "artist.addtags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -552,13 +535,10 @@ class TagsMixin(MixinMeta):
             artistname = split_args[1]
         params = {
             "artist": artistname,
-            "api_key": self.token,
             "method": "artist.removetags",
             "sk": conf["session_key"],
             "tags": ",".join(list_of_tags),
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()
@@ -605,12 +585,9 @@ class TagsMixin(MixinMeta):
 
         params = {
             "artist": artist,
-            "api_key": self.token,
             "method": "artist.gettags",
             "sk": conf["session_key"],
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(ctx.author).session_key.clear()

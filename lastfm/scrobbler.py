@@ -110,8 +110,6 @@ class ScrobblerMixin(MixinMeta):
         }
         if duration:
             params["duration"] = str(int(duration / 1000))
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 200 and is_vc:
             scrobbles = await self.config.user(user).scrobbles()
@@ -122,18 +120,14 @@ class ScrobblerMixin(MixinMeta):
         return data
 
     async def set_nowplaying(self, track, artist, duration, user, key):
-        timestamp = arrow.utcnow().timestamp()
         params = {
-            "api_key": self.token,
             "artist": artist,
             "duration": str(duration / 1000),
             "method": "track.updateNowPlaying",
             "sk": key,
-            "timestamp": str(timestamp),
+            "timestamp": str(arrow.utcnow().timestamp()),
             "track": track,
         }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
         data = await self.api_post(params=params)
         if data[0] == 403 and data[1]["error"] == 9:
             await self.config.user(user).session_key.clear()

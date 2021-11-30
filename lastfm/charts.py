@@ -32,7 +32,7 @@ class ChartMixin(MixinMeta):
     async def chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""
         conf = await self.config.user(ctx.author).all()
-        await check_if_logged_in(conf)
+        check_if_logged_in(conf)
         arguments = parse_chart_arguments(args)
         if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(

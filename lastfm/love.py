@@ -11,24 +11,17 @@ class LoveMixin(MixinMeta):
     """Love Commands"""
 
     async def love_or_unlove_song(self, track, artist, love, key):
+        params = {
+            "api_key": self.token,
+            "artist": artist,
+            "method": "track.unlove",
+            "sk": key,
+            "track": track,
+        }
         if love:
-            params = {
-                "api_key": self.token,
-                "artist": artist,
-                "method": "track.love",
-                "sk": key,
-                "track": track,
-            }
+            params["method"] = "track.love"
         else:
-            params = {
-                "api_key": self.token,
-                "artist": artist,
-                "method": "track.unlove",
-                "sk": key,
-                "track": track,
-            }
-        hashed = hashRequest(params, self.secret)
-        params["api_sig"] = hashed
+            params["method"] = "track.unlove"
         data = await self.api_post(params=params)
         return data
 
