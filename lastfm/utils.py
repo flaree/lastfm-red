@@ -610,7 +610,19 @@ def check_if_logged_in(conf):
             "You need to log into a last.fm account. Please log in with `fm login`."
         )
 
-async def maybe_send_403_dm(ctx, data):
-    ...
-
+async def maybe_send_403_msg(self, ctx, data):
+    if data[0] == 403 and data[1]["error"] == 9:
+        await self.config.user(ctx.author).session_key.clear()
+        await self.config.user(ctx.author).lastfm_username.clear()
+        message = (
+            "I was unable to add your tags as it seems you have unauthorized me to do so.\n"
+            "You can reauthorize me using the `fm login` command, but I have logged you out for now."
+        )
+        embed = discord.Embed(
+            title="Authorization Failed",
+            description=message,
+            color=await ctx.embed_color(),
+        )
+        await ctx.send(embed=embed)
+        raise SilentDeAuthorizedError
 

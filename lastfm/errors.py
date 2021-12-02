@@ -7,5 +7,5 @@ class NotLoggedInError(LastFMError):
 class NeedToReauthorizeError(LastFMError):
     pass
 
-class UnauthorizedError(LastFMError):
+class SilentDeAuthorizedError(LastFMError):
     pass

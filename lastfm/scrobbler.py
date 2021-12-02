@@ -62,21 +62,7 @@ class ScrobblerMixin(MixinMeta):
         result = await self.scrobble_song(
             trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
         )
-        if result[0] == 403:
-            if result[1]["error"] == 9:
-                await self.config.user(ctx.author).session_key.clear()
-                await self.config.user(ctx.author).lastfm_username.clear()
-                message = (
-                    "I was unable to scrobble this as it seems you have unauthorized me to do so.\n"
-                    "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-                )
-                embed = discord.Embed(
-                    title="Authorization Failed",
-                    description=message,
-                    color=await ctx.embed_color(),
-                )
-                await ctx.send(embed=embed)
-                return
+        await maybe_send_403_msg(self, ctx, result)
         await ctx.tick()
 
     @fm.command()

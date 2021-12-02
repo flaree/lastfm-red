@@ -48,7 +48,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.4.6"
+    __version__ = "1.4.7"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -452,6 +452,8 @@ class LastFM(
 
     async def cog_command_error(self, ctx, error):
         if hasattr(error, "original"):
+            if isinstance(error.original, SilentDeAuthorizedError):
+                return 
             if isinstance(error.original, LastFMError):
                 await ctx.send(str(error.original))
                 return

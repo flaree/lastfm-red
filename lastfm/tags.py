@@ -67,20 +67,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to add your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -129,20 +116,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to remove your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -187,20 +161,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to list your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         trackname = data[1]["tags"]["@attr"]["track"]
@@ -275,20 +236,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to add your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -337,20 +285,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to remove your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -396,20 +331,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to list your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This album has no tags.")
         albumname = data[1]["tags"]["@attr"]["album"]
@@ -481,20 +403,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to add your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -540,20 +449,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to remove your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -589,20 +485,7 @@ class TagsMixin(MixinMeta):
             "sk": conf["session_key"],
         }
         data = await self.api_post(params=params)
-        if data[0] == 403 and data[1]["error"] == 9:
-            await self.config.user(ctx.author).session_key.clear()
-            await self.config.user(ctx.author).lastfm_username.clear()
-            message = (
-                "I was unable to list your tags as it seems you have unauthorized me to do so.\n"
-                "You can reauthorize me using the `fm login` command, but I have logged you out for now."
-            )
-            embed = discord.Embed(
-                title="Authorization Failed",
-                description=message,
-                color=await ctx.embed_color(),
-            )
-            await ctx.send(embed=embed)
-            return
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]
