@@ -1,5 +1,5 @@
 {
-    "author": ["flare(flare#0001)", "joinem (Miso Bot)", "fixator10"],
+    "author": ["flare(flare#0001)", "joinem (Miso Bot)", "fixator10", "alec"],
     "install_msg": "Thank you for adding the LastFM Repo. This is a port of Miso Bot with a few added commands. If you encounter an issue, let us know by opening an issue.",
     "name": "LastFM-Red",
     "short": "MisoBot LastFM port to Red.",
