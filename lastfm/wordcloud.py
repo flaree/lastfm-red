@@ -39,7 +39,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            await check_if_logged_in(ctx, conf)
+            check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
@@ -63,7 +63,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            await check_if_logged_in(ctx, conf)
+            check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
@@ -87,7 +87,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            await check_if_logged_in(ctx, conf)
+            check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}
