@@ -3,7 +3,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class LoveMixin(MixinMeta):
@@ -23,8 +23,8 @@ class LoveMixin(MixinMeta):
         data = await self.api_post(params=params)
         return data
 
-    @fm.command(usage="<track name> | <artist name>")
-    async def love(self, ctx, *, track=None):
+    @command_fm.command(name="love", usage="<track name> | <artist name>")
+    async def command_love(self, ctx, *, track=None):
         """
         Love a song on last.fm.
 
@@ -77,8 +77,8 @@ class LoveMixin(MixinMeta):
         await self.maybe_send_403_msg(ctx, result)
         await ctx.send(f"Loved **{trackname[:50]}** by **{artistname[:50]}**")
 
-    @fm.command(usage="<track name> | <artist name>")
-    async def unlove(self, ctx, *, track=None):
+    @command_fm.command(name="unlove", usage="<track name> | <artist name>")
+    async def command_unlove(self, ctx, *, track=None):
         """
         Unlove a song on last.fm.
 
@@ -131,8 +131,8 @@ class LoveMixin(MixinMeta):
         await self.maybe_send_403_msg(ctx, result)
         await ctx.send(f"Unloved **{trackname[:50]}** by **{artistname[:50]}**")
 
-    @fm.command()
-    async def loved(self, ctx, user: discord.User = None):
+    @command_fm.command(name="loved")
+    async def command_loved(self, ctx, user: discord.User = None):
         """
         Get a list of loved songs for a user.
 

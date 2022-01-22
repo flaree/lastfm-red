@@ -9,7 +9,7 @@ from redbot.core.utils.chat_formatting import humanize_number
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class CompareMixin(MixinMeta):
@@ -38,11 +38,11 @@ class CompareMixin(MixinMeta):
         final.seek(0)
         return discord.File(final, "result.webp")
 
-    @fm.group(name="compare")
-    async def compare_command(self, ctx):
+    @command_fm.group(name="compare")
+    async def command_compare(self, ctx):
         """Compare two users music tastes"""
 
-    @compare_command.command(name="artists", aliases=["artist"])
+    @command_compare.command(name="artists", aliases=["artist"])
     async def compare_artists(self, ctx, user: discord.Member, period: str = "overall"):
         """
         Compare your Artist taste with someone else.

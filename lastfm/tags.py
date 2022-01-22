@@ -4,22 +4,22 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class TagsMixin(MixinMeta):
     """Tag Commands"""
 
-    @fm.group(name="tag")
-    async def tag_group(self, ctx):
+    @command_fm.group(name="tag")
+    async def command_tag(self, ctx):
         """Commands to tag things"""
 
-    @tag_group.group(name="track", aliases=["tracks", "song"])
-    async def track_group(self, ctx):
+    @command_tag.group(name="track", aliases=["tracks", "song"])
+    async def command_tag_track(self, ctx):
         """Commands to tag tracks"""
 
-    @track_group.command(name="add", usage="<tag>,[tag] | [track name] | [artist name]")
-    async def track_add_command(self, ctx, *, args):
+    @command_tag_track.command(name="add", usage="<tag>,[tag] | [track name] | [artist name]")
+    async def command_tag_track_add(self, ctx, *, args):
         """
         Add tags to a track
 
@@ -68,8 +68,8 @@ class TagsMixin(MixinMeta):
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @track_group.command(name="remove", usage="<tag>,[tag] | [track name] | [artist name]")
-    async def track_remove_command(self, ctx, *, args):
+    @command_tag_track.command(name="remove", usage="<tag>,[tag] | [track name] | [artist name]")
+    async def command_tag_track_remove(self, ctx, *, args):
         """
         Remove tags from a track
 
@@ -117,8 +117,8 @@ class TagsMixin(MixinMeta):
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @track_group.command(name="list", usage="[track name] | [artist name]")
-    async def track_list_command(self, ctx, *, args=None):
+    @command_tag_track.command(name="list", usage="[track name] | [artist name]")
+    async def command_tag_track_list(self, ctx, *, args=None):
         """
         List tags for a track
 
@@ -184,12 +184,12 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @tag_group.group(name="album", aliases=["albums"])
-    async def album_group(self, ctx):
+    @command_tag.group(name="album", aliases=["albums"])
+    async def command_tag_album(self, ctx):
         """Commands to tag albums"""
 
-    @album_group.command(name="add", usage="<tag>,[tag] | [album name] | [artist name]")
-    async def album_add_command(self, ctx, *, args):
+    @command_tag_album.command(name="add", usage="<tag>,[tag] | [album name] | [artist name]")
+    async def command_tag_album_add(self, ctx, *, args):
         """
         Add tags to an album
 
@@ -237,8 +237,8 @@ class TagsMixin(MixinMeta):
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @album_group.command(name="remove", usage="<tag>,[tag] | [album name] | [artist name]")
-    async def album_remove_command(self, ctx, *, args):
+    @command_tag_album.command(name="remove", usage="<tag>,[tag] | [album name] | [artist name]")
+    async def command_tag_album_remove(self, ctx, *, args):
         """
         Remove tags from an album
 
@@ -286,8 +286,8 @@ class TagsMixin(MixinMeta):
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @album_group.command(name="list", usage="[album name] | [artist name]")
-    async def album_list_command(self, ctx, *, args=None):
+    @command_tag_album.command(name="list", usage="[album name] | [artist name]")
+    async def command_tag_album_list(self, ctx, *, args=None):
         """
         List tags for an album
 
@@ -354,12 +354,12 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @tag_group.group(name="artist")
-    async def artist_group(self, ctx):
+    @command_tag.group(name="artist")
+    async def command_tag_artist(self, ctx):
         """Commands to tag tracks"""
 
-    @artist_group.command(name="add", usage="<tag>,[tag] | [artist name]")
-    async def artist_add_command(self, ctx, *, args):
+    @command_tag_artist.command(name="add", usage="<tag>,[tag] | [artist name]")
+    async def command_tag_artist_add(self, ctx, *, args):
         """
         Add tags to an artist
 
@@ -404,8 +404,8 @@ class TagsMixin(MixinMeta):
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @artist_group.command(name="remove", usage="<tag>,[tag] | [artist name]")
-    async def artist_remove_command(self, ctx, *, args):
+    @command_tag_artist.command(name="remove", usage="<tag>,[tag] | [artist name]")
+    async def command_tag_artist_remove(self, ctx, *, args):
         """
         Remove tags from an artist
 
@@ -450,8 +450,8 @@ class TagsMixin(MixinMeta):
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @artist_group.command(name="list", usage="[artist name]")
-    async def artist_list_command(self, ctx, *, artist=None):
+    @command_tag_artist.command(name="list", usage="[artist name]")
+    async def command_tag_artist_list(self, ctx, *, artist=None):
         """
         List tags for an artist
 

@@ -7,16 +7,16 @@ from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 from .utils.tokencheck import tokencheck_plus_secret
 
 
 class ProfileMixin(MixinMeta):
     """Profile Commands"""
 
-    @fm.command(aliases=["set"])
+    @command_fm.command(name="login", aliases=["set"])
     @commands.check(tokencheck_plus_secret)
-    async def login(self, ctx):
+    async def command_login(self, ctx):
         """Authenticates your last.fm account."""
         params = {
             "api_key": self.token,
@@ -70,8 +70,8 @@ class ProfileMixin(MixinMeta):
         embed = discord.Embed(title="Success!", description=message, color=await ctx.embed_color())
         await ctx.author.send(embed=embed)
 
-    @fm.command(aliases=["unset"])
-    async def logout(self, ctx):
+    @command_fm.command(name="logout", aliases=["unset"])
+    async def command_logout(self, ctx):
         """
         Deauthenticates your last.fm account.
         """
@@ -98,8 +98,8 @@ class ProfileMixin(MixinMeta):
         else:
             await ctx.send("Ok, I won't log you out.")
 
-    @fm.command()
-    async def profile(self, ctx, user: Optional[discord.Member] = None):
+    @command_fm.command(name="profile")
+    async def command_profile(self, ctx, user: Optional[discord.Member] = None):
         """Lastfm profile."""
         author = user or ctx.author
         conf = await self.config.user(author).all()

@@ -7,14 +7,14 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class NowPlayingMixin(MixinMeta):
     """NowPlaying Commands"""
 
-    @fm.command(aliases=["np"])
-    async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
+    @command_fm.command(name="nowplaying", aliases=["np"])
+    async def command_nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
         author = user or ctx.author
         async with ctx.typing():
@@ -106,8 +106,8 @@ class NowPlayingMixin(MixinMeta):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @fm.command(aliases=["snp"])
-    async def servernp(self, ctx):
+    @command_fm.command(name="servernp", aliases=["snp"])
+    async def command_servernp(self, ctx):
         """What people on this server are listening to at the moment."""
         listeners = []
         tasks = []

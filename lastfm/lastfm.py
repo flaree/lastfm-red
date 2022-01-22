@@ -13,7 +13,7 @@ from .abc import *
 from .charts import ChartMixin
 from .compare import CompareMixin
 from .exceptions import *
-from .fmmixin import FMMixin, fm
+from .fmmixin import FMMixin, command_fm
 from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
@@ -102,8 +102,8 @@ class LastFM(
                     new_data[guild] = a[guild]
             await self.config.version.set(2)
 
-    @commands.Cog.listener()
-    async def on_red_api_tokens_update(self, service_name, api_tokens):
+    @commands.Cog.listener(name="on_red_api_tokens_update")
+    async def listener_update_class_tokens(self, service_name, api_tokens):
         if service_name == "lastfm":
             self.token = api_tokens.get("appid")
             self.secret = api_tokens.get("secret")
@@ -114,8 +114,8 @@ class LastFM(
             self.chart_data_loop.cancel()
 
     @commands.is_owner()
-    @commands.command(aliases=["fmset"])
-    async def lastfmset(self, ctx):
+    @commands.command(name="lastfmset", aliases=["fmset"])
+    async def command_lastfmset(self, ctx):
         """Instructions on how to set the api key."""
         message = (
             "1. Visit the [LastFM](https://www.last.fm/api/) website and click on 'Get an API Account'.\n"
@@ -126,10 +126,10 @@ class LastFM(
         )
         await ctx.maybe_send_embed(message)
 
-    @commands.command()
+    @commands.command(name="crowns")
     @commands.check(tokencheck)
     @commands.guild_only()
-    async def crowns(self, ctx, user: discord.Member = None):
+    async def command_crowns(self, ctx, user: discord.Member = None):
         """Check yourself or another users crowns."""
         user = user or ctx.author
         crowns = await self.config.guild(ctx.guild).crowns()
@@ -160,8 +160,8 @@ class LastFM(
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["recents", "re"], usage="[amount]")
-    async def recent(self, ctx, size: int = 15):
+    @command_fm.command(name="recent", aliases=["recents", "re"], usage="[amount]")
+    async def command_recent(self, ctx, size: int = 15):
         """Recently listened tracks."""
         conf = await self.config.user(ctx.author).all()
         name = conf["lastfm_username"]
@@ -201,8 +201,8 @@ class LastFM(
             else:
                 await ctx.send(embed=pages[0])
 
-    @fm.command(usage="[timeframe] <toptracks|topalbums|overview> <artist name>")
-    async def artist(self, ctx, timeframe, datatype, *, artistname=""):
+    @command_fm.command(name="artist", usage="[timeframe] <toptracks|topalbums|overview> <artist name>")
+    async def command_artist(self, ctx, timeframe, datatype, *, artistname=""):
         """Your top tracks or albums for specific artist.
 
         Usage:
@@ -274,8 +274,8 @@ class LastFM(
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command()
-    async def last(self, ctx):
+    @command_fm.command(name="last")
+    async def command_last(self, ctx):
         """
         Your weekly listening overview.
         """
@@ -283,8 +283,8 @@ class LastFM(
         self.check_if_logged_in(conf)
         await self.listening_report(ctx, "week", conf["lastfm_username"])
 
-    @fm.command(aliases=["lyr"])
-    async def lyrics(self, ctx, *, track: str = None):
+    @command_fm.command(name="lyrics", aliases=["lyr"])
+    async def command_lyrics(self, ctx, *, track: str = None):
         """Currently playing song or most recent song."""
         if track is None:
             conf = await self.config.user(ctx.author).all()
@@ -354,8 +354,8 @@ class LastFM(
             else:
                 await ctx.send(embed=embeds[0])
 
-    @fm.command()
-    async def streak(self, ctx, user: discord.User = None):
+    @command_fm.command(name="streak")
+    async def command_streak(self, ctx, user: discord.User = None):
         """
         View how many times you've listened to something in a row
 

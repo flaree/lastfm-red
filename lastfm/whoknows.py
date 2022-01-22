@@ -12,11 +12,11 @@ from .utils.tokencheck import tokencheck
 class WhoKnowsMixin(MixinMeta):
     """WhoKnows Commands"""
 
-    @commands.command(usage="<artist name>", aliases=["wk"])
+    @commands.command(name="whoknows", usage="<artist name>", aliases=["wk"])
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 10, type=commands.BucketType.user)
-    async def whoknows(self, ctx, *, artistname=None):
+    async def command_whoknows(self, ctx, *, artistname=None):
         """Check who has listened to a given artist the most."""
         listeners = []
         tasks = []
@@ -105,11 +105,11 @@ class WhoKnowsMixin(MixinMeta):
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
 
-    @commands.command(usage="<track name> | <artist name>", aliases=["wkt", "whoknowst"])
+    @commands.command(name="whoknowstrack", usage="<track name> | <artist name>", aliases=["wkt", "whoknowst"])
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowstrack(self, ctx, *, track=None):
+    async def command_whoknowstrack(self, ctx, *, track=None):
         """
         Check who has listened to a given song the most.
         """
@@ -186,11 +186,11 @@ class WhoKnowsMixin(MixinMeta):
         else:
             await ctx.send(embed=pages[0])
 
-    @commands.command(aliases=["wka", "whoknowsa"], usage="<album name> | <artist name>")
+    @commands.command(name="whoknowsalbum", aliases=["wka", "whoknowsa"], usage="<album name> | <artist name>")
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowsalbum(self, ctx, *, album=None):
+    async def command_whoknowsalbum(self, ctx, *, album=None):
         """
         Check who has listened to a given album the most.
         """

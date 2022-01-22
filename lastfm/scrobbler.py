@@ -9,7 +9,7 @@ from redbot.core import commands
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class ScrobblerMixin(MixinMeta):
@@ -40,9 +40,9 @@ class ScrobblerMixin(MixinMeta):
             return True
         return False
 
-    @commands.command(usage="<track name> | <artist name>")
+    @commands.command(name="scrobble", usage="<track name> | <artist name>")
     @commands.cooldown(1, 300, type=commands.BucketType.user)
-    async def scrobble(self, ctx, *, track):
+    async def command_scrobble(self, ctx, *, track):
         """
         Scrobble a song to last.fm.
 
@@ -64,8 +64,8 @@ class ScrobblerMixin(MixinMeta):
         await self.maybe_send_403_msg(ctx, result)
         await ctx.tick()
 
-    @fm.command()
-    async def scrobbler(self, ctx):
+    @command_fm.command(name="scrobbler")
+    async def command_scrobbler(self, ctx):
         """
         Toggles automatic scrobbling in VC.
 
@@ -129,8 +129,8 @@ class ScrobblerMixin(MixinMeta):
                 )
                 await user.send(embed=embed)
 
-    @commands.Cog.listener()
-    async def on_red_audio_track_start(
+    @commands.Cog.listener(name="on_red_audio_track_start")
+    async def listener_scrobbler_track_start(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
         if not (guild and track) or int(track.length) <= 30000 or not guild.me.voice:
@@ -153,8 +153,8 @@ class ScrobblerMixin(MixinMeta):
                     track_title, track_artist, track.length, member, user_settings["session_key"]
                 )
 
-    @commands.Cog.listener()
-    async def on_red_audio_track_end(
+    @commands.Cog.listener(name="on_red_audio_track_end")
+    async def listener_scrobbler_track_end(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
         if not guild:

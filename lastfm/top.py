@@ -4,14 +4,14 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import fm
+from .fmmixin import command_fm
 
 
 class TopMixin(MixinMeta):
     """Top Artist/Album/Track Commands"""
 
-    @fm.command(aliases=["ta"], usage="[timeframe] [amount]")
-    async def topartists(self, ctx, *args):
+    @command_fm.command(name="topartists", aliases=["ta"], usage="[timeframe] [amount]")
+    async def command_topartists(self, ctx, *args):
         """Most listened artists."""
         conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(conf)
@@ -54,8 +54,8 @@ class TopMixin(MixinMeta):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["talb"], usage="[timeframe] [amount]")
-    async def topalbums(self, ctx, *args):
+    @command_fm.command(name="topalbums", aliases=["talb"], usage="[timeframe] [amount]")
+    async def command_topalbums(self, ctx, *args):
         """Most listened albums."""
         conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(conf)
@@ -100,8 +100,8 @@ class TopMixin(MixinMeta):
         else:
             await ctx.send(embed=pages[0])
 
-    @fm.command(aliases=["tt"], usage="[timeframe] [amount]")
-    async def toptracks(self, ctx, *args):
+    @command_fm.command(name="toptracks", aliases=["tt"], usage="[timeframe] [amount]")
+    async def command_toptracks(self, ctx, *args):
         """Most listened tracks."""
         conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(conf)
