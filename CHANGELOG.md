@@ -1,6 +1,6 @@
 # changelog
 
-- v1.5.0 - ???
+- v1.5.0 - add `[p]fm compare`, fix bugs when last.fm sends data as a dict not a list, and reorganize the repo a LOT
 - v1.4.8 - fix bug with `[p]fm wordcloud`
 - v1.4.7 - move unauthorized message to it's own function
 - v1.4.6 - fix cipher (format is added to params after)
