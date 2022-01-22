@@ -1,6 +1,5 @@
 import asyncio
 import urllib.parse
-from abc import ABC
 from operator import itemgetter
 
 import aiohttp
@@ -10,8 +9,10 @@ from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+from .abc import *
 from .charts import ChartMixin
-from .errors import *
+from .compare import CompareMixin
+from .exceptions import *
 from .fmmixin import FMMixin, fm
 from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
@@ -19,18 +20,15 @@ from .profile import ProfileMixin
 from .scrobbler import ScrobblerMixin
 from .tags import TagsMixin
 from .top import TopMixin
-from .utils import *
+from .utils.base import Utils
+from .utils.tokencheck import *
 from .whoknows import WhoKnowsMixin
 from .wordcloud import WordCloudMixin
 
 
-class CompositeMetaClass(type(commands.Cog), type(ABC)):
-    """This allows the metaclass used for proper type detection to coexist with discord.py's
-    metaclass."""
-
-
 class LastFM(
     ChartMixin,
+    CompareMixin,
     FMMixin,
     ProfileMixin,
     ScrobblerMixin,
@@ -39,7 +37,7 @@ class LastFM(
     TagsMixin,
     TopMixin,
     WordCloudMixin,
-    UtilsMixin,
+    Utils,
     WhoKnowsMixin,
     commands.Cog,
     metaclass=CompositeMetaClass,
@@ -48,7 +46,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.4.8"
+    __version__ = "1.5.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -74,6 +72,9 @@ class LastFM(
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\n\nCog Version: {self.__version__}"
+
+    async def red_delete_data_for_user(self, *, requester, user_id):
+        await self.config.user_from_id(user_id).clear()
 
     async def chart_clear_loop(self):
         await self.bot.wait_until_ready()
@@ -169,7 +170,7 @@ class LastFM(
 
         rows = []
         for artist, playcount in sorted(crownartists, key=itemgetter(1), reverse=True):
-            rows.append(f"**{artist}** with **{playcount}** {format_plays(playcount)}")
+            rows.append(f"**{artist}** with **{playcount}** {self.format_plays(playcount)}")
 
         content = discord.Embed(
             title=f"Artist crowns for {user.name} — Total {len(crownartists)} crowns",
@@ -178,7 +179,7 @@ class LastFM(
         content.set_footer(text="Playcounts are updated on the whoknows command.")
         if not rows:
             return await ctx.send("You do not have any crowns.")
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -189,7 +190,7 @@ class LastFM(
         """Recently listened tracks."""
         conf = await self.config.user(ctx.author).all()
         name = conf["lastfm_username"]
-        check_if_logged_in(conf)
+        self.check_if_logged_in(conf)
         async with ctx.typing():
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.getrecenttracks", "limit": size}
@@ -210,11 +211,8 @@ class LastFM(
                 rows.append(f"[**{artist_name}** — ***{name}***]({track_url})")
 
             image_url = tracks[0]["image"][-1]["#text"]
-            # image_url_small = tracks[0]['image'][1]['#text']
-            # image_colour = await color_from_image_url(image_url_small)
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
-            # content.colour = int(image_colour, 16)
             content.set_thumbnail(url=image_url)
             content.set_footer(text=f"Total scrobbles: {user_attr['total']}")
             content.set_author(
@@ -222,7 +220,7 @@ class LastFM(
                 icon_url=ctx.message.author.avatar_url,
             )
 
-            pages = await create_pages(content, rows)
+            pages = await self.create_pages(content, rows)
             if len(pages) > 1:
                 await menu(ctx, pages[:15], DEFAULT_CONTROLS)
             else:
@@ -239,7 +237,7 @@ class LastFM(
         conf = await self.config.user(ctx.author).all()
         username = conf["lastfm_username"]
 
-        period = get_period(timeframe)
+        period = self.get_period(timeframe)
         if period in [None, "today"]:
             artistname = " ".join([datatype, artistname]).strip()
             datatype = timeframe
@@ -275,26 +273,27 @@ class LastFM(
         total = 0
         rows = []
         for i, (name, playcount) in enumerate(data, start=1):
-            rows.append(f"`#{i:2}` **{playcount}** {format_plays(playcount)} — **{escape(name)}**")
+            rows.append(
+                f"`#{i:2}` **{playcount}** {self.format_plays(playcount)} — **{escape(name)}**"
+            )
             total += playcount
 
         artistname = urllib.parse.quote_plus(artistname)
         content = discord.Embed(color=await ctx.embed_color())
         content.set_thumbnail(url=artist["image_url"])
-        # content.colour = await self.cached_image_color(artist["image_url"])
         content.set_author(
             name=f"{ctx.author.display_name} — "
-            + (f"{humanized_period(period)} " if period != "overall" else "")
+            + (f"{self.humanized_period(period)} " if period != "overall" else "")
             + f"Top {datatype} by {artist['formatted_name']}",
             icon_url=ctx.author.avatar_url,
             url=f"https://last.fm/user/{username}/library/music/{artistname}/"
-            f"+{datatype}?date_preset={period_http_format(period)}",
+            f"+{datatype}?date_preset={self.period_http_format(period)}",
         )
         content.set_footer(
-            text=f"Total {total} {format_plays(total)} across {len(rows)} {datatype}"
+            text=f"Total {total} {self.format_plays(total)} across {len(rows)} {datatype}"
         )
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages[:15], DEFAULT_CONTROLS)
         else:
@@ -306,7 +305,7 @@ class LastFM(
         Your weekly listening overview.
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in(conf)
+        self.check_if_logged_in(conf)
         await self.listening_report(ctx, "week", conf["lastfm_username"])
 
     @fm.command(aliases=["lyr"])
@@ -314,7 +313,7 @@ class LastFM(
         """Currently playing song or most recent song."""
         if track is None:
             conf = await self.config.user(ctx.author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
             data = await self.api_request(
                 ctx,
                 {
@@ -331,11 +330,7 @@ class LastFM(
             artist = tracks[0]["artist"]["#text"]
             track = tracks[0]["name"]
             image_url = tracks[0]["image"][-1]["#text"]
-            # image_url_small = tracks[0]['image'][1]['#text']
-            # image_colour = await color_from_image_url(image_url_small)
 
-            # content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
-            # content.colour = int(image_colour, 16)
             title = (
                 f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
             )
@@ -365,7 +360,6 @@ class LastFM(
             else:
                 await ctx.send("You're not currently playing a song.")
         else:
-            # content.colour = int(image_colour, 16)
 
             results, songtitle = await self.lyrics_musixmatch(track)
             if results is None:
@@ -395,7 +389,7 @@ class LastFM(
         if not user:
             user = ctx.author
         conf = await self.config.user(user).all()
-        check_if_logged_in(conf)
+        self.check_if_logged_in(conf)
         data = await self.api_request(
             ctx,
             {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},
@@ -453,7 +447,7 @@ class LastFM(
     async def cog_command_error(self, ctx, error):
         if hasattr(error, "original"):
             if isinstance(error.original, SilentDeAuthorizedError):
-                return 
+                return
             if isinstance(error.original, LastFMError):
                 await ctx.send(str(error.original))
                 return

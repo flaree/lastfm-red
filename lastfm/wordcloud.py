@@ -6,9 +6,8 @@ import discord
 from redbot.core import commands
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
 
 with suppress(Exception):
     from wordcloud import WordCloud
@@ -27,6 +26,7 @@ class WordCloudMixin(MixinMeta):
 
     @fm.group(aliases=["cloud", "wc"])
     @commands.check(wordcloud_available)
+    @commands.bot_has_permissions(attach_files=True)
     async def wordcloud(self, ctx):
         """WordCloud Commands
 
@@ -39,7 +39,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
@@ -63,7 +63,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
@@ -87,7 +87,7 @@ class WordCloudMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}

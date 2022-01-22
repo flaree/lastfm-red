@@ -8,9 +8,8 @@ import lavalink
 from redbot.core import commands
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
 
 
 class ScrobblerMixin(MixinMeta):
@@ -51,7 +50,7 @@ class ScrobblerMixin(MixinMeta):
             [p]scrobble <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         try:
             trackname, artistname = [x.strip() for x in track.split("|")]
             if trackname == "" or artistname == "":
@@ -62,7 +61,7 @@ class ScrobblerMixin(MixinMeta):
         result = await self.scrobble_song(
             trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
         )
-        await maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(self, ctx, result)
         await ctx.tick()
 
     @fm.command()

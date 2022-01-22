@@ -3,16 +3,12 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
 
 
 class TagsMixin(MixinMeta):
     """Tag Commands"""
-
-    async def tag_stuff(self, ctx, tag, *, stuff):
-        ...
 
     @fm.group(name="tag")
     async def tag_group(self, ctx):
@@ -30,7 +26,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -58,7 +54,7 @@ class TagsMixin(MixinMeta):
         else:
             trackname = split_args[1]
             artistname = split_args[2]
-        
+
         params = {
             "artist": artistname,
             "method": "track.addtags",
@@ -67,7 +63,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -80,7 +76,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -116,7 +112,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -129,7 +125,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         if args:
             try:
                 trackname, artistname = [x.strip() for x in args.split("|")]
@@ -161,7 +157,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         trackname = data[1]["tags"]["@attr"]["track"]
@@ -200,7 +196,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -236,7 +232,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -249,7 +245,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -285,7 +281,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -298,7 +294,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last album you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         if args:
             try:
                 albumname, artistname = [x.strip() for x in args.split("|")]
@@ -331,7 +327,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This album has no tags.")
         albumname = data[1]["tags"]["@attr"]["album"]
@@ -370,7 +366,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -403,7 +399,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -416,7 +412,7 @@ class TagsMixin(MixinMeta):
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -449,7 +445,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -462,7 +458,7 @@ class TagsMixin(MixinMeta):
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         if not artist:
 
             data = await self.api_request(
@@ -485,7 +481,7 @@ class TagsMixin(MixinMeta):
             "sk": conf["session_key"],
         }
         data = await self.api_post(params=params)
-        await maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]

@@ -1,0 +1,5 @@
+- Make second np function (use Exceptions) (handle as dict not just lists)
+- Make tags code less repetitive
+- Add reaction system for np
+- Make all commands have a better function name cuz this class is HUGE!
+- make fm compare use api sometimes

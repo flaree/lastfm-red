@@ -5,8 +5,8 @@ from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .errors import *
-from .utils import *
+from .exceptions import *
+from .utils.tokencheck import tokencheck
 
 
 class WhoKnowsMixin(MixinMeta):
@@ -26,19 +26,11 @@ class WhoKnowsMixin(MixinMeta):
             userslist = [user for user in userlist if user in guildusers]
             if not artistname:
                 conf = await self.config.user(ctx.author).all()
-                check_if_logged_in(conf)
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
-                )
-                tracks = data["recenttracks"]["track"]
-                if not tracks:
+                self.check_if_logged_in(conf)
+                song, _ = await self.get_np(ctx, conf["lastfm_username"])
+                if not song:
                     return await ctx.send("You have not listened to anything yet!")
-                artistname = tracks[0]["artist"]["#text"]
+                artistname = song["artist"]
             for user in userslist:
                 lastfm_username = userlist[user]["lastfm_username"]
                 if lastfm_username is None:
@@ -77,7 +69,9 @@ class WhoKnowsMixin(MixinMeta):
                     play = playcount
                 else:
                     rank = f"`#{i:2}`"
-                rows.append(f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}")
+                rows.append(
+                    f"{rank} **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+                )
                 total += playcount
 
             if not rows:
@@ -91,7 +85,7 @@ class WhoKnowsMixin(MixinMeta):
             content.set_thumbnail(url=image_url)
             content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -121,22 +115,12 @@ class WhoKnowsMixin(MixinMeta):
         """
         if not track:
             conf = await self.config.user(ctx.author).all()
-            check_if_logged_in(conf)
-
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
-            )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
+            self.check_if_logged_in(conf)
+            song, _ = await self.get_np(ctx, conf["lastfm_username"])
+            if not song:
                 return await ctx.send("You have not listened to anything yet!")
-            trackname = tracks[0]["name"]
-            artistname = tracks[0]["artist"]["#text"]
+            trackname = song["name"]
+            artistname = song["artist"]
         else:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -177,7 +161,9 @@ class WhoKnowsMixin(MixinMeta):
         for i, (playcount, user) in enumerate(
             sorted(listeners, key=lambda p: p[0], reverse=True), start=1
         ):
-            rows.append(f"`#{i:2}` **{user.name}** — **{playcount}** {format_plays(playcount)}")
+            rows.append(
+                f"`#{i:2}` **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+            )
             total += playcount
 
         if not rows:
@@ -194,7 +180,7 @@ class WhoKnowsMixin(MixinMeta):
         content.set_thumbnail(url=image_url)
         content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -210,23 +196,14 @@ class WhoKnowsMixin(MixinMeta):
         """
         if not album:
             conf = await self.config.user(ctx.author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
-            )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
+            np, _ = await self.get_np(ctx, conf["lastfm_username"])
+            if not np:
                 return await ctx.send("You have not listened to anything yet!")
-            if "#text" in tracks[0]["album"]:
-                albumname = tracks[0]["album"]["#text"]
-                artistname = tracks[0]["artist"]["#text"]
+            if "album" in np:
+                albumname = np["album"]
+                artistname = np["artist"]
             else:
                 return await ctx.send(
                     "Sorry, the track you're listening to doesn't have the album info provided."
@@ -271,7 +248,9 @@ class WhoKnowsMixin(MixinMeta):
         for i, (playcount, user) in enumerate(
             sorted(listeners, key=lambda p: p[0], reverse=True), start=1
         ):
-            rows.append(f"`#{i:2}` **{user.name}** — **{playcount}** {format_plays(playcount)}")
+            rows.append(
+                f"`#{i:2}` **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+            )
             total += playcount
 
         if not rows:
@@ -289,7 +268,7 @@ class WhoKnowsMixin(MixinMeta):
         content.set_thumbnail(url=image_url)
         content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:

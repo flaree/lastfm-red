@@ -2,9 +2,8 @@ import discord
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
 
 
 class LoveMixin(MixinMeta):
@@ -14,7 +13,6 @@ class LoveMixin(MixinMeta):
         params = {
             "api_key": self.token,
             "artist": artist,
-            "method": "track.unlove",
             "sk": key,
             "track": track,
         }
@@ -35,7 +33,7 @@ class LoveMixin(MixinMeta):
             [p]love <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         if track:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -76,7 +74,7 @@ class LoveMixin(MixinMeta):
         result = await self.love_or_unlove_song(
             data["track"]["name"], data["track"]["artist"]["name"], True, conf["session_key"]
         )
-        await maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(self, ctx, result)
         await ctx.send(f"Loved **{trackname[:50]}** by **{artistname[:50]}**")
 
     @fm.command(usage="<track name> | <artist name>")
@@ -89,7 +87,7 @@ class LoveMixin(MixinMeta):
             [p]unlove <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         if track:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -130,7 +128,7 @@ class LoveMixin(MixinMeta):
         result = await self.love_or_unlove_song(
             data["track"]["name"], data["track"]["artist"]["name"], False, conf["session_key"]
         )
-        await maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(self, ctx, result)
         await ctx.send(f"Unloved **{trackname[:50]}** by **{artistname[:50]}**")
 
     @fm.command()
@@ -145,7 +143,7 @@ class LoveMixin(MixinMeta):
         if not user:
             user = ctx.author
         conf = await self.config.user(user).all()
-        check_if_logged_in_and_sk(conf)
+        self.check_if_logged_in_and_sk(conf)
         data = await self.api_request(
             ctx, {"user": conf["lastfm_username"], "method": "user.getlovedtracks"}
         )
@@ -155,7 +153,7 @@ class LoveMixin(MixinMeta):
         tracks = [f"{x['name']} by {x['artist']['name']}\n" for x in tracks]
         content = discord.Embed(color=await ctx.embed_color(), title=f"{user.name}'s loved tracks")
 
-        pages = await create_pages(content, tracks)
+        pages = await self.create_pages(content, tracks)
         for i, page in enumerate(pages):
             page.set_footer(text=f"Page {i + 1}/{len(pages)}")
         if len(pages) > 1:

@@ -6,9 +6,9 @@ from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
+from .utils.tokencheck import tokencheck_plus_secret
 
 
 class ProfileMixin(MixinMeta):
@@ -22,7 +22,7 @@ class ProfileMixin(MixinMeta):
             "api_key": self.token,
             "method": "auth.getToken",
         }
-        hashed = hashRequest(params, self.secret)
+        hashed = self.hashRequest(params, self.secret)
         params["api_sig"] = hashed
         response = await self.api_request(ctx, params=params)
 
@@ -46,7 +46,7 @@ class ProfileMixin(MixinMeta):
             await ctx.send("Check your Direct Messages for instructions on how to log in.")
 
         params = {"api_key": self.token, "method": "auth.getSession", "token": token}
-        hashed = hashRequest(params, self.secret)
+        hashed = self.hashRequest(params, self.secret)
         params["api_sig"] = hashed
         for x in range(6):
             try:
@@ -103,7 +103,5 @@ class ProfileMixin(MixinMeta):
         """Lastfm profile."""
         author = user or ctx.author
         conf = await self.config.user(author).all()
-        check_if_logged_in(conf)
-        await ctx.send(
-            embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"])
-        )
+        self.check_if_logged_in(conf)
+        await ctx.send(embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"]))

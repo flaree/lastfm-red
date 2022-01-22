@@ -6,9 +6,8 @@ from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .errors import *
+from .exceptions import *
 from .fmmixin import fm
-from .utils import *
 
 
 class NowPlayingMixin(MixinMeta):
@@ -20,7 +19,7 @@ class NowPlayingMixin(MixinMeta):
         author = user or ctx.author
         async with ctx.typing():
             conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
             data = await self.api_request(
                 ctx,
                 {
@@ -40,8 +39,6 @@ class NowPlayingMixin(MixinMeta):
                 track = tracks[0]["name"]
                 image_url = tracks[0]["image"][-1]["#text"]
                 url = tracks[0]["url"]
-                # image_url_small = tracks[0]['image'][1]['#text']
-                # image_colour = await color_from_image_url(image_url_small)
             except KeyError:
                 artist = tracks["artist"]["#text"]
                 album = tracks["album"]["#text"]
@@ -50,7 +47,6 @@ class NowPlayingMixin(MixinMeta):
                 url = tracks["url"]
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel), url=url)
-            # content.colour = int(image_colour, 16)
 
             content.description = f"**{escape(album, formatting=True)}**" if album else ""
             content.title = (
@@ -77,7 +73,7 @@ class NowPlayingMixin(MixinMeta):
                     trackdata = trackdata["track"]
                     playcount = int(trackdata["userplaycount"])
                     if playcount > 0:
-                        content.description += f"\n> {playcount} {format_plays(playcount)}"
+                        content.description += f"\n> {playcount} {self.format_plays(playcount)}"
                     if isinstance(trackdata["toptags"], dict):
                         for tag in trackdata["toptags"]["tag"]:
                             if "name" in tag:
@@ -152,7 +148,7 @@ class NowPlayingMixin(MixinMeta):
             icon_url=ctx.guild.icon_url_as(size=64),
         )
         content.set_footer(text=f"{total_listening} / {total_linked} Members")
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
