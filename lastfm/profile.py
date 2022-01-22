@@ -101,7 +101,7 @@ class ProfileMixin(MixinMeta):
     @command_fm.command(name="profile")
     async def command_profile(self, ctx, user: Optional[discord.Member] = None):
         """Lastfm profile."""
-        auuserthor = user or ctx.author
+        user = user or ctx.author
         conf = await self.config.user(user).all()
         self.check_if_logged_in(conf, user == ctx.author)
         await ctx.send(embed=await self.get_userinfo_embed(ctx, user, conf["lastfm_username"]))
