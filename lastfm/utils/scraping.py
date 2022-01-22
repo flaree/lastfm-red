@@ -14,7 +14,7 @@ class ScrapingMixin:
             f"https://last.fm/user/{name}/library/music/{artistname}/"
             f"+{datatype}?date_preset={self.period_http_format(period)}"
         )
-        data = await self.fetch(self, ctx, url, handling="text")
+        data = await self.fetch(ctx, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
         data = []
         try:
@@ -109,7 +109,7 @@ class ScrapingMixin:
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
             params = {"date_preset": period_format_map[period], "page": i}
-            task = asyncio.ensure_future(self.fetch(self, ctx, url, params, handling="text"))
+            task = asyncio.ensure_future(self.fetch(ctx, url, params, handling="text"))
             tasks.append(task)
 
         responses = await asyncio.gather(*tasks)
@@ -130,7 +130,7 @@ class ScrapingMixin:
     async def get_similar_artists(self, artistname, ctx):
         similar = []
         url = f"https://last.fm/music/{artistname}"
-        data = await self.fetch(self, ctx, url, handling="text")
+        data = await self.fetch(ctx, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
         for artist in soup.findAll("h3", {"class": "artist-similar-artists-sidebar-item-name"}):
             similar.append(artist.find("a").text)

@@ -63,7 +63,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -112,7 +112,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -157,7 +157,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         trackname = data[1]["tags"]["@attr"]["track"]
@@ -232,7 +232,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -281,7 +281,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -327,7 +327,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This album has no tags.")
         albumname = data[1]["tags"]["@attr"]["album"]
@@ -399,7 +399,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -445,7 +445,7 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
@@ -481,7 +481,7 @@ class TagsMixin(MixinMeta):
             "sk": conf["session_key"],
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(self, ctx, data)
+        await self.maybe_send_403_msg(ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]

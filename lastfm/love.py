@@ -74,7 +74,7 @@ class LoveMixin(MixinMeta):
         result = await self.love_or_unlove_song(
             data["track"]["name"], data["track"]["artist"]["name"], True, conf["session_key"]
         )
-        await self.maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(ctx, result)
         await ctx.send(f"Loved **{trackname[:50]}** by **{artistname[:50]}**")
 
     @fm.command(usage="<track name> | <artist name>")
@@ -128,7 +128,7 @@ class LoveMixin(MixinMeta):
         result = await self.love_or_unlove_song(
             data["track"]["name"], data["track"]["artist"]["name"], False, conf["session_key"]
         )
-        await self.maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(ctx, result)
         await ctx.send(f"Unloved **{trackname[:50]}** by **{artistname[:50]}**")
 
     @fm.command()

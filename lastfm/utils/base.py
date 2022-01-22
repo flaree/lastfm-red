@@ -35,7 +35,7 @@ class Utils(APIMixin, ConvertersMixin, ScrapingMixin):
             f"https://last.fm/user/{fmname}/library/music/{artistname}"
             f"?date_preset={self.period_http_format(period)}"
         )
-        data = await self.fetch(self, ctx, url, handling="text")
+        data = await self.fetch(ctx, url, handling="text")
         soup = BeautifulSoup(data, "html.parser")
         try:
             albumsdiv, tracksdiv, _ = soup.findAll("tbody", {"data-playlisting-add-entries": ""})

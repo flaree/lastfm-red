@@ -99,7 +99,7 @@ class CompareMixin(MixinMeta):
                     f"https://last.fm/user/{user_conf['lastfm_username']}/library/music/{artist['name']}"
                     f"?date_preset={self.period_http_format(period)}"
                 )
-                data = await self.fetch(self, ctx, url, handling="text")
+                data = await self.fetch(ctx, url, handling="text")
                 soup = BeautifulSoup(data, "html.parser")
                 divs = soup.findAll(class_="metadata-display")
                 if not divs:
