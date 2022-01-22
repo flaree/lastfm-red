@@ -366,7 +366,7 @@ class LastFM(
         if not user:
             user = ctx.author
         conf = await self.config.user(user).all()
-        self.check_if_logged_in(conf)
+        self.check_if_logged_in(conf, user == ctx.author)
         data = await self.api_request(
             ctx,
             {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},

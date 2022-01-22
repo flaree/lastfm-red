@@ -103,5 +103,5 @@ class ProfileMixin(MixinMeta):
         """Lastfm profile."""
         author = user or ctx.author
         conf = await self.config.user(author).all()
-        self.check_if_logged_in(conf)
+        self.check_if_logged_in(conf, author == ctx.author)
         await ctx.send(embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"]))
