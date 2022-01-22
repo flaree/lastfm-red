@@ -112,6 +112,8 @@ class ChartMixin(MixinMeta):
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
+                if isinstance(tracks, dict):
+                    tracks = [tracks]
                 async for track in AsyncIter(tracks[: arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]

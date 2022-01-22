@@ -173,7 +173,7 @@ class LastFM(
             user_attr = data["recenttracks"]["@attr"]
             tracks = data["recenttracks"]["track"]
 
-            if not tracks:
+            if not tracks or not isinstance(tracks, list):
                 return await ctx.send("You have not listened to anything yet!")
 
             rows = []
@@ -291,51 +291,34 @@ class LastFM(
         if track is None:
             conf = await self.config.user(ctx.author).all()
             self.check_if_logged_in(conf)
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            track, artist, albumname, image_url = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-            tracks = data["recenttracks"]["track"]
-
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-
-            artist = tracks[0]["artist"]["#text"]
-            track = tracks[0]["name"]
-            image_url = tracks[0]["image"][-1]["#text"]
 
             title = (
                 f"**{escape(artist, formatting=True)}** — ***{escape(track, formatting=True)} ***"
             )
 
-            # tags and playcount
-            if "@attr" in tracks[0]:
-                if "nowplaying" in tracks[0]["@attr"]:
-                    results, songtitle = await self.lyrics_musixmatch(f"{artist} {track}")
-                    if results is None:
-                        return await ctx.send(f'No lyrics for "{artist} {track}" found.')
-                    embeds = []
-                    results = list(pagify(results, page_length=2048))
-                    for i, page in enumerate(results, 1):
-                        content = discord.Embed(
-                            color=await self.bot.get_embed_color(ctx.channel),
-                            description=page,
-                            title=title,
-                        )
-                        content.set_thumbnail(url=image_url)
-                        content.set_footer(text=f"Page {i}/{len(results)}")
+            results, songtitle = await self.lyrics_musixmatch(f"{artist} {track}")
+            if results is None:
+                return await ctx.send(f'No lyrics for "{artist} {track}" found.')
+            embeds = []
+            results = list(pagify(results, page_length=2048))
+            for i, page in enumerate(results, 1):
+                content = discord.Embed(
+                    color=await ctx.embed_color(),
+                    description=page,
+                    title=title,
+                )
+                content.set_thumbnail(url=image_url)
+                if len(results) > 1:
+                    content.set_footer(text=f"Page {i}/{len(results)}")
 
-                        embeds.append(content)
-                    if len(embeds) > 1:
-                        await menu(ctx, embeds, DEFAULT_CONTROLS)
-                    else:
-                        await ctx.send(embed=embeds[0])
+                embeds.append(content)
+            if len(embeds) > 1:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
-                await ctx.send("You're not currently playing a song.")
+                await ctx.send(embed=embeds[0])
         else:
 
             results, songtitle = await self.lyrics_musixmatch(track)
@@ -345,11 +328,12 @@ class LastFM(
             results = list(pagify(results, page_length=2048))
             for i, page in enumerate(results, 1):
                 content = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
+                    color=await ctx.embed_color(),
                     title=f"***{escape(songtitle, formatting=True)} ***",
                     description=page,
                 )
-                content.set_footer(text=f"Page {i}/{len(results)}")
+                if len(results) > 1:
+                    content.set_footer(text=f"Page {i}/{len(results)}")
                 embeds.append(content)
             if len(embeds) > 1:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -372,7 +356,7 @@ class LastFM(
             {"user": conf["lastfm_username"], "method": "user.getrecenttracks", "limit": 200},
         )
         tracks = data["recenttracks"]["track"]
-        if not tracks:
+        if not tracks or not isinstance(tracks, list):
             return await ctx.send("You have not listened to anything yet!")
         track_streak = [tracks[0]["name"], 1, True]
         artist_streak = [tracks[0]["artist"]["#text"], 1, True]

@@ -42,19 +42,9 @@ class LoveMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            artistname = tracks[0]["artist"]["#text"]
-            trackname = tracks[0]["name"]
 
         data = await self.api_request(
             ctx,
@@ -96,19 +86,9 @@ class LoveMixin(MixinMeta):
             except ValueError:
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            artistname = tracks[0]["artist"]["#text"]
-            trackname = tracks[0]["name"]
 
         data = await self.api_request(
             ctx,

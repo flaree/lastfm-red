@@ -12,3 +12,11 @@ class NeedToReauthorizeError(LastFMError):
 
 class SilentDeAuthorizedError(LastFMError):
     pass
+
+
+class NoScrobblesError(LastFMError):
+    pass
+
+
+class NotScrobblingError(LastFMError):
+    pass

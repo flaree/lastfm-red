@@ -37,20 +37,10 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            trackname = tracks[0]["name"]
-            artistname = tracks[0]["artist"]["#text"]
         else:
             trackname = split_args[1]
             artistname = split_args[2]
@@ -87,20 +77,10 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            trackname = tracks[0]["name"]
-            artistname = tracks[0]["artist"]["#text"]
         else:
             trackname = split_args[1]
             artistname = split_args[2]
@@ -135,20 +115,9 @@ class TagsMixin(MixinMeta):
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            trackname = tracks[0]["name"]
-            artistname = tracks[0]["artist"]["#text"]
 
         params = {
             "artist": artistname,
@@ -207,23 +176,20 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            albumname = tracks[0]["album"]["#text"]
-            artistname = tracks[0]["artist"]["#text"]
         else:
             albumname = split_args[1]
             artistname = split_args[2]
+
+        if not albumname:
+            await ctx.send(
+                "Your currently playing track does not have an album attached on last.fm."
+            )
+            return
+
         params = {
             "artist": artistname,
             "method": "album.addtags",
@@ -256,23 +222,20 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            albumname = tracks[0]["album"]["#text"]
-            artistname = tracks[0]["artist"]["#text"]
         else:
             albumname = split_args[1]
             artistname = split_args[2]
+
+        if not albumname:
+            await ctx.send(
+                "Your currently playing track does not have an album attached on last.fm."
+            )
+            return
+
         params = {
             "artist": artistname,
             "method": "album.removetags",
@@ -304,22 +267,15 @@ class TagsMixin(MixinMeta):
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            albumname = tracks[0]["album"]["#text"]
-            artistname = tracks[0]["artist"]["#text"]
-        if albumname == "":
-            return await ctx.send("Your current track doesn't have an album.")
+        if not albumname:
+            await ctx.send(
+                "Your currently playing track does not have an album attached on last.fm."
+            )
+            return
         params = {
             "artist": artistname,
             "method": "album.gettags",
@@ -377,19 +333,10 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            artistname = tracks[0]["artist"]["#text"]
         else:
             artistname = split_args[1]
         params = {
@@ -423,19 +370,10 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
 
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            artistname = tracks[0]["artist"]["#text"]
         else:
             artistname = split_args[1]
         params = {
@@ -461,19 +399,9 @@ class TagsMixin(MixinMeta):
         self.check_if_logged_in_and_sk(conf)
         if not artist:
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, imageurl = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            artist = tracks[0]["artist"]["#text"]
 
         params = {
             "artist": artist,

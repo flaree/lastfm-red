@@ -60,8 +60,6 @@ class APIMixin:
                                 "artist": tracks[0]["artist"]["#text"],
                                 "name": tracks[0]["name"],
                             }
-                            if "#text" in tracks[0]["album"]:
-                                song["album"] = tracks[0]["album"]["#text"]
                 else:
                     if "@attr" in tracks:
                         if "nowplaying" in tracks["@attr"]:
@@ -69,7 +67,31 @@ class APIMixin:
                                 "artist": tracks["artist"]["#text"],
                                 "name": tracks["name"],
                             }
-                            if "#text" in tracks[0]["album"]:
-                                song["album"] = tracks[0]["album"]["#text"]
 
         return song, ref
+
+    async def get_current_track(self, ctx, username):
+        data = await self.api_request(
+            ctx,
+            {"method": "user.getrecenttracks", "user": username, "limit": 1},
+        )
+        tracks = data["recenttracks"]["track"]
+        if type(tracks) == list:
+            if tracks:
+                track = tracks[0]
+            else:
+                raise NoScrobblesError("You haven't scrobbled anything yet.")
+        else:
+            track = tracks
+
+        if "@attr" in track and "nowplaying" in track["@attr"]:
+
+            name = track["name"]
+            artist = track["artist"]["#text"]
+            image = track["image"][-1]["#text"]
+            album = None
+            if "#text" in track["album"]:
+                album = track["album"]["#text"]
+            return name, artist, album, image
+
+        raise NotScrobblingError("You aren't currently listening to anything.")
