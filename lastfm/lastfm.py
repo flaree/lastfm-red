@@ -54,7 +54,7 @@ class LastFM(
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         defaults = {"lastfm_username": None, "session_key": None, "scrobbles": 0, "scrobble": True}
-        self.config.register_global(version=1, sent_secret_key_dm=False)
+        self.config.register_global(version=1)
         self.config.register_user(**defaults)
         self.config.register_guild(crowns={})
         self.session = aiohttp.ClientSession(
@@ -86,31 +86,7 @@ class LastFM(
         token = await self.bot.get_shared_api_tokens("lastfm")
         self.token = token.get("appid")
         self.secret = token.get("secret")
-        await self.send_secret_key_dm()
         await self.migrate_config()
-
-    async def is_this_first_load(self):
-        v = await self.config.version()
-        if v == 1:
-            return True
-        return False
-
-    async def send_secret_key_dm(self):
-        if await self.config.sent_secret_key_dm():
-            return
-        first_load = await self.is_this_first_load()
-        if not first_load:
-            message = (
-                "Hello!\n\n"
-                "The last.fm cog has been updated and now requires a new API key.\n"
-                "If you do not set this, everything except the `fm set` command "
-                "(now called `fm login`) and the new scrobbler feature will continue to function.\n\n"
-                "If you already have a last.fm application, you can view https://www.last.fm/api/accounts"
-                " to get your `shared secret`.\nSet this with `[p]set api lastfm secret <shared_secret>` and "
-                "you'll be all set!"
-            )
-            await self.bot.send_to_owners(message)
-            await self.config.sent_secret_key_dm.set(True)
 
     async def migrate_config(self):
         if await self.config.version() == 1:
@@ -125,7 +101,6 @@ class LastFM(
                 for guild in a:
                     new_data[guild] = a[guild]
             await self.config.version.set(2)
-            await self.config.sent_secret_key_dm.set(True)
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
