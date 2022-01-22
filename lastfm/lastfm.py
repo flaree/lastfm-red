@@ -20,7 +20,7 @@ from .profile import ProfileMixin
 from .scrobbler import ScrobblerMixin
 from .tags import TagsMixin
 from .top import TopMixin
-from .utils.base import Utils
+from .utils.base import UtilsMixin
 from .utils.tokencheck import *
 from .whoknows import WhoKnowsMixin
 from .wordcloud import WordCloudMixin
@@ -37,7 +37,7 @@ class LastFM(
     TagsMixin,
     TopMixin,
     WordCloudMixin,
-    Utils,
+    UtilsMixin,
     WhoKnowsMixin,
     commands.Cog,
     metaclass=CompositeMetaClass,

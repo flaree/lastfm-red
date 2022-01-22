@@ -16,7 +16,7 @@ from .converters import ConvertersMixin
 from .scraping import ScrapingMixin
 
 
-class Utils(APIMixin, ConvertersMixin, ScrapingMixin):
+class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
     """Utils"""
 
     def remove_mentions(self, text):
