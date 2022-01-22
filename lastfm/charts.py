@@ -26,7 +26,9 @@ class ChartMixin(MixinMeta):
                 img = await resp.read()
                 return img
 
-    @command_fm.command(name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]")
+    @command_fm.command(
+        name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]"
+    )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""

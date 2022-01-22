@@ -201,7 +201,9 @@ class LastFM(
             else:
                 await ctx.send(embed=pages[0])
 
-    @command_fm.command(name="artist", usage="[timeframe] <toptracks|topalbums|overview> <artist name>")
+    @command_fm.command(
+        name="artist", usage="[timeframe] <toptracks|topalbums|overview> <artist name>"
+    )
     async def command_artist(self, ctx, timeframe, datatype, *, artistname=""):
         """Your top tracks or albums for specific artist.
 
