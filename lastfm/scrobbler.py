@@ -61,7 +61,7 @@ class ScrobblerMixin(MixinMeta):
         result = await self.scrobble_song(
             trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
         )
-        await self.maybe_send_403_msg(self, ctx, result)
+        await self.maybe_send_403_msg(ctx, result)
         await ctx.tick()
 
     @fm.command()
