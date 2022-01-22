@@ -36,10 +36,10 @@ class WordCloudMixin(MixinMeta):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_wordcloud_artists(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to artists."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            self.check_if_logged_in(conf, author == ctx.author)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
@@ -60,10 +60,10 @@ class WordCloudMixin(MixinMeta):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_wordcloud_tracks(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to tracks."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            self.check_if_logged_in(conf, author == ctx.author)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
@@ -84,10 +84,10 @@ class WordCloudMixin(MixinMeta):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_wordcloud_albums(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to albums."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            self.check_if_logged_in(conf, author == ctx.author)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}

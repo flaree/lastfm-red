@@ -16,10 +16,10 @@ class NowPlayingMixin(MixinMeta):
     @command_fm.command(name="nowplaying", aliases=["np"])
     async def command_nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            self.check_if_logged_in(conf, author == ctx.author)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             data = await self.api_request(
                 ctx,
                 {
@@ -98,7 +98,7 @@ class NowPlayingMixin(MixinMeta):
 
             content.set_author(
                 name=f"{user_attr['user']} {state}",
-                icon_url=author.avatar_url,
+                icon_url=user.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."
