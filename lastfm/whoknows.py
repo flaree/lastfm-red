@@ -39,7 +39,7 @@ class WhoKnowsMixin(MixinMeta):
                 if member is None:
                     continue
 
-                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
+                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, "overall", member))
             if tasks:
                 data = await asyncio.gather(*tasks)
                 data = [i for i in data if i]
@@ -143,7 +143,7 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_track(ctx, artistname, trackname, lastfm_username, member)
+                self.get_playcount_track(ctx, artistname, trackname, lastfm_username, "overall", member)
             )
 
         if tasks:
@@ -232,7 +232,7 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_album(ctx, artistname, albumname, lastfm_username, member)
+                self.get_playcount_album(ctx, artistname, albumname, lastfm_username, "overall", member)
             )
 
         if tasks:
@@ -277,99 +277,3 @@ class WhoKnowsMixin(MixinMeta):
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
-
-    async def get_playcount_track(self, ctx, artist, track, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "track.getinfo",
-                    "user": username,
-                    "track": track,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-
-        try:
-            count = int(data["track"]["userplaycount"])
-        except KeyError:
-            count = 0
-        try:
-            artistname = data["track"]["artist"]["name"]
-            trackname = data["track"]["name"]
-        except KeyError:
-            artistname = None
-            trackname = None
-
-        try:
-            image_url = data["track"]["album"]["image"][-1]["#text"]
-        except KeyError:
-            image_url = None
-
-        if reference is None:
-            return count
-        else:
-            return count, reference, (artistname, trackname, image_url)
-
-    async def get_playcount_album(self, ctx, artist, album, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "album.getinfo",
-                    "user": username,
-                    "album": album,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-        try:
-            count = int(data["album"]["userplaycount"])
-        except (KeyError, TypeError):
-            count = 0
-
-        try:
-            artistname = data["album"]["artist"]
-            albumname = data["album"]["name"]
-        except KeyError:
-            artistname = None
-            albumname = None
-
-        try:
-            image_url = data["album"]["image"][-1]["#text"]
-        except KeyError:
-            image_url = None
-
-        if reference is None:
-            return count
-        else:
-            return count, reference, (artistname, albumname, image_url)
-
-    async def get_playcount(self, ctx, artist, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "artist.getinfo",
-                    "user": username,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-        try:
-            count = int(data["artist"]["stats"]["userplaycount"])
-            name = data["artist"]["name"]
-        except (KeyError, TypeError):
-            count = 0
-            name = None
-
-        if not reference:
-            return count
-        return count, reference, name

@@ -138,3 +138,19 @@ class ScrapingMixin:
             soup.find("li", {"class": "header-metadata-tnew-item--listeners"}).find("abbr").text
         )
         return similar, listeners
+
+    async def get_playcount_scraper(self, ctx, username, artistname, period):
+        url = (
+            f"https://last.fm/user/{username}/library/music/{artistname}"
+            f"?date_preset={self.period_http_format(period)}"
+        )
+        data = await self.fetch(ctx, url, handling="text")
+        soup = BeautifulSoup(data, "html.parser")
+        divs = soup.findAll(class_="metadata-display")
+        if not divs:
+            return 0
+        div = divs[0]
+        plays = div.get_text()
+        return int(plays.split(" ")[0].replace(",", ""))
+
+    

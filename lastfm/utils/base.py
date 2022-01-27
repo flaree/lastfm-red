@@ -295,3 +295,103 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
             )
             await ctx.send(embed=embed)
             raise SilentDeAuthorizedError
+
+    async def get_playcount_track(self, ctx, artist, track, username, period, reference=None):
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "track.getinfo",
+                    "user": username,
+                    "track": track,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
+
+        try:
+            count = int(data["track"]["userplaycount"])
+        except KeyError:
+            count = 0
+        try:
+            artistname = data["track"]["artist"]["name"]
+            trackname = data["track"]["name"]
+        except KeyError:
+            artistname = None
+            trackname = None
+
+        try:
+            image_url = data["track"]["album"]["image"][-1]["#text"]
+        except KeyError:
+            image_url = None
+
+        if reference is None:
+            return count
+        else:
+            return count, reference, (artistname, trackname, image_url)
+
+    async def get_playcount_album(self, ctx, artist, album, username, period, reference=None):
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "album.getinfo",
+                    "user": username,
+                    "album": album,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
+        try:
+            count = int(data["album"]["userplaycount"])
+        except (KeyError, TypeError):
+            count = 0
+
+        try:
+            artistname = data["album"]["artist"]
+            albumname = data["album"]["name"]
+        except KeyError:
+            artistname = None
+            albumname = None
+
+        try:
+            image_url = data["album"]["image"][-1]["#text"]
+        except KeyError:
+            image_url = None
+
+        if reference is None:
+            return count
+        else:
+            return count, reference, (artistname, albumname, image_url)
+
+    async def get_playcount(self, ctx, artist, username, period, reference=None):
+        if period != "overall":
+           return await self.get_playcount_scraper(ctx, artist, username, period)
+        
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "artist.getinfo",
+                    "user": username,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
+        try:
+            count = int(data["artist"]["stats"]["userplaycount"])
+            name = data["artist"]["name"]
+        except (KeyError, TypeError):
+            count = 0
+            name = None
+
+        if not reference:
+            return count
+        
+        return count, reference, name
