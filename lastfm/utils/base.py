@@ -369,6 +369,29 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
             return count, reference, (artistname, albumname, image_url)
 
     async def get_playcount(self, ctx, artist, username, period, reference=None):
-        count = await self.get_playcount_scraper(ctx, artist, username, period)
-    
-        return count, reference, artist
+        if period != "overall":
+           return await self.get_playcount_scraper(ctx, artist, username, period)
+        
+        try:
+            data = await self.api_request(
+                ctx,
+                {
+                    "method": "artist.getinfo",
+                    "user": username,
+                    "artist": artist,
+                    "autocorrect": 1,
+                },
+            )
+        except LastFMError:
+            data = {}
+        try:
+            count = int(data["artist"]["stats"]["userplaycount"])
+            name = data["artist"]["name"]
+        except (KeyError, TypeError):
+            count = 0
+            name = None
+
+        if not reference:
+            return count
+        
+        return count, reference, name
