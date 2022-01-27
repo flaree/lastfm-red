@@ -16,6 +16,10 @@ class CompareMixin(MixinMeta):
     """Commands for comparing two users"""
 
     def make_table_into_image(self, text, color):
+
+        if type(color) == int:
+            color = discord.Color(color)
+
         lines = 0
         keep_going = True
         width = 0
