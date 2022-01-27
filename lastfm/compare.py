@@ -90,7 +90,6 @@ class CompareMixin(MixinMeta):
             author_plays = []
             author_names = []
             for artist in author_artists:
-
                 if artist["playcount"] == 1:
                     author_plays.append(f"{artist['playcount']} Play")
                 else:
@@ -99,19 +98,8 @@ class CompareMixin(MixinMeta):
 
             user_plays = []
             async for artist in AsyncIter(author_artists):
-                url = (
-                    f"https://last.fm/user/{user_conf['lastfm_username']}/library/music/{artist['name']}"
-                    f"?date_preset={self.period_http_format(period)}"
-                )
-                data = await self.fetch(ctx, url, handling="text")
-                soup = BeautifulSoup(data, "html.parser")
-                divs = soup.findAll(class_="metadata-display")
-                if not divs:
-                    user_plays.append("0 Plays")
-                    continue
-                div = divs[0]
-                plays = div.get_text()
-                if plays == "1":
+                plays = await self.get_playcount(ctx, author_conf["lastfm_username"], artist["name"], period)
+                if plays == 1:
                     user_plays.append(f"{plays} Play")
                 else:
                     user_plays.append(f"{plays} Plays")
