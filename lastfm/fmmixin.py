@@ -1,11 +1,11 @@
 from redbot.core import commands
 
-from .utils import tokencheck
+from .utils.tokencheck import tokencheck
 
 
 @commands.check(tokencheck)
 @commands.group(name="fm")
-async def fm(self, ctx: commands.Context):
+async def command_fm(self, ctx: commands.Context):
     """
     LastFM commands
     """
@@ -14,8 +14,4 @@ async def fm(self, ctx: commands.Context):
 class FMMixin:
     """This is mostly here to easily mess with things..."""
 
-    c = fm
-
-
-async def red_delete_data_for_user(self, *, requester, user_id):
-    await self.config.user_from_id(user_id).clear()
+    c = command_fm

@@ -6,9 +6,8 @@ import discord
 from redbot.core import commands
 
 from .abc import MixinMeta
-from .errors import *
-from .fmmixin import fm
-from .utils import *
+from .exceptions import *
+from .fmmixin import command_fm
 
 with suppress(Exception):
     from wordcloud import WordCloud
@@ -25,21 +24,22 @@ class WordCloudMixin(MixinMeta):
         if "WordCloud" in globals().keys():
             self.wc = WordCloud(width=1920, height=1080, mode="RGBA", background_color=None)
 
-    @fm.group(aliases=["cloud", "wc"])
+    @command_fm.group(name="wordcloud", aliases=["cloud", "wc"])
     @commands.check(wordcloud_available)
-    async def wordcloud(self, ctx):
+    @commands.bot_has_permissions(attach_files=True)
+    async def command_wordcloud(self, ctx):
         """WordCloud Commands
 
         Original idea: http://lastfm.dontdrinkandroot.net"""
 
-    @wordcloud.command(aliases=["artist"])
+    @command_wordcloud.command(name="artists", aliases=["artist"])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def artists(self, ctx, user: Optional[discord.Member] = None):
+    async def command_wordcloud_artists(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to artists."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopartists", "period": "overall"}
@@ -56,14 +56,14 @@ class WordCloudMixin(MixinMeta):
             await ctx.send(f"{name}'s artist cloud:", file=discord.File(pic))
         pic.close()
 
-    @wordcloud.command()
+    @command_wordcloud.command(name="tracks", aliases=["track"])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def tracks(self, ctx, user: Optional[discord.Member] = None):
+    async def command_wordcloud_tracks(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to tracks."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettoptracks", "period": "overall"}
@@ -80,14 +80,14 @@ class WordCloudMixin(MixinMeta):
             await ctx.send(f"{name}'s track cloud:", file=discord.File(pic))
         pic.close()
 
-    @wordcloud.command()
+    @command_wordcloud.command(name="albums", aliases=["album"])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def albums(self, ctx, user: Optional[discord.Member] = None):
+    async def command_wordcloud_albums(self, ctx, user: Optional[discord.Member] = None):
         """Get a picture with the most listened to albums."""
-        author = user or ctx.author
+        user = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(author).all()
-            check_if_logged_in(conf)
+            conf = await self.config.user(user).all()
+            self.check_if_logged_in(conf, user == ctx.author)
             name = conf["lastfm_username"]
             data = await self.api_request(
                 ctx, {"user": name, "method": "user.gettopalbums", "period": "overall"}

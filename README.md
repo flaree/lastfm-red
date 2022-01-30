@@ -1,25 +1,13 @@
 # lastfm-red
-LastFM Ported to Red
+MisoBot's LastFM Cog Ported to Red
 
-This is a port of MisoBot, with some functionality removed or added and made to use config. 
+This is a port of [MisoBot's last.fm cog](https://github.com/joinemm/miso-bot/blob/master/cogs/lastfm.py), with some functionality removed or added and made to use config.
 
-## changelog
+Since the port, the cog has been split up into multiple files and many new features have been added. Feel free to make an issue if you have any ideas for new features.
 
-- v1.4.8 - fix bug with `[p]fm wordcloud`
-- v1.4.7 - move unauthorized message to it's own function
-- v1.4.6 - fix cipher (format is added to params after)
-- v1.4.5 - put cipher stuff into api_post function + fix some commands not being made sync
-- v1.4.4 - make check_for_login sync + fix error handler
-- v1.4.3 - clean up LastFMError code
-- v1.4.2 - clean up code for needing to log in
-- v1.4.1 - fix fm login error message
-- v1.4.0 - update login message, make `[p]fm login` much faster, adds `[p]fm tag` with a bunch of subcommands
-- v1.3.0 - add `[p]fm streak` command
-- v1.2.1 - add page number to `[p]fm loved` embed
-- v1.2.0 - add `[p]fm love`,`[p]fm unlove` and `[p]fm loved` + add a heart to the title in `[p]fm np` if the song is loved
-- v1.1.5 - increase cooldown in `[p]fm scrobble` command
-- v1.1.4 - use timestamps in `[p]fm profile` embed
-- v1.1.3 - add color to `[p]fm profile` embed
-- v1.1.2 - fix `[p]whoknows` command bug
-- v1.1.1 - improves algorithm to detect if a song should be scrobbled
-- v1.1.0 - adds `[p]scrobble` and `[p]fm scrobbler` commands and improves error messages
+## setup
+- Visit the [LastFM](https://www.last.fm/api/) website and click on 'Get an API Account'.
+- Fill in the application. Once completed do not exit the page.
+- Copy all information on the page and save it.
+- Enter the api key via `[p]set api lastfm appid <appid_here>`
+- Enter the api secret via `[p]set api lastfm secret <secret_here>`

@@ -5,18 +5,18 @@ from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .errors import *
-from .utils import *
+from .exceptions import *
+from .utils.tokencheck import tokencheck
 
 
 class WhoKnowsMixin(MixinMeta):
     """WhoKnows Commands"""
 
-    @commands.command(usage="<artist name>", aliases=["wk"])
+    @commands.command(name="whoknows", usage="<artist name>", aliases=["wk"])
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 10, type=commands.BucketType.user)
-    async def whoknows(self, ctx, *, artistname=None):
+    async def command_whoknows(self, ctx, *, artistname=None):
         """Check who has listened to a given artist the most."""
         listeners = []
         tasks = []
@@ -26,19 +26,10 @@ class WhoKnowsMixin(MixinMeta):
             userslist = [user for user in userlist if user in guildusers]
             if not artistname:
                 conf = await self.config.user(ctx.author).all()
-                check_if_logged_in(conf)
-                data = await self.api_request(
-                    ctx,
-                    {
-                        "user": conf["lastfm_username"],
-                        "method": "user.getrecenttracks",
-                        "limit": 1,
-                    },
+                self.check_if_logged_in(conf)
+                trackname, artistname, albumname, image_url = await self.get_current_track(
+                    ctx, conf["lastfm_username"]
                 )
-                tracks = data["recenttracks"]["track"]
-                if not tracks:
-                    return await ctx.send("You have not listened to anything yet!")
-                artistname = tracks[0]["artist"]["#text"]
             for user in userslist:
                 lastfm_username = userlist[user]["lastfm_username"]
                 if lastfm_username is None:
@@ -47,7 +38,9 @@ class WhoKnowsMixin(MixinMeta):
                 if member is None:
                     continue
 
-                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, member))
+                tasks.append(
+                    self.get_playcount(ctx, lastfm_username, artistname, "overall", member)
+                )
             if tasks:
                 data = await asyncio.gather(*tasks)
                 data = [i for i in data if i]
@@ -77,7 +70,9 @@ class WhoKnowsMixin(MixinMeta):
                     play = playcount
                 else:
                     rank = f"`#{i:2}`"
-                rows.append(f"{rank} **{user.name}** — **{playcount}** {format_plays(playcount)}")
+                rows.append(
+                    f"{rank} **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+                )
                 total += playcount
 
             if not rows:
@@ -91,7 +86,7 @@ class WhoKnowsMixin(MixinMeta):
             content.set_thumbnail(url=image_url)
             content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
@@ -111,32 +106,22 @@ class WhoKnowsMixin(MixinMeta):
                 async with self.config.guild(ctx.guild).crowns() as crowns:
                     crowns[artistname.lower()] = {"user": new_king.id, "playcount": play}
 
-    @commands.command(usage="<track name> | <artist name>", aliases=["wkt", "whoknowst"])
+    @commands.command(
+        name="whoknowstrack", usage="<track name> | <artist name>", aliases=["wkt", "whoknowst"]
+    )
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowstrack(self, ctx, *, track=None):
+    async def command_whoknowstrack(self, ctx, *, track=None):
         """
         Check who has listened to a given song the most.
         """
         if not track:
             conf = await self.config.user(ctx.author).all()
-            check_if_logged_in(conf)
-
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            self.check_if_logged_in(conf)
+            trackname, artistname, albumname, image_url = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            trackname = tracks[0]["name"]
-            artistname = tracks[0]["artist"]["#text"]
         else:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -157,7 +142,9 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_track(ctx, artistname, trackname, lastfm_username, member)
+                self.get_playcount_track(
+                    ctx, lastfm_username, artistname, trackname, "overall", member
+                )
             )
 
         if tasks:
@@ -177,7 +164,9 @@ class WhoKnowsMixin(MixinMeta):
         for i, (playcount, user) in enumerate(
             sorted(listeners, key=lambda p: p[0], reverse=True), start=1
         ):
-            rows.append(f"`#{i:2}` **{user.name}** — **{playcount}** {format_plays(playcount)}")
+            rows.append(
+                f"`#{i:2}` **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+            )
             total += playcount
 
         if not rows:
@@ -194,40 +183,30 @@ class WhoKnowsMixin(MixinMeta):
         content.set_thumbnail(url=image_url)
         content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
 
-    @commands.command(aliases=["wka", "whoknowsa"], usage="<album name> | <artist name>")
+    @commands.command(
+        name="whoknowsalbum", aliases=["wka", "whoknowsa"], usage="<album name> | <artist name>"
+    )
     @commands.check(tokencheck)
     @commands.guild_only()
     @commands.cooldown(2, 15, type=commands.BucketType.user)
-    async def whoknowsalbum(self, ctx, *, album=None):
+    async def command_whoknowsalbum(self, ctx, *, album=None):
         """
         Check who has listened to a given album the most.
         """
         if not album:
             conf = await self.config.user(ctx.author).all()
-            check_if_logged_in(conf)
+            self.check_if_logged_in(conf)
 
-            data = await self.api_request(
-                ctx,
-                {
-                    "user": conf["lastfm_username"],
-                    "method": "user.getrecenttracks",
-                    "limit": 1,
-                },
+            trackname, artistname, albumname, image_url = await self.get_current_track(
+                ctx, conf["lastfm_username"]
             )
-
-            tracks = data["recenttracks"]["track"]
-            if not tracks:
-                return await ctx.send("You have not listened to anything yet!")
-            if "#text" in tracks[0]["album"]:
-                albumname = tracks[0]["album"]["#text"]
-                artistname = tracks[0]["artist"]["#text"]
-            else:
+            if not albumname:
                 return await ctx.send(
                     "Sorry, the track you're listening to doesn't have the album info provided."
                 )
@@ -251,7 +230,9 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_album(ctx, artistname, albumname, lastfm_username, member)
+                self.get_playcount_album(
+                    ctx, lastfm_username, artistname, albumname, "overall", member
+                )
             )
 
         if tasks:
@@ -271,7 +252,9 @@ class WhoKnowsMixin(MixinMeta):
         for i, (playcount, user) in enumerate(
             sorted(listeners, key=lambda p: p[0], reverse=True), start=1
         ):
-            rows.append(f"`#{i:2}` **{user.name}** — **{playcount}** {format_plays(playcount)}")
+            rows.append(
+                f"`#{i:2}` **{user.name}** — **{playcount}** {self.format_plays(playcount)}"
+            )
             total += playcount
 
         if not rows:
@@ -289,104 +272,8 @@ class WhoKnowsMixin(MixinMeta):
         content.set_thumbnail(url=image_url)
         content.set_footer(text=f"Collective plays: {total}")
 
-        pages = await create_pages(content, rows)
+        pages = await self.create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
-
-    async def get_playcount_track(self, ctx, artist, track, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "track.getinfo",
-                    "user": username,
-                    "track": track,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-
-        try:
-            count = int(data["track"]["userplaycount"])
-        except KeyError:
-            count = 0
-        try:
-            artistname = data["track"]["artist"]["name"]
-            trackname = data["track"]["name"]
-        except KeyError:
-            artistname = None
-            trackname = None
-
-        try:
-            image_url = data["track"]["album"]["image"][-1]["#text"]
-        except KeyError:
-            image_url = None
-
-        if reference is None:
-            return count
-        else:
-            return count, reference, (artistname, trackname, image_url)
-
-    async def get_playcount_album(self, ctx, artist, album, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "album.getinfo",
-                    "user": username,
-                    "album": album,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-        try:
-            count = int(data["album"]["userplaycount"])
-        except (KeyError, TypeError):
-            count = 0
-
-        try:
-            artistname = data["album"]["artist"]
-            albumname = data["album"]["name"]
-        except KeyError:
-            artistname = None
-            albumname = None
-
-        try:
-            image_url = data["album"]["image"][-1]["#text"]
-        except KeyError:
-            image_url = None
-
-        if reference is None:
-            return count
-        else:
-            return count, reference, (artistname, albumname, image_url)
-
-    async def get_playcount(self, ctx, artist, username, reference=None):
-        try:
-            data = await self.api_request(
-                ctx,
-                {
-                    "method": "artist.getinfo",
-                    "user": username,
-                    "artist": artist,
-                    "autocorrect": 1,
-                },
-            )
-        except LastFMError:
-            data = {}
-        try:
-            count = int(data["artist"]["stats"]["userplaycount"])
-            name = data["artist"]["name"]
-        except (KeyError, TypeError):
-            count = 0
-            name = None
-
-        if not reference:
-            return count
-        return count, reference, name
