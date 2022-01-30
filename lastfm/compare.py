@@ -46,11 +46,12 @@ class CompareMixin(MixinMeta):
         """Compare two users music tastes"""
 
     @command_compare.command(name="artists", aliases=["artist"])
-    async def compare_artists(self, ctx, user: discord.Member, period: str = "overall"):
+    async def compare_artists(self, ctx, user: discord.Member, period: str = "1month"):
         """
         Compare your top artists with someone else.
 
         `[period]` can be one of: overall, 7day, 1month, 3month, 6month, 12month
+        The default is 1 month.
         """
         if user == ctx.author:
             await ctx.send("You need to compare with someone else.")
@@ -116,11 +117,12 @@ class CompareMixin(MixinMeta):
             await ctx.send(file=img, embed=embed)
 
     @command_compare.command(name="tracks", aliases=["track"])
-    async def compare_tracks(self, ctx, user: discord.Member, period: str = "overall"):
+    async def compare_tracks(self, ctx, user: discord.Member, period: str = "1month"):
         """
         Compare your top tracks with someone else.
 
         `[period]` can be one of: overall, 7day, 1month, 3month, 6month, 12month
+        The default is 1 month.
         """
         if user == ctx.author:
             await ctx.send("You need to compare with someone else.")
@@ -195,11 +197,12 @@ class CompareMixin(MixinMeta):
             await ctx.send(file=img, embed=embed)
 
     @command_compare.command(name="albums", aliases=["album"])
-    async def compare_albums(self, ctx, user: discord.Member, period: str = "overall"):
+    async def compare_albums(self, ctx, user: discord.Member, period: str = "1month"):
         """
         Compare your top albums with someone else.
 
         `[period]` can be one of: overall, 7day, 1month, 3month, 6month, 12month
+        The default is 1 month.
         """
         if user == ctx.author:
             await ctx.send("You need to compare with someone else.")
