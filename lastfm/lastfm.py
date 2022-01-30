@@ -214,7 +214,7 @@ class LastFM(
         conf = await self.config.user(ctx.author).all()
         username = conf["lastfm_username"]
 
-        period = self.get_period(timeframe)
+        period, _ = self.get_period(timeframe)
         if period in [None, "today"]:
             artistname = " ".join([datatype, artistname]).strip()
             datatype = timeframe

@@ -27,10 +27,9 @@ class WhoKnowsMixin(MixinMeta):
             if not artistname:
                 conf = await self.config.user(ctx.author).all()
                 self.check_if_logged_in(conf)
-                song, _ = await self.get_np(ctx, conf["lastfm_username"])
-                if not song:
-                    return await ctx.send("You have not listened to anything yet!")
-                artistname = song["artist"]
+                trackname, artistname, albumname, image_url = await self.get_current_track(
+                    ctx, conf["lastfm_username"]
+                )
             for user in userslist:
                 lastfm_username = userlist[user]["lastfm_username"]
                 if lastfm_username is None:
@@ -40,7 +39,7 @@ class WhoKnowsMixin(MixinMeta):
                     continue
 
                 tasks.append(
-                    self.get_playcount(ctx, artistname, lastfm_username, "overall", member)
+                    self.get_playcount(ctx, lastfm_username, artistname, "overall", member)
                 )
             if tasks:
                 data = await asyncio.gather(*tasks)
@@ -120,11 +119,9 @@ class WhoKnowsMixin(MixinMeta):
         if not track:
             conf = await self.config.user(ctx.author).all()
             self.check_if_logged_in(conf)
-            song, _ = await self.get_np(ctx, conf["lastfm_username"])
-            if not song:
-                return await ctx.send("You have not listened to anything yet!")
-            trackname = song["name"]
-            artistname = song["artist"]
+            trackname, artistname, albumname, image_url = await self.get_current_track(
+                ctx, conf["lastfm_username"]
+            )
         else:
             try:
                 trackname, artistname = [x.strip() for x in track.split("|")]
@@ -146,7 +143,7 @@ class WhoKnowsMixin(MixinMeta):
 
             tasks.append(
                 self.get_playcount_track(
-                    ctx, artistname, trackname, lastfm_username, "overall", member
+                    ctx, lastfm_username, artistname, trackname, "overall", member
                 )
             )
 
@@ -206,13 +203,10 @@ class WhoKnowsMixin(MixinMeta):
             conf = await self.config.user(ctx.author).all()
             self.check_if_logged_in(conf)
 
-            np, _ = await self.get_np(ctx, conf["lastfm_username"])
-            if not np:
-                return await ctx.send("You have not listened to anything yet!")
-            if "album" in np:
-                albumname = np["album"]
-                artistname = np["artist"]
-            else:
+            trackname, artistname, albumname, image_url = await self.get_current_track(
+                ctx, conf["lastfm_username"]
+            )
+            if not albumname:
                 return await ctx.send(
                     "Sorry, the track you're listening to doesn't have the album info provided."
                 )
@@ -237,7 +231,7 @@ class WhoKnowsMixin(MixinMeta):
 
             tasks.append(
                 self.get_playcount_album(
-                    ctx, artistname, albumname, lastfm_username, "overall", member
+                    ctx, lastfm_username, artistname, albumname, "overall", member
                 )
             )
 

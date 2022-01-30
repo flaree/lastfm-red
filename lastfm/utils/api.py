@@ -70,7 +70,7 @@ class APIMixin:
 
         return song, ref
 
-    async def get_current_track(self, ctx, username):
+    async def get_current_track(self, ctx, username, ref=None):
         data = await self.api_request(
             ctx,
             {"method": "user.getrecenttracks", "user": username, "limit": 1},
@@ -92,6 +92,12 @@ class APIMixin:
             album = None
             if "#text" in track["album"]:
                 album = track["album"]["#text"]
-            return name, artist, album, image
+            if ref:
+                return name, artist, album, image, ref
+            else:
+                return name, artist, album, image
 
-        raise NotScrobblingError("You aren't currently listening to anything.")
+        if not ref:
+            raise NotScrobblingError("You aren't currently listening to anything.")
+        else:
+            return None, None, None, None, ref

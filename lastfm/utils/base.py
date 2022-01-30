@@ -296,9 +296,9 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
             await ctx.send(embed=embed)
             raise SilentDeAuthorizedError
 
-    async def get_playcount_track(self, ctx, artist, track, username, period, reference=None):
+    async def get_playcount_track(self, ctx, username, artist, track, period, reference=None):
         if period != "overall":
-            return await self.get_playcount_track_scraper(ctx, artist, track, username, period)
+            return await self.get_playcount_track_scraper(ctx, username, artist, track, period)
 
         try:
             data = await self.api_request(
@@ -335,7 +335,7 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
         else:
             return count, reference, (artistname, trackname, image_url)
 
-    async def get_playcount_album(self, ctx, artist, album, username, period, reference=None):
+    async def get_playcount_album(self, ctx, username, artist, album, period, reference=None):
         if period != "overall":
             return await self.get_playcount_album_scraper(ctx, username, artist, album, period)
         try:
@@ -373,9 +373,9 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
         else:
             return count, reference, (artistname, albumname, image_url)
 
-    async def get_playcount(self, ctx, artist, username, period, reference=None):
+    async def get_playcount(self, ctx, username, artist, period, reference=None):
         if period != "overall":
-            return await self.get_playcount_scraper(ctx, artist, username, period)
+            return await self.get_playcount_scraper(ctx, username, artist, period)
 
         try:
             data = await self.api_request(

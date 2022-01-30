@@ -1,3 +1,4 @@
+import contextlib
 from io import BytesIO
 
 import discord
@@ -57,7 +58,7 @@ class CompareMixin(MixinMeta):
             await ctx.send("You need to compare with someone else.")
             return
 
-        period = self.get_period(period)
+        period, displayperiod = self.get_period(period)
         if not period:
             await ctx.send(
                 "Invalid period. Valid periods are: overall, 7day, 1month, 3month, 6month, 12month"
@@ -87,6 +88,9 @@ class CompareMixin(MixinMeta):
                         "You haven't listened to any artists in the last {}s.".format(period)
                     )
                 return
+
+            g = await ctx.send("Gathering data... This might take a while.")
+
             author_plays = []
             artist_names = []
             for artist in author_artists:
@@ -99,12 +103,12 @@ class CompareMixin(MixinMeta):
             user_plays = []
             async for artist in AsyncIter(author_artists):
                 plays = await self.get_playcount(
-                    ctx, author_conf["lastfm_username"], artist["name"], period
+                    ctx, user_conf["lastfm_username"], artist["name"], period
                 )
                 if plays == 1:
                     user_plays.append(f"{plays} Play")
                 else:
-                    user_plays.append(f"{plays} Plays")
+                    user_plays.append(f"{humanize_number(plays)} Plays")
 
             data = {"Artist": artist_names, ctx.author: author_plays, user: user_plays}
             table = tabulate.tabulate(data, headers="keys", tablefmt="fancy_grid")
@@ -112,8 +116,12 @@ class CompareMixin(MixinMeta):
             img = await self.bot.loop.run_in_executor(
                 None, self.make_table_into_image, table, color
             )
-            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user}")
+            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
+
+            with contextlib.suppress(discord.NotFound):
+                await g.delete()
+
             await ctx.send(file=img, embed=embed)
 
     @command_compare.command(name="tracks", aliases=["track"])
@@ -128,7 +136,7 @@ class CompareMixin(MixinMeta):
             await ctx.send("You need to compare with someone else.")
             return
 
-        period = self.get_period(period)
+        period, displayperiod = self.get_period(period)
         if not period:
             await ctx.send(
                 "Invalid period. Valid periods are: overall, 7day, 1month, 3month, 6month, 12month"
@@ -156,6 +164,9 @@ class CompareMixin(MixinMeta):
                 else:
                     await ctx.send("You haven't listened to any tracks in that time period.")
                 return
+
+            g = await ctx.send("Gathering data... This might take a while.")
+
             author_plays = []
             artist_names = []
             track_names = []
@@ -171,15 +182,15 @@ class CompareMixin(MixinMeta):
             async for track in AsyncIter(author_tracks):
                 plays = await self.get_playcount_track(
                     ctx,
+                    user_conf["lastfm_username"],
                     track["artist"]["name"],
                     track["name"],
-                    user_conf["lastfm_username"],
                     period,
                 )
                 if plays == 1:
                     user_plays.append(f"{plays} Play")
                 else:
-                    user_plays.append(f"{plays} Plays")
+                    user_plays.append(f"{humanize_number(plays)} Plays")
 
             data = {
                 "Artist": artist_names,
@@ -192,8 +203,12 @@ class CompareMixin(MixinMeta):
             img = await self.bot.loop.run_in_executor(
                 None, self.make_table_into_image, table, color
             )
-            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user}")
+            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
+
+            with contextlib.suppress(discord.NotFound):
+                await g.delete()
+
             await ctx.send(file=img, embed=embed)
 
     @command_compare.command(name="albums", aliases=["album"])
@@ -208,7 +223,7 @@ class CompareMixin(MixinMeta):
             await ctx.send("You need to compare with someone else.")
             return
 
-        period = self.get_period(period)
+        period, displayperiod = self.get_period(period)
         if not period:
             await ctx.send(
                 "Invalid period. Valid periods are: overall, 7day, 1month, 3month, 6month, 12month"
@@ -236,6 +251,9 @@ class CompareMixin(MixinMeta):
                 else:
                     await ctx.send("You haven't listened to any albums in that time period.")
                 return
+
+            g = await ctx.send("Gathering data... This might take a while.")
+
             author_plays = []
             artist_names = []
             album_names = []
@@ -251,15 +269,15 @@ class CompareMixin(MixinMeta):
             async for album in AsyncIter(author_albums):
                 plays = await self.get_playcount_album(
                     ctx,
+                    user_conf["lastfm_username"],
                     album["artist"]["name"],
                     album["name"],
-                    user_conf["lastfm_username"],
                     period,
                 )
                 if plays == 1:
                     user_plays.append(f"{plays} Play")
                 else:
-                    user_plays.append(f"{plays} Plays")
+                    user_plays.append(f"{humanize_number(plays)} Plays")
 
             data = {
                 "Artist": artist_names,
@@ -272,6 +290,10 @@ class CompareMixin(MixinMeta):
             img = await self.bot.loop.run_in_executor(
                 None, self.make_table_into_image, table, color
             )
-            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user}")
+            embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
+
+            with contextlib.suppress(discord.NotFound):
+                await g.delete()
+
             await ctx.send(file=img, embed=embed)

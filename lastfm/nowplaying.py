@@ -122,15 +122,15 @@ class NowPlayingMixin(MixinMeta):
             if member is None:
                 continue
 
-            tasks.append(self.get_np(ctx, lastfm_username, member))
+            tasks.append(self.get_current_track(ctx, lastfm_username, member))
 
         total_linked = len(tasks)
         if tasks:
             data = await asyncio.gather(*tasks)
             data = [i for i in data if i]
-            for song, member_ref in data:
-                if song is not None:
-                    listeners.append((song, member_ref))
+            for name, artist, album, image, ref in data:
+                if name is not None:
+                    listeners.append((name, artist, ref))
         else:
             return await ctx.send("Nobody on this server has connected their last.fm account yet!")
 
@@ -139,8 +139,8 @@ class NowPlayingMixin(MixinMeta):
 
         total_listening = len(listeners)
         rows = []
-        for song, member in listeners:
-            rows.append(f"{member.mention} **{song.get('artist')}** — ***{song.get('name')}***")
+        for name, artist, member in listeners:
+            rows.append(f"{member.mention} **{artist}** — ***{name}***")
 
         content = discord.Embed(color=await ctx.embed_color())
         content.set_author(

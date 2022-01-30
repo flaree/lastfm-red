@@ -5,14 +5,14 @@ class ConvertersMixin:
         return "plays"
 
     def get_period(self, timeframe):
-        if timeframe in ["7day", "7days", "weekly", "week", "1week" "7d"]:
-            period = "7day"
+        if timeframe in ["7day", "7days", "weekly", "week", "1week", "7d"]:
+            period = "7day", "past week"
         elif timeframe in ["30day", "30days", "monthly", "month", "1month", "1m"]:
-            period = "1month"
+            period = "1month", "past month"
         elif timeframe in ["90day", "90days", "3months", "3month", "3m"]:
-            period = "3month"
+            period = "3month", "past 3 months"
         elif timeframe in ["180day", "180days", "6months", "6month", "halfyear", "hy", "6m"]:
-            period = "6month"
+            period = "6month", "past 6 months"
         elif timeframe in [
             "365day",
             "365days",
@@ -24,11 +24,11 @@ class ConvertersMixin:
             "1y",
             "12m",
         ]:
-            period = "12month"
+            period = "12month", "past year"
         elif timeframe in ["at", "alltime", "overall"]:
-            period = "overall"
+            period = "overall", "overall"
         else:
-            period = None
+            period = None, None
 
         return period
 
@@ -69,7 +69,7 @@ class ConvertersMixin:
                 except ValueError:
                     pass
             if parsed["period"] is None:
-                parsed["period"] = self.get_period(a)
+                parsed["period"], _ = self.get_period(a)
 
         if parsed["period"] is None:
             parsed["period"] = "overall"
@@ -112,7 +112,7 @@ class ConvertersMixin:
                     continue
 
             if parsed["period"] is None:
-                parsed["period"] = self.get_period(a)
+                parsed["period"], _ = self.get_period(a)
 
         if parsed["period"] is None:
             parsed["period"] = "7day"
