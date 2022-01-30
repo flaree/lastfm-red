@@ -8,8 +8,9 @@ import lavalink
 from redbot.core import commands
 
 from .abc import MixinMeta
-from .exceptions import *
-from .fmmixin import command_fm
+from .errors import *
+from .fmmixin import fm
+from .utils import *
 
 
 class ScrobblerMixin(MixinMeta):
@@ -40,9 +41,9 @@ class ScrobblerMixin(MixinMeta):
             return True
         return False
 
-    @commands.command(name="scrobble", usage="<track name> | <artist name>")
+    @commands.command(usage="<track name> | <artist name>")
     @commands.cooldown(1, 300, type=commands.BucketType.user)
-    async def command_scrobble(self, ctx, *, track):
+    async def scrobble(self, ctx, *, track):
         """
         Scrobble a song to last.fm.
 
@@ -50,7 +51,7 @@ class ScrobblerMixin(MixinMeta):
             [p]scrobble <track name> | <artist name>
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         try:
             trackname, artistname = [x.strip() for x in track.split("|")]
             if trackname == "" or artistname == "":
@@ -61,11 +62,11 @@ class ScrobblerMixin(MixinMeta):
         result = await self.scrobble_song(
             trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
         )
-        await self.maybe_send_403_msg(ctx, result)
+        await maybe_send_403_msg(self, ctx, result)
         await ctx.tick()
 
-    @command_fm.command(name="scrobbler")
-    async def command_scrobbler(self, ctx):
+    @fm.command()
+    async def scrobbler(self, ctx):
         """
         Toggles automatic scrobbling in VC.
 
@@ -129,8 +130,8 @@ class ScrobblerMixin(MixinMeta):
                 )
                 await user.send(embed=embed)
 
-    @commands.Cog.listener(name="on_red_audio_track_start")
-    async def listener_scrobbler_track_start(
+    @commands.Cog.listener()
+    async def on_red_audio_track_start(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
         if not (guild and track) or int(track.length) <= 30000 or not guild.me.voice:
@@ -153,8 +154,8 @@ class ScrobblerMixin(MixinMeta):
                     track_title, track_artist, track.length, member, user_settings["session_key"]
                 )
 
-    @commands.Cog.listener(name="on_red_audio_track_end")
-    async def listener_scrobbler_track_end(
+    @commands.Cog.listener()
+    async def on_red_audio_track_end(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
         if not guild:

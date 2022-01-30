@@ -3,30 +3,34 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .exceptions import *
-from .fmmixin import command_fm
+from .errors import *
+from .fmmixin import fm
+from .utils import *
 
 
 class TagsMixin(MixinMeta):
     """Tag Commands"""
 
-    @command_fm.group(name="tag")
-    async def command_tag(self, ctx):
+    async def tag_stuff(self, ctx, tag, *, stuff):
+        ...
+
+    @fm.group(name="tag")
+    async def tag_group(self, ctx):
         """Commands to tag things"""
 
-    @command_tag.group(name="track", aliases=["tracks", "song"])
-    async def command_tag_track(self, ctx):
+    @tag_group.group(name="track", aliases=["tracks", "song"])
+    async def track_group(self, ctx):
         """Commands to tag tracks"""
 
-    @command_tag_track.command(name="add", usage="<tag>,[tag] | [track name] | [artist name]")
-    async def command_tag_track_add(self, ctx, *, args):
+    @track_group.command(name="add", usage="<tag>,[tag] | [track name] | [artist name]")
+    async def track_add_command(self, ctx, *, args):
         """
         Add tags to a track
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -37,14 +41,24 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            trackname = tracks[0]["name"]
+            artistname = tracks[0]["artist"]["#text"]
         else:
             trackname = split_args[1]
             artistname = split_args[2]
-
+        
         params = {
             "artist": artistname,
             "method": "track.addtags",
@@ -53,20 +67,20 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_track.command(name="remove", usage="<tag>,[tag] | [track name] | [artist name]")
-    async def command_tag_track_remove(self, ctx, *, args):
+    @track_group.command(name="remove", usage="<tag>,[tag] | [track name] | [artist name]")
+    async def track_remove_command(self, ctx, *, args):
         """
         Remove tags from a track
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -77,10 +91,20 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            trackname = tracks[0]["name"]
+            artistname = tracks[0]["artist"]["#text"]
         else:
             trackname = split_args[1]
             artistname = split_args[2]
@@ -92,20 +116,20 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_track.command(name="list", usage="[track name] | [artist name]")
-    async def command_tag_track_list(self, ctx, *, args=None):
+    @track_group.command(name="list", usage="[track name] | [artist name]")
+    async def track_list_command(self, ctx, *, args=None):
         """
         List tags for a track
 
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if args:
             try:
                 trackname, artistname = [x.strip() for x in args.split("|")]
@@ -115,9 +139,20 @@ class TagsMixin(MixinMeta):
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
+
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            trackname = tracks[0]["name"]
+            artistname = tracks[0]["artist"]["#text"]
 
         params = {
             "artist": artistname,
@@ -126,7 +161,7 @@ class TagsMixin(MixinMeta):
             "track": trackname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         trackname = data[1]["tags"]["@attr"]["track"]
@@ -153,19 +188,19 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @command_tag.group(name="album", aliases=["albums"])
-    async def command_tag_album(self, ctx):
+    @tag_group.group(name="album", aliases=["albums"])
+    async def album_group(self, ctx):
         """Commands to tag albums"""
 
-    @command_tag_album.command(name="add", usage="<tag>,[tag] | [album name] | [artist name]")
-    async def command_tag_album_add(self, ctx, *, args):
+    @album_group.command(name="add", usage="<tag>,[tag] | [album name] | [artist name]")
+    async def album_add_command(self, ctx, *, args):
         """
         Add tags to an album
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -176,20 +211,23 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            albumname = tracks[0]["album"]["#text"]
+            artistname = tracks[0]["artist"]["#text"]
         else:
             albumname = split_args[1]
             artistname = split_args[2]
-
-        if not albumname:
-            await ctx.send(
-                "Your currently playing track does not have an album attached on last.fm."
-            )
-            return
-
         params = {
             "artist": artistname,
             "method": "album.addtags",
@@ -198,20 +236,20 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_album.command(name="remove", usage="<tag>,[tag] | [album name] | [artist name]")
-    async def command_tag_album_remove(self, ctx, *, args):
+    @album_group.command(name="remove", usage="<tag>,[tag] | [album name] | [artist name]")
+    async def album_remove_command(self, ctx, *, args):
         """
         Remove tags from an album
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -222,20 +260,23 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            albumname = tracks[0]["album"]["#text"]
+            artistname = tracks[0]["artist"]["#text"]
         else:
             albumname = split_args[1]
             artistname = split_args[2]
-
-        if not albumname:
-            await ctx.send(
-                "Your currently playing track does not have an album attached on last.fm."
-            )
-            return
-
         params = {
             "artist": artistname,
             "method": "album.removetags",
@@ -244,20 +285,20 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_album.command(name="list", usage="[album name] | [artist name]")
-    async def command_tag_album_list(self, ctx, *, args=None):
+    @album_group.command(name="list", usage="[album name] | [artist name]")
+    async def album_list_command(self, ctx, *, args=None):
         """
         List tags for an album
 
         If no arguments are given, the tags for the last album you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if args:
             try:
                 albumname, artistname = [x.strip() for x in args.split("|")]
@@ -267,15 +308,22 @@ class TagsMixin(MixinMeta):
                 return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
         else:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
-        if not albumname:
-            await ctx.send(
-                "Your currently playing track does not have an album attached on last.fm."
-            )
-            return
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            albumname = tracks[0]["album"]["#text"]
+            artistname = tracks[0]["artist"]["#text"]
+        if albumname == "":
+            return await ctx.send("Your current track doesn't have an album.")
         params = {
             "artist": artistname,
             "method": "album.gettags",
@@ -283,7 +331,7 @@ class TagsMixin(MixinMeta):
             "album": albumname,
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This album has no tags.")
         albumname = data[1]["tags"]["@attr"]["album"]
@@ -310,19 +358,19 @@ class TagsMixin(MixinMeta):
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @command_tag.group(name="artist")
-    async def command_tag_artist(self, ctx):
+    @tag_group.group(name="artist")
+    async def artist_group(self, ctx):
         """Commands to tag tracks"""
 
-    @command_tag_artist.command(name="add", usage="<tag>,[tag] | [artist name]")
-    async def command_tag_artist_add(self, ctx, *, args):
+    @artist_group.command(name="add", usage="<tag>,[tag] | [artist name]")
+    async def artist_add_command(self, ctx, *, args):
         """
         Add tags to an artist
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -333,10 +381,19 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            artistname = tracks[0]["artist"]["#text"]
         else:
             artistname = split_args[1]
         params = {
@@ -346,20 +403,20 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Added **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_artist.command(name="remove", usage="<tag>,[tag] | [artist name]")
-    async def command_tag_artist_remove(self, ctx, *, args):
+    @artist_group.command(name="remove", usage="<tag>,[tag] | [artist name]")
+    async def artist_remove_command(self, ctx, *, args):
         """
         Remove tags from an artist
 
         Tags are inputted as a comma separated list in the first group
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         split_args = [x.strip() for x in args.split("|")]
         list_of_tags = [x.strip() for x in split_args[0].split(",")]
         list_of_tags = [x for x in list_of_tags if x][:10]
@@ -370,10 +427,19 @@ class TagsMixin(MixinMeta):
 
         if len(split_args) == 1:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
 
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            artistname = tracks[0]["artist"]["#text"]
         else:
             artistname = split_args[1]
         params = {
@@ -383,25 +449,35 @@ class TagsMixin(MixinMeta):
             "tags": ",".join(list_of_tags),
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         await ctx.send(
             f"Removed **{len(list_of_tags)}** {'tag' if len(list_of_tags) == 1 else 'tags'}."
         )
 
-    @command_tag_artist.command(name="list", usage="[artist name]")
-    async def command_tag_artist_list(self, ctx, *, artist=None):
+    @artist_group.command(name="list", usage="[artist name]")
+    async def artist_list_command(self, ctx, *, artist=None):
         """
         List tags for an artist
 
         If no arguments are given, the tags for the last track you listened to will be listed
         """
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in_and_sk(conf)
+        check_if_logged_in_and_sk(conf)
         if not artist:
 
-            trackname, artistname, albumname, imageurl = await self.get_current_track(
-                ctx, conf["lastfm_username"]
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": conf["lastfm_username"],
+                    "method": "user.getrecenttracks",
+                    "limit": 1,
+                },
             )
+
+            tracks = data["recenttracks"]["track"]
+            if not tracks:
+                return await ctx.send("You have not listened to anything yet!")
+            artist = tracks[0]["artist"]["#text"]
 
         params = {
             "artist": artist,
@@ -409,7 +485,7 @@ class TagsMixin(MixinMeta):
             "sk": conf["session_key"],
         }
         data = await self.api_post(params=params)
-        await self.maybe_send_403_msg(ctx, data)
+        await maybe_send_403_msg(self, ctx, data)
         if "tag" not in data[1]["tags"]:
             return await ctx.send("This track has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]

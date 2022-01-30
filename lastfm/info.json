@@ -5,15 +5,14 @@
     "fixator10",
     "alec"
   ],
-  "install_msg": "Thanks for installing!\n\nOnce you've loaded the cog run the `[p]lastfmset` command for instructions on how to set your API key!",
+  "install_msg": "LastFM - Port of Miso Bot",
   "name": "LastFm",
   "disabled": false,
-  "short": "Port of Miso Bot's LastFM Cog",
-  "description": "Port of Miso Bot's LastFM Cog,",
+  "short": "LastFm Port.",
+  "description": "LastFM Port.",
   "tags": [
     "LastFM",
-    "scrobbler",
-    "music"
+    "scrobbler"
   ],
   "hidden": false,
   "requirements": [

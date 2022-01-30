@@ -6,8 +6,9 @@ from redbot.core import commands
 from redbot.core.utils import AsyncIter
 
 from .abc import MixinMeta
-from .exceptions import *
-from .fmmixin import command_fm
+from .errors import *
+from .fmmixin import fm
+from .utils import *
 
 NO_IMAGE_PLACEHOLDER = (
     "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
@@ -26,15 +27,13 @@ class ChartMixin(MixinMeta):
                 img = await resp.read()
                 return img
 
-    @command_fm.command(
-        name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]"
-    )
+    @fm.command(usage="[album | artist | recent] [timeframe] [width]x[height]")
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def command_chart(self, ctx, *args):
+    async def chart(self, ctx, *args):
         """Visual chart of your top albums or artists."""
         conf = await self.config.user(ctx.author).all()
-        self.check_if_logged_in(conf)
-        arguments = self.parse_chart_arguments(args)
+        check_if_logged_in(conf)
+        arguments = parse_chart_arguments(args)
         if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(
                 "Size is too big! Chart `width` + `height` total must not exceed `31`"
@@ -66,7 +65,7 @@ class ChartMixin(MixinMeta):
                         self.chart_data[album["image"][3]["#text"]] = chart_img
                     chart.append(
                         (
-                            f"{plays} {self.format_plays(plays)}\n{name} - {artist}",
+                            f"{plays} {format_plays(plays)}\n{name} - {artist}",
                             chart_img,
                         )
                     )
@@ -96,7 +95,7 @@ class ChartMixin(MixinMeta):
                         self.chart_data[scraped_images[i]] = chart_img
                     chart.append(
                         (
-                            f"{plays} {self.format_plays(plays)}\n{name}",
+                            f"{plays} {format_plays(plays)}\n{name}",
                             chart_img,
                         )
                     )
@@ -112,8 +111,6 @@ class ChartMixin(MixinMeta):
             elif arguments["method"] == "user.getrecenttracks":
                 chart_type = "recent tracks"
                 tracks = data["recenttracks"]["track"]
-                if isinstance(tracks, dict):
-                    tracks = [tracks]
                 async for track in AsyncIter(tracks[: arguments["width"] * arguments["height"]]):
                     name = track["name"]
                     artist = track["artist"]["#text"]
@@ -140,7 +137,7 @@ class ChartMixin(MixinMeta):
         u = conf["lastfm_username"]
         try:
             await ctx.send(
-                f"`{u} - {self.humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
+                f"`{u} - {humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
                 file=img,
             )
         except discord.HTTPException:
