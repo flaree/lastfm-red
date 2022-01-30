@@ -6,23 +6,23 @@ from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MixinMeta
-from .exceptions import *
-from .fmmixin import command_fm
-from .utils.tokencheck import tokencheck_plus_secret
+from .errors import *
+from .fmmixin import fm
+from .utils import *
 
 
 class ProfileMixin(MixinMeta):
     """Profile Commands"""
 
-    @command_fm.command(name="login", aliases=["set"])
+    @fm.command(aliases=["set"])
     @commands.check(tokencheck_plus_secret)
-    async def command_login(self, ctx):
+    async def login(self, ctx):
         """Authenticates your last.fm account."""
         params = {
             "api_key": self.token,
             "method": "auth.getToken",
         }
-        hashed = self.hashRequest(params, self.secret)
+        hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
         response = await self.api_request(ctx, params=params)
 
@@ -46,7 +46,7 @@ class ProfileMixin(MixinMeta):
             await ctx.send("Check your Direct Messages for instructions on how to log in.")
 
         params = {"api_key": self.token, "method": "auth.getSession", "token": token}
-        hashed = self.hashRequest(params, self.secret)
+        hashed = hashRequest(params, self.secret)
         params["api_sig"] = hashed
         for x in range(6):
             try:
@@ -70,8 +70,8 @@ class ProfileMixin(MixinMeta):
         embed = discord.Embed(title="Success!", description=message, color=await ctx.embed_color())
         await ctx.author.send(embed=embed)
 
-    @command_fm.command(name="logout", aliases=["unset"])
-    async def command_logout(self, ctx):
+    @fm.command(aliases=["unset"])
+    async def logout(self, ctx):
         """
         Deauthenticates your last.fm account.
         """
@@ -98,10 +98,12 @@ class ProfileMixin(MixinMeta):
         else:
             await ctx.send("Ok, I won't log you out.")
 
-    @command_fm.command(name="profile")
-    async def command_profile(self, ctx, user: Optional[discord.Member] = None):
+    @fm.command()
+    async def profile(self, ctx, user: Optional[discord.Member] = None):
         """Lastfm profile."""
-        user = user or ctx.author
-        conf = await self.config.user(user).all()
-        self.check_if_logged_in(conf, user == ctx.author)
-        await ctx.send(embed=await self.get_userinfo_embed(ctx, user, conf["lastfm_username"]))
+        author = user or ctx.author
+        conf = await self.config.user(author).all()
+        check_if_logged_in(conf)
+        await ctx.send(
+            embed=await self.get_userinfo_embed(ctx, author, conf["lastfm_username"])
+        )

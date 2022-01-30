@@ -6,20 +6,21 @@ from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
-from .exceptions import *
-from .fmmixin import command_fm
+from .errors import *
+from .fmmixin import fm
+from .utils import *
 
 
 class NowPlayingMixin(MixinMeta):
     """NowPlaying Commands"""
 
-    @command_fm.command(name="nowplaying", aliases=["np"])
-    async def command_nowplaying(self, ctx, user: Optional[discord.Member] = None):
+    @fm.command(aliases=["np"])
+    async def nowplaying(self, ctx, user: Optional[discord.Member] = None):
         """Currently playing song or most recent song."""
-        user = user or ctx.author
+        author = user or ctx.author
         async with ctx.typing():
-            conf = await self.config.user(user).all()
-            self.check_if_logged_in(conf, user == ctx.author)
+            conf = await self.config.user(author).all()
+            check_if_logged_in(conf)
             data = await self.api_request(
                 ctx,
                 {
@@ -39,6 +40,8 @@ class NowPlayingMixin(MixinMeta):
                 track = tracks[0]["name"]
                 image_url = tracks[0]["image"][-1]["#text"]
                 url = tracks[0]["url"]
+                # image_url_small = tracks[0]['image'][1]['#text']
+                # image_colour = await color_from_image_url(image_url_small)
             except KeyError:
                 artist = tracks["artist"]["#text"]
                 album = tracks["album"]["#text"]
@@ -47,6 +50,7 @@ class NowPlayingMixin(MixinMeta):
                 url = tracks["url"]
 
             content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel), url=url)
+            # content.colour = int(image_colour, 16)
 
             content.description = f"**{escape(album, formatting=True)}**" if album else ""
             content.title = (
@@ -73,7 +77,7 @@ class NowPlayingMixin(MixinMeta):
                     trackdata = trackdata["track"]
                     playcount = int(trackdata["userplaycount"])
                     if playcount > 0:
-                        content.description += f"\n> {playcount} {self.format_plays(playcount)}"
+                        content.description += f"\n> {playcount} {format_plays(playcount)}"
                     if isinstance(trackdata["toptags"], dict):
                         for tag in trackdata["toptags"]["tag"]:
                             if "name" in tag:
@@ -98,7 +102,7 @@ class NowPlayingMixin(MixinMeta):
 
             content.set_author(
                 name=f"{user_attr['user']} {state}",
-                icon_url=user.avatar_url,
+                icon_url=author.avatar_url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."
@@ -106,8 +110,8 @@ class NowPlayingMixin(MixinMeta):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @command_fm.command(name="servernp", aliases=["snp"])
-    async def command_servernp(self, ctx):
+    @fm.command(aliases=["snp"])
+    async def servernp(self, ctx):
         """What people on this server are listening to at the moment."""
         listeners = []
         tasks = []
@@ -122,15 +126,15 @@ class NowPlayingMixin(MixinMeta):
             if member is None:
                 continue
 
-            tasks.append(self.get_current_track(ctx, lastfm_username, member))
+            tasks.append(self.get_np(ctx, lastfm_username, member))
 
         total_linked = len(tasks)
         if tasks:
             data = await asyncio.gather(*tasks)
             data = [i for i in data if i]
-            for name, artist, album, image, ref in data:
-                if name is not None:
-                    listeners.append((name, artist, ref))
+            for song, member_ref in data:
+                if song is not None:
+                    listeners.append((song, member_ref))
         else:
             return await ctx.send("Nobody on this server has connected their last.fm account yet!")
 
@@ -139,8 +143,8 @@ class NowPlayingMixin(MixinMeta):
 
         total_listening = len(listeners)
         rows = []
-        for name, artist, member in listeners:
-            rows.append(f"{member.mention} **{artist}** — ***{name}***")
+        for song, member in listeners:
+            rows.append(f"{member.mention} **{song.get('artist')}** — ***{song.get('name')}***")
 
         content = discord.Embed(color=await ctx.embed_color())
         content.set_author(
@@ -148,7 +152,7 @@ class NowPlayingMixin(MixinMeta):
             icon_url=ctx.guild.icon_url_as(size=64),
         )
         content.set_footer(text=f"{total_listening} / {total_linked} Members")
-        pages = await self.create_pages(content, rows)
+        pages = await create_pages(content, rows)
         if len(pages) > 1:
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
