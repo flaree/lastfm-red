@@ -153,4 +153,30 @@ class ScrapingMixin:
         plays = div.get_text()
         return int(plays.split(" ")[0].replace(",", ""))
 
-    
+    async def get_playcount_track_scraper(self, ctx, username, artistname, trackname, period):
+        url = (
+            f"https://last.fm/user/{username}/library/music/{artistname}/_/{trackname}"
+            f"?date_preset={self.period_http_format(period)}"
+        )
+        data = await self.fetch(ctx, url, handling="text")
+        soup = BeautifulSoup(data, "html.parser")
+        divs = soup.findAll(class_="metadata-display")
+        if not divs:
+            return 0
+        div = divs[0]
+        plays = div.get_text()
+        return int(plays.split(" ")[0].replace(",", ""))
+
+    async def get_playcount_album_scraper(self, ctx, username, artistname, albumname, period):
+        url = (
+            f"https://last.fm/user/{username}/library/music/{artistname}/{albumname}"
+            f"?date_preset={self.period_http_format(period)}"
+        )
+        data = await self.fetch(ctx, url, handling="text")
+        soup = BeautifulSoup(data, "html.parser")
+        divs = soup.findAll(class_="metadata-display")
+        if not divs:
+            return 0
+        div = divs[0]
+        plays = div.get_text()
+        return int(plays.split(" ")[0].replace(",", ""))

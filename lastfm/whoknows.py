@@ -39,7 +39,9 @@ class WhoKnowsMixin(MixinMeta):
                 if member is None:
                     continue
 
-                tasks.append(self.get_playcount(ctx, artistname, lastfm_username, "overall", member))
+                tasks.append(
+                    self.get_playcount(ctx, artistname, lastfm_username, "overall", member)
+                )
             if tasks:
                 data = await asyncio.gather(*tasks)
                 data = [i for i in data if i]
@@ -143,7 +145,9 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_track(ctx, artistname, trackname, lastfm_username, "overall", member)
+                self.get_playcount_track(
+                    ctx, artistname, trackname, lastfm_username, "overall", member
+                )
             )
 
         if tasks:
@@ -232,7 +236,9 @@ class WhoKnowsMixin(MixinMeta):
                 continue
 
             tasks.append(
-                self.get_playcount_album(ctx, artistname, albumname, lastfm_username, "overall", member)
+                self.get_playcount_album(
+                    ctx, artistname, albumname, lastfm_username, "overall", member
+                )
             )
 
         if tasks:
