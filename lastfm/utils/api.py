@@ -44,32 +44,6 @@ class APIMixin:
                     return await response.text()
                 return await response
 
-    async def get_np(self, ctx, username, ref=None):
-        data = await self.api_request(
-            ctx,
-            {"method": "user.getrecenttracks", "user": username, "limit": 1},
-        )
-        song = None
-        if data is not None:
-            tracks = data["recenttracks"]["track"]
-            if tracks:
-                if isinstance(tracks, list):
-                    if "@attr" in tracks[0]:
-                        if "nowplaying" in tracks[0]["@attr"]:
-                            song = {
-                                "artist": tracks[0]["artist"]["#text"],
-                                "name": tracks[0]["name"],
-                            }
-                else:
-                    if "@attr" in tracks:
-                        if "nowplaying" in tracks["@attr"]:
-                            song = {
-                                "artist": tracks["artist"]["#text"],
-                                "name": tracks["name"],
-                            }
-
-        return song, ref
-
     async def get_current_track(self, ctx, username, ref=None):
         data = await self.api_request(
             ctx,
