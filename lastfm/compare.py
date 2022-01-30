@@ -15,10 +15,9 @@ from .fmmixin import command_fm
 class CompareMixin(MixinMeta):
     """Commands for comparing two users"""
 
-    def make_table_into_image(self, text, color):
+    def make_table_into_image(self, text):
 
-        if type(color) == int:
-            color = discord.Color(color)
+        color = (150, 123, 182)
 
         lines = 0
         keep_going = True
@@ -113,9 +112,7 @@ class CompareMixin(MixinMeta):
             data = {"Artist": artist_names, ctx.author: author_plays, user: user_plays}
             table = tabulate.tabulate(data, headers="keys", tablefmt="fancy_grid")
             color = await ctx.embed_colour()
-            img = await self.bot.loop.run_in_executor(
-                None, self.make_table_into_image, table, color
-            )
+            img = await self.bot.loop.run_in_executor(None, self.make_table_into_image, table)
             embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
 
@@ -200,9 +197,7 @@ class CompareMixin(MixinMeta):
             }
             table = tabulate.tabulate(data, headers="keys", tablefmt="fancy_grid")
             color = await ctx.embed_colour()
-            img = await self.bot.loop.run_in_executor(
-                None, self.make_table_into_image, table, color
-            )
+            img = await self.bot.loop.run_in_executor(None, self.make_table_into_image, table)
             embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
 
@@ -287,9 +282,7 @@ class CompareMixin(MixinMeta):
             }
             table = tabulate.tabulate(data, headers="keys", tablefmt="fancy_grid")
             color = await ctx.embed_colour()
-            img = await self.bot.loop.run_in_executor(
-                None, self.make_table_into_image, table, color
-            )
+            img = await self.bot.loop.run_in_executor(None, self.make_table_into_image, table)
             embed = discord.Embed(color=color, title=f"{ctx.author} vs {user} ({displayperiod})")
             embed.set_image(url="attachment://result.webp")
 
