@@ -34,7 +34,7 @@ class CompareMixin(MixinMeta):
         d = ImageDraw.Draw(img)
         fnt_file = f"{self.data_loc}/fonts/JetBrainsMonoNL-SemiBold.ttf"
         font = ImageFont.truetype(fnt_file, 11, encoding="utf-8")
-        d.text((0, 0), text, fill=color.to_rgb(), font=font)
+        d.text((0, 0), text, fill=color, font=font)
 
         final = BytesIO()
         img.save(final, "webp")
