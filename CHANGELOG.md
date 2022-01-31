@@ -1,5 +1,6 @@
 # changelog
 
+- v1.5.3 - change font used for `[p]fm chart`
 - v1.5.2 - remove internal depreciated funciton
 - v1.5.1 - fix bug with loading cog
 - v1.5.0 - add `[p]fm compare`, fix bugs when last.fm sends data as a dict not a list, and reorganize the repo a LOT
