@@ -148,7 +148,7 @@ class ChartMixin(MixinMeta):
 
 
 def charts(data, w, h, loc):
-    fnt_file = f"{loc}/fonts/NotoSans-Regular.ttf"
+    fnt_file = f"{loc}/fonts/Arial Unicode.ttf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
     for item in data:
@@ -157,10 +157,10 @@ def charts(data, w, h, loc):
         draw = ImageDraw.Draw(image)
         texts = item[0].split("\n")
         if len(texts[1]) > 30:
-            height = 217
+            height = 227
             text = f"{texts[0]}\n{texts[1][:30]}\n{texts[1][30:]}"
         else:
-            height = 237
+            height = 247
             text = item[0]
         draw.text(
             (5, height),
@@ -179,7 +179,7 @@ def charts(data, w, h, loc):
 
 
 def track_chart(data, w, h, loc):
-    fnt_file = f"{loc}/fonts/NotoSans-Regular.ttf"
+    fnt_file = f"{loc}/fonts/Arial Unicode.ttf"
     fnt = ImageFont.truetype(fnt_file, 18, encoding="utf-8")
     imgs = []
     for item in data:
@@ -187,10 +187,10 @@ def track_chart(data, w, h, loc):
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
         if len(item[0]) > 30:
-            height = 237
+            height = 247
             text = f"{item[0][:30]}\n{item[0][30:]}"
         else:
-            height = 257
+            height = 267
             text = item[0]
         draw.text(
             (5, height),

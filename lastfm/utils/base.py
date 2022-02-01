@@ -260,13 +260,10 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
         return requestHash
 
     def check_if_logged_in(self, conf, another_person=False):
+        you_or_they = "You" if not another_person else "They"
         if not conf["lastfm_username"]:
-            if not another_person:
-                raise NotLoggedInError(
-                    "They need to log into a last.fm account. Please log in with `fm login`."
-                )
             raise NotLoggedInError(
-                "You need to log into a last.fm account. Please log in with `fm login`."
+                f"{you_or_they} need to log into a last.fm account. Please log in with `fm login`."
             )
 
     def check_if_logged_in_and_sk(self, conf):

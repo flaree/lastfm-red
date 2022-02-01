@@ -67,7 +67,7 @@ class CompareMixin(MixinMeta):
         author_conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(author_conf)
         user_conf = await self.config.user(user).all()
-        self.check_if_logged_in(user_conf, False)
+        self.check_if_logged_in(user_conf, True)
         async with ctx.typing():
             author_data = await self.api_request(
                 ctx,
@@ -143,7 +143,7 @@ class CompareMixin(MixinMeta):
         author_conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(author_conf)
         user_conf = await self.config.user(user).all()
-        self.check_if_logged_in(user_conf, False)
+        self.check_if_logged_in(user_conf, True)
         async with ctx.typing():
             author_data = await self.api_request(
                 ctx,
@@ -228,7 +228,7 @@ class CompareMixin(MixinMeta):
         author_conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(author_conf)
         user_conf = await self.config.user(user).all()
-        self.check_if_logged_in(user_conf, False)
+        self.check_if_logged_in(user_conf, True)
         async with ctx.typing():
             author_data = await self.api_request(
                 ctx,
