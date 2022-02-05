@@ -32,7 +32,7 @@ class CompareMixin(MixinMeta):
         img = Image.new("RGBA", (int(width), int(lines)), color=(255, 0, 0, 0))
 
         d = ImageDraw.Draw(img)
-        fnt_file = f"{self.data_loc}/fonts/JetBrainsMonoNL-SemiBold.ttf"
+        fnt_file = f"{self.data_loc}/fonts/NotoSansMono-Regular.ttf"
         font = ImageFont.truetype(fnt_file, 11, encoding="utf-8")
         d.text((0, 0), text, fill=color, font=font)
 
