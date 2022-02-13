@@ -1,5 +1,6 @@
 # changelog
 
+- v1.5.6 - possible pillow fix for `[p]fm chart`
 - v1.5.5 - change font used in `[p]fm compare`
 - v1.5.4 - change font used for `[p]fm chart` again + fix login messages
 - v1.5.3 - change font used for `[p]fm chart`

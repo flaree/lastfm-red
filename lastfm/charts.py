@@ -1,7 +1,7 @@
 from io import BytesIO
 
 import discord
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFile
 from redbot.core import commands
 from redbot.core.utils import AsyncIter
 
@@ -12,6 +12,7 @@ from .fmmixin import command_fm
 NO_IMAGE_PLACEHOLDER = (
     "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
 )
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ChartMixin(MixinMeta):
