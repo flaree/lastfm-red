@@ -167,7 +167,7 @@ class TopMixin(MixinMeta):
                 await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="topartists", aliases=["ta"])
-    async def command_severtopartists(self, ctx):
+    async def command_servertopartists(self, ctx):
         """Most listened artists in the server."""
         tasks = []
         userlist = await self.config.all_users()
@@ -231,7 +231,7 @@ class TopMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="topalbums", aliases=["talb"])
-    async def command_severtopalbums(self, ctx):
+    async def command_servertopalbums(self, ctx):
         """Most listened albums in the server."""
         tasks = []
         userlist = await self.config.all_users()
@@ -295,7 +295,7 @@ class TopMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="toptracks", aliases=["tt"])
-    async def command_severtoptracks(self, ctx):
+    async def command_servertoptracks(self, ctx):
         """Most listened tracks in the server."""
         tasks = []
         userlist = await self.config.all_users()
