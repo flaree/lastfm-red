@@ -1,6 +1,7 @@
 import contextlib
 
 import aiohttp
+import arrow
 
 from ..exceptions import *
 
@@ -120,3 +121,39 @@ class APIMixin:
                 True,
             )
             return data["toptracks"]["track"] if data is not None else None
+
+    async def get_lastplayed(self, ctx, username, ref):
+        data = await self.api_request(
+            ctx,
+            {"method": "user.getrecenttracks", "user": username, "limit": 1},
+            True,
+        )
+        song = None
+        if data:
+            tracks = data["recenttracks"]["track"]
+            if type(tracks) == list:
+                if tracks:
+                    track = tracks[0]
+                else:
+                    return None, ref
+            else:
+                track = tracks
+
+            nowplaying = False
+            if track.get("@attr") and track["@attr"].get("nowplaying"):
+                nowplaying = True
+
+            if track.get("date"):
+                date = tracks[0]["date"]["uts"]
+            else:
+                date = arrow.utcnow().int_timestamp
+
+            song = {
+                "name": track["name"],
+                "artist": track["artist"]["#text"],
+                "nowplaying": nowplaying,
+                "date": int(date),
+                "url": track["url"],
+            }
+
+        return song, ref

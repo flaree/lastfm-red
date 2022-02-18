@@ -17,6 +17,7 @@ from .fmmixin import FMMixin, command_fm
 from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
+from .recent import RecentMixin
 from .scrobbler import ScrobblerMixin
 from .tags import TagsMixin
 from .top import TopMixin
@@ -30,15 +31,16 @@ class LastFM(
     ChartMixin,
     CompareMixin,
     FMMixin,
-    ProfileMixin,
-    ScrobblerMixin,
     LoveMixin,
     NowPlayingMixin,
+    ProfileMixin,
+    RecentMixin,
+    ScrobblerMixin,
     TagsMixin,
     TopMixin,
-    WordCloudMixin,
     UtilsMixin,
     WhoKnowsMixin,
+    WordCloudMixin,
     commands.Cog,
     metaclass=CompositeMetaClass,
 ):
@@ -159,47 +161,6 @@ class LastFM(
             await menu(ctx, pages, DEFAULT_CONTROLS)
         else:
             await ctx.send(embed=pages[0])
-
-    @command_fm.command(name="recent", aliases=["recents", "re"], usage="[amount]")
-    async def command_recent(self, ctx, size: int = 15):
-        """Recently listened tracks."""
-        conf = await self.config.user(ctx.author).all()
-        name = conf["lastfm_username"]
-        self.check_if_logged_in(conf)
-        async with ctx.typing():
-            data = await self.api_request(
-                ctx, {"user": name, "method": "user.getrecenttracks", "limit": size}
-            )
-            user_attr = data["recenttracks"]["@attr"]
-            tracks = data["recenttracks"]["track"]
-
-            if not tracks or not isinstance(tracks, list):
-                return await ctx.send("You have not listened to anything yet!")
-
-            rows = []
-            for i, track in enumerate(tracks):
-                if i >= size:
-                    break
-                name = escape(track["name"], formatting=True)
-                track_url = track["url"]
-                artist_name = escape(track["artist"]["#text"], formatting=True)
-                rows.append(f"[**{artist_name}** — ***{name}***]({track_url})")
-
-            image_url = tracks[0]["image"][-1]["#text"]
-
-            content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
-            content.set_thumbnail(url=image_url)
-            content.set_footer(text=f"Total scrobbles: {user_attr['total']}")
-            content.set_author(
-                name=f"{user_attr['user']} — Recent tracks",
-                icon_url=ctx.message.author.avatar_url,
-            )
-
-            pages = await self.create_pages(content, rows)
-            if len(pages) > 1:
-                await menu(ctx, pages[:15], DEFAULT_CONTROLS)
-            else:
-                await ctx.send(embed=pages[0])
 
     @command_fm.command(
         name="artist", usage="[timeframe] <toptracks|topalbums|overview> <artist name>"
