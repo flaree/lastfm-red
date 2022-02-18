@@ -122,7 +122,7 @@ class NowPlayingMixin(MixinMeta):
             if member is None:
                 continue
 
-            tasks.append(self.get_current_track(ctx, lastfm_username, member))
+            tasks.append(self.get_current_track(ctx, lastfm_username, member, True))
 
         total_linked = len(tasks)
         if tasks:
