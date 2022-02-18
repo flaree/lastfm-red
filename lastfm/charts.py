@@ -150,11 +150,11 @@ class ChartMixin(MixinMeta):
             await ctx.send("File is to big to send, try lowering the size.")
 
     @command_fm_server.command(
-        name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]"
+        name="chart", usage="[album | artist | tracks] [timeframe] [width]x[height]"
     )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def server_chart(self, ctx, *args):
-        """Visual chart of the servers albums or artists."""
+        """Visual chart of the servers albums, artists or tracks."""
         arguments = self.parse_chart_arguments(args)
         if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
             return await ctx.send(
