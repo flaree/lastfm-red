@@ -173,8 +173,8 @@ class ChartMixin(MixinMeta):
         guildusers = [x.id for x in ctx.guild.members]
         userslist = [user for user in userlist if user in guildusers]
         datatype = {
-            "user.gettopalbums": "albums",
-            "user.gettopartists": "artists",
+            "user.gettopalbums": "album",
+            "user.gettopartists": "artist",
             "user.gettoptracks": "track",
         }
         for user in userslist:
