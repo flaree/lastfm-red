@@ -106,7 +106,7 @@ class NowPlayingMixin(MixinMeta):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @command_fm_server.command(name="np", aliases=["snp"])
+    @command_fm_server.command(name="nowplaying", aliases=["np"])
     async def command_servernp(self, ctx):
         """What people on this server are listening to at the moment."""
         listeners = []
