@@ -1,10 +1,12 @@
+import asyncio
+
 import discord
 from redbot.core.utils.chat_formatting import escape
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm
+from .fmmixin import command_fm, command_fm_server
 
 
 class TopMixin(MixinMeta):
@@ -163,3 +165,193 @@ class TopMixin(MixinMeta):
                 await menu(ctx, pages[:15], DEFAULT_CONTROLS)
             else:
                 await ctx.send(embed=pages[0])
+
+    @command_fm_server.command(name="topartists", aliases=["ta"])
+    async def command_servertopartists(self, ctx):
+        """Most listened artists in the server."""
+        tasks = []
+        userlist = await self.config.all_users()
+        guildusers = [x.id for x in ctx.guild.members]
+        userslist = [user for user in userlist if user in guildusers]
+        for user in userslist:
+            lastfm_username = userlist[user]["lastfm_username"]
+            if lastfm_username is None:
+                continue
+            member = ctx.guild.get_member(user)
+            if member is None:
+                continue
+
+            tasks.append(
+                self.get_server_top(
+                    ctx,
+                    lastfm_username,
+                    "artist",
+                    "overall",
+                    100,
+                )
+            )
+        if not tasks:
+            return await ctx.send("No users have logged in to LastFM!")
+        async with ctx.typing():
+            mapping = {}
+            total_users = 0
+            total_plays = 0
+            data = await asyncio.gather(*tasks)
+            for user in data:
+                if user is None:
+                    continue
+                total_users += 1
+                for user_data in user:
+                    artist_name = user_data["name"]
+                    artist_plays = int(user_data["playcount"])
+                    total_plays += artist_plays
+                    if artist_name in mapping:
+                        mapping[artist_name] += artist_plays
+                    else:
+                        mapping[artist_name] = artist_plays
+
+            rows = []
+            for i, (artist, playcount) in enumerate(
+                sorted(mapping.items(), key=lambda x: x[1], reverse=True), start=1
+            ):
+                name = escape(artist, formatting=True)
+                plays = playcount
+                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — **{name}**")
+
+            content = discord.Embed(
+                title=f"Most listened to artists in {ctx.guild}",
+                color=await self.bot.get_embed_color(ctx.channel),
+            )
+            content.set_footer(text=f"Top 100 artists of {total_users} users.")
+
+        pages = await self.create_pages(content, rows)
+        if len(pages) > 1:
+            await menu(ctx, pages[:15], DEFAULT_CONTROLS)
+        else:
+            await ctx.send(embed=pages[0])
+
+    @command_fm_server.command(name="topalbums", aliases=["talb"])
+    async def command_servertopalbums(self, ctx):
+        """Most listened albums in the server."""
+        tasks = []
+        userlist = await self.config.all_users()
+        guildusers = [x.id for x in ctx.guild.members]
+        userslist = [user for user in userlist if user in guildusers]
+        for user in userslist:
+            lastfm_username = userlist[user]["lastfm_username"]
+            if lastfm_username is None:
+                continue
+            member = ctx.guild.get_member(user)
+            if member is None:
+                continue
+
+            tasks.append(
+                self.get_server_top(
+                    ctx,
+                    lastfm_username,
+                    "album",
+                    "overall",
+                    100,
+                )
+            )
+        if not tasks:
+            return await ctx.send("No users have logged in to LastFM!")
+        async with ctx.typing():
+            mapping = {}
+            total_users = 0
+            total_plays = 0
+            data = await asyncio.gather(*tasks)
+            for user in data:
+                if user is None:
+                    continue
+                total_users += 1
+                for user_data in user:
+                    name = f'**{escape(user_data["artist"]["name"], formatting=True)}** — **{escape(user_data["name"], formatting=True)}**'
+                    plays = int(user_data["playcount"])
+                    total_plays += plays
+                    if name in mapping:
+                        mapping[name] += plays
+                    else:
+                        mapping[name] = plays
+
+            rows = []
+            for i, (album, playcount) in enumerate(
+                sorted(mapping.items(), key=lambda x: x[1], reverse=True), start=1
+            ):
+                plays = playcount
+                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — {album}")
+
+            content = discord.Embed(
+                title=f"Most listened to albums in {ctx.guild}",
+                color=await self.bot.get_embed_color(ctx.channel),
+            )
+            content.set_footer(text=f"Top 100 albums of {total_users} users.")
+
+        pages = await self.create_pages(content, rows)
+        if len(pages) > 1:
+            await menu(ctx, pages[:15], DEFAULT_CONTROLS)
+        else:
+            await ctx.send(embed=pages[0])
+
+    @command_fm_server.command(name="toptracks", aliases=["tt"])
+    async def command_servertoptracks(self, ctx):
+        """Most listened tracks in the server."""
+        tasks = []
+        userlist = await self.config.all_users()
+        guildusers = [x.id for x in ctx.guild.members]
+        userslist = [user for user in userlist if user in guildusers]
+        for user in userslist:
+            lastfm_username = userlist[user]["lastfm_username"]
+            if lastfm_username is None:
+                continue
+            member = ctx.guild.get_member(user)
+            if member is None:
+                continue
+
+            tasks.append(
+                self.get_server_top(
+                    ctx,
+                    lastfm_username,
+                    "track",
+                    "overall",
+                    100,
+                )
+            )
+        if not tasks:
+            return await ctx.send("No users have logged in to LastFM!")
+        async with ctx.typing():
+            mapping = {}
+            total_users = 0
+            total_plays = 0
+            data = await asyncio.gather(*tasks)
+            for user in data:
+                if user is None:
+                    continue
+                total_users += 1
+                for user_data in user:
+                    name = f'**{escape(user_data["artist"]["name"], formatting=True)}** — **{escape(user_data["name"], formatting=True)}**'
+                    plays = int(user_data["playcount"])
+                    total_plays += plays
+                    if name in mapping:
+                        mapping[name] += plays
+                    else:
+                        mapping[name] = plays
+
+            rows = []
+            for i, (track, playcount) in enumerate(
+                sorted(mapping.items(), key=lambda x: x[1], reverse=True), start=1
+            ):
+                plays = playcount
+                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — {track}")
+
+            content = discord.Embed(
+                title=f"Most listened to tracks in {ctx.guild}",
+                color=await self.bot.get_embed_color(ctx.channel),
+            )
+            content.set_footer(text=f"Top 100 tracks of {total_users} users.")
+
+        pages = await self.create_pages(content, rows)
+        if len(pages) > 1:
+            await menu(ctx, pages[:15], DEFAULT_CONTROLS)
+        else:
+            await ctx.send(embed=pages[0])

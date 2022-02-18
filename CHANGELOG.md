@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.0 - add `[p]fm server` - move servernp to new sub command. addition of `[p]fm server chart`, `[p]fm server toptracks`, `[p]fm server topalbums` and `[p]fm server topartists`, `[p]fm server recent`. `[p]fm recent` embed has been updated.
 - v1.5.6 - possible pillow fix for `[p]fm chart`
 - v1.5.5 - change font used in `[p]fm compare`
 - v1.5.4 - change font used for `[p]fm chart` again + fix login messages
