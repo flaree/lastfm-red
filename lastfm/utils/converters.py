@@ -110,6 +110,8 @@ class ConvertersMixin:
                 elif a in ["re", "recent", "recents"]:
                     parsed["method"] = "user.getrecenttracks"
                     continue
+                elif a in ["tracks", "track"]:
+                    parsed["method"] = "user.gettoptracks"
 
             if parsed["period"] is None:
                 parsed["period"], _ = self.get_period(a)

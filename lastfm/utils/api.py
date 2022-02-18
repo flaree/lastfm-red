@@ -75,3 +75,38 @@ class APIMixin:
             raise NotScrobblingError("You aren't currently listening to anything.")
         else:
             return None, None, None, None, ref
+
+    async def get_server_top(self, ctx, username, request_type, period, limit=100):
+        if request_type == "artist":
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": username,
+                    "method": "user.gettopartists",
+                    "limit": limit,
+                    "period": period,
+                },
+            )
+            return data["topartists"]["artist"] if data is not None else None
+        if request_type == "album":
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": username,
+                    "method": "user.gettopalbums",
+                    "limit": limit,
+                    "period": period,
+                },
+            )
+            return data["topalbums"]["album"] if data is not None else None
+        if request_type == "track":
+            data = await self.api_request(
+                ctx,
+                {
+                    "user": username,
+                    "method": "user.gettoptracks",
+                    "limit": limit,
+                    "period": period,
+                },
+            )
+            return data["toptracks"]["track"] if data is not None else None

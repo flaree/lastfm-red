@@ -7,7 +7,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm
+from .fmmixin import command_fm, command_fm_server
 
 
 class NowPlayingMixin(MixinMeta):
@@ -106,7 +106,7 @@ class NowPlayingMixin(MixinMeta):
                 msg = None
             await ctx.send(msg if msg is not None else None, embed=content)
 
-    @command_fm.command(name="servernp", aliases=["snp"])
+    @command_fm_server.command(name="np", aliases=["snp"])
     async def command_servernp(self, ctx):
         """What people on this server are listening to at the moment."""
         listeners = []

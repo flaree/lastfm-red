@@ -1,13 +1,15 @@
+import asyncio
 from io import BytesIO
 
 import discord
-from PIL import Image, ImageDraw, ImageFont, ImageFile
+from PIL import Image, ImageDraw, ImageFile, ImageFont
 from redbot.core import commands
 from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import escape
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm
+from .fmmixin import command_fm, command_fm_server
 
 NO_IMAGE_PLACEHOLDER = (
     "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
@@ -32,7 +34,7 @@ class ChartMixin(MixinMeta):
     )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_chart(self, ctx, *args):
-        """Visual chart of your top albums or artists."""
+        """Visual chart of your top albums, tracks or artists."""
         conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(conf)
         arguments = self.parse_chart_arguments(args)
@@ -142,6 +144,143 @@ class ChartMixin(MixinMeta):
         try:
             await ctx.send(
                 f"`{u} - {self.humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
+                file=img,
+            )
+        except discord.HTTPException:
+            await ctx.send("File is to big to send, try lowering the size.")
+
+    @command_fm_server.command(
+        name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]"
+    )
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def server_chart(self, ctx, *args):
+        """Visual chart of the servers albums or artists."""
+        arguments = self.parse_chart_arguments(args)
+        if arguments["width"] + arguments["height"] > 31:  # TODO: Figure out a reasonable value.
+            return await ctx.send(
+                "Size is too big! Chart `width` + `height` total must not exceed `31`"
+            )
+        if arguments["method"] not in [
+            "user.gettopalbums",
+            "user.gettopartists",
+            "user.gettoptracks",
+        ]:
+            return await ctx.send("Only albums, artists and tracks are supported.")
+        chart_total = arguments["width"] * arguments["height"]
+        msg = await ctx.send("Gathering images and data, this may take some time.")
+        tasks = []
+        userlist = await self.config.all_users()
+        guildusers = [x.id for x in ctx.guild.members]
+        userslist = [user for user in userlist if user in guildusers]
+        datatype = {
+            "user.gettopalbums": "albums",
+            "user.gettopartists": "artists",
+            "user.gettoptracks": "track",
+        }
+        for user in userslist:
+            lastfm_username = userlist[user]["lastfm_username"]
+            if lastfm_username is None:
+                continue
+            member = ctx.guild.get_member(user)
+            if member is None:
+                continue
+
+            tasks.append(
+                self.get_server_top(
+                    ctx,
+                    lastfm_username,
+                    datatype.get(arguments["method"]),
+                    arguments["period"],
+                    arguments["amount"],
+                )
+            )
+        chart = []
+        chart_type = "ERROR"
+        if not tasks:
+            return await ctx.send("No users have set their last.fm username yet.")
+        content_map = {}
+        async with ctx.typing():
+            data = await asyncio.gather(*tasks)
+            if arguments["method"] == "user.gettopalbums":
+                chart_type = "top album"
+                for user_data in data:
+                    if user_data is None:
+                        continue
+                    for album in user_data:
+                        album_name = album["name"]
+                        artist = album["artist"]["name"]
+                        name = f"{album_name} — {artist}"
+                        plays = int(album["playcount"])
+                        if name in content_map:
+                            content_map[name]["plays"] += plays
+                        else:
+                            content_map[name] = {
+                                "plays": plays,
+                                "link": album["image"][3]["#text"],
+                            }
+            elif arguments["method"] == "user.gettopartists":
+                chart_type = "top artist"
+                for user_data in data:
+                    if user_data is None:
+                        continue
+                    for artist in user_data:
+                        name = artist["name"]
+                        plays = int(artist["playcount"])
+                        if name in content_map:
+                            content_map[name]["plays"] += plays
+                        else:
+                            content_map[name] = {"plays": plays}
+            elif arguments["method"] == "user.gettoptracks":
+                chart_type = "top tracks"
+                for user in data:
+                    if user is None:
+                        continue
+                    for user_data in user:
+                        name = f'{escape(user_data["artist"]["name"])} — *{escape(user_data["name"])}*'
+                        plays = int(user_data["playcount"])
+                        if name in content_map:
+                            content_map[name]["plays"] += plays
+                        else:
+                            content_map[name] = {
+                                "plays": plays,
+                                "link": user_data["artist"]["name"],
+                            }
+        cached_images = {}
+        for i, (name, content_data) in enumerate(
+            sorted(content_map.items(), key=lambda x: x[1]["plays"], reverse=True), start=1
+        ):
+            if arguments["method"] == "user.gettopartists":
+                image = await self.get_img(await self.scrape_artist_image(name, ctx))
+            elif arguments["method"] == "user.gettoptracks":
+                if content_data["link"] in cached_images:
+                    image = cached_images[content_data["link"]]
+                else:
+                    image = await self.get_img(
+                        await self.scrape_artist_image(content_data["link"], ctx)
+                    )
+                    cached_images[content_data["link"]] = image
+            else:
+                image = await self.get_img(content_data["link"])
+            chart.append(
+                (
+                    f"{content_data['plays']} {self.format_plays(content_data['plays'])}\n{name}",
+                    image,
+                )
+            )
+            if i >= chart_total:
+                break
+        img = await self.bot.loop.run_in_executor(
+            None,
+            charts,
+            chart,
+            arguments["width"],
+            arguments["height"],
+            self.data_loc,
+        )
+        await msg.delete()
+        try:
+            await ctx.send(
+                f"`{ctx.guild} - {self.humanized_period(arguments['period'])} - {arguments['width']}x{arguments['height']} {chart_type} chart`",
                 file=img,
             )
         except discord.HTTPException:

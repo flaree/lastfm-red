@@ -11,7 +11,15 @@ async def command_fm(self, ctx: commands.Context):
     """
 
 
+@command_fm.group(name="server")
+async def command_fm_server(self, ctx: commands.Context):
+    """
+    LastFM Server Commands
+    """
+
+
 class FMMixin:
     """This is mostly here to easily mess with things..."""
 
     c = command_fm
+    d = command_fm_server
