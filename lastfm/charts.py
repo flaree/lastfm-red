@@ -139,6 +139,37 @@ class ChartMixin(MixinMeta):
                     arguments["height"],
                     self.data_loc,
                 )
+            elif arguments["method"] == "user.gettoptracks":
+                chart_type = "top tracks"
+                tracks = data["toptracks"]["track"]
+                scraped_images = await self.scrape_artists_for_chart(
+                    ctx, conf["lastfm_username"], arguments["period"], arguments["amount"]
+                )
+                if isinstance(tracks, dict):
+                    tracks = [tracks]
+                async for track in AsyncIter(tracks[: arguments["width"] * arguments["height"]]):
+                    name = track["name"]
+                    artist = track["artist"]["name"]
+                    plays = track["playcount"]
+                    if name in self.chart_data:
+                        chart_img = self.chart_data[name]
+                    else:
+                        chart_img = await self.get_img(await self.scrape_artist_image(artist, ctx))
+                        self.chart_data[name] = chart_img
+                    chart.append(
+                        (
+                            f"{plays} {self.format_plays(plays)}\n{name} - {artist}",
+                            chart_img,
+                        )
+                    )
+                img = await self.bot.loop.run_in_executor(
+                    None,
+                    charts,
+                    chart,
+                    arguments["width"],
+                    arguments["height"],
+                    self.data_loc,
+                )
         await msg.delete()
         u = conf["lastfm_username"]
         try:
@@ -297,7 +328,7 @@ def charts(data, w, h, loc):
         draw = ImageDraw.Draw(image)
         texts = item[0].split("\n")
         if len(texts[1]) > 30:
-            height = 227
+            height = 223
             text = f"{texts[0]}\n{texts[1][:30]}\n{texts[1][30:]}"
         else:
             height = 247
@@ -327,7 +358,7 @@ def track_chart(data, w, h, loc):
         image = Image.open(img).convert("RGBA")
         draw = ImageDraw.Draw(image)
         if len(item[0]) > 30:
-            height = 247
+            height = 243
             text = f"{item[0][:30]}\n{item[0][30:]}"
         else:
             height = 267
