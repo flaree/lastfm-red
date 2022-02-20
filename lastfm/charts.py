@@ -308,7 +308,7 @@ def charts(data, w, h, loc):
             fill=(255, 255, 255, 255),
             font=fnt,
             stroke_width=1,
-            stroke_fill=(255, 255, 255, 0),
+            stroke_fill=(0, 0, 0),
         )
         _file = BytesIO()
         image.save(_file, "png")
@@ -338,7 +338,7 @@ def track_chart(data, w, h, loc):
             fill=(255, 255, 255, 255),
             font=fnt,
             stroke_width=1,
-            stroke_fill=(255, 255, 255, 0),
+            stroke_fill=(0, 0, 0),
         )
         _file = BytesIO()
         image.save(_file, "png")
