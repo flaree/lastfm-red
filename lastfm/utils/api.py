@@ -1,12 +1,13 @@
 import contextlib
 
 import aiohttp
+import arrow
 
 from ..exceptions import *
 
 
 class APIMixin:
-    async def api_request(self, ctx, params):
+    async def api_request(self, ctx, params, supress_errors=False):
         """Get json data from the lastfm api"""
         url = "http://ws.audioscrobbler.com/2.0/"
         params["api_key"] = self.token
@@ -16,6 +17,8 @@ class APIMixin:
                 with contextlib.suppress(aiohttp.ContentTypeError):
                     content = await response.json()
                     if "error" in content or response.status != 200:
+                        if supress_errors:
+                            return
                         raise LastFMError(
                             f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
                         )
@@ -44,16 +47,19 @@ class APIMixin:
                     return await response.text()
                 return await response
 
-    async def get_current_track(self, ctx, username, ref=None):
+    async def get_current_track(self, ctx, username, ref=None, supress_errors=False):
         data = await self.api_request(
-            ctx,
-            {"method": "user.getrecenttracks", "user": username, "limit": 1},
+            ctx, {"method": "user.getrecenttracks", "user": username, "limit": 1}, supress_errors
         )
+        if not data:
+            return
         tracks = data["recenttracks"]["track"]
         if type(tracks) == list:
             if tracks:
                 track = tracks[0]
             else:
+                if supress_errors:
+                    return
                 raise NoScrobblesError("You haven't scrobbled anything yet.")
         else:
             track = tracks
@@ -72,6 +78,8 @@ class APIMixin:
                 return name, artist, album, image
 
         if not ref:
+            if supress_errors:
+                return
             raise NotScrobblingError("You aren't currently listening to anything.")
         else:
             return None, None, None, None, ref
@@ -86,6 +94,7 @@ class APIMixin:
                     "limit": limit,
                     "period": period,
                 },
+                True,
             )
             return data["topartists"]["artist"] if data is not None else None
         if request_type == "album":
@@ -97,6 +106,7 @@ class APIMixin:
                     "limit": limit,
                     "period": period,
                 },
+                True,
             )
             return data["topalbums"]["album"] if data is not None else None
         if request_type == "track":
@@ -108,5 +118,42 @@ class APIMixin:
                     "limit": limit,
                     "period": period,
                 },
+                True,
             )
             return data["toptracks"]["track"] if data is not None else None
+
+    async def get_lastplayed(self, ctx, username, ref):
+        data = await self.api_request(
+            ctx,
+            {"method": "user.getrecenttracks", "user": username, "limit": 1},
+            True,
+        )
+        song = None
+        if data:
+            tracks = data["recenttracks"]["track"]
+            if type(tracks) == list:
+                if tracks:
+                    track = tracks[0]
+                else:
+                    return None, ref
+            else:
+                track = tracks
+
+            nowplaying = False
+            if track.get("@attr") and track["@attr"].get("nowplaying"):
+                nowplaying = True
+
+            if track.get("date"):
+                date = tracks[0]["date"]["uts"]
+            else:
+                date = arrow.utcnow().int_timestamp
+
+            song = {
+                "name": track["name"],
+                "artist": track["artist"]["#text"],
+                "nowplaying": nowplaying,
+                "date": int(date),
+                "url": track["url"],
+            }
+
+        return song, ref

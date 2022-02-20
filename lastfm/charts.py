@@ -173,8 +173,8 @@ class ChartMixin(MixinMeta):
         guildusers = [x.id for x in ctx.guild.members]
         userslist = [user for user in userlist if user in guildusers]
         datatype = {
-            "user.gettopalbums": "albums",
-            "user.gettopartists": "artists",
+            "user.gettopalbums": "album",
+            "user.gettopartists": "artist",
             "user.gettoptracks": "track",
         }
         for user in userslist:
@@ -308,7 +308,7 @@ def charts(data, w, h, loc):
             fill=(255, 255, 255, 255),
             font=fnt,
             stroke_width=1,
-            stroke_fill=(255, 255, 255, 0),
+            stroke_fill=(0, 0, 0),
         )
         _file = BytesIO()
         image.save(_file, "png")
@@ -338,7 +338,7 @@ def track_chart(data, w, h, loc):
             fill=(255, 255, 255, 255),
             font=fnt,
             stroke_width=1,
-            stroke_fill=(255, 255, 255, 0),
+            stroke_fill=(0, 0, 0),
         )
         _file = BytesIO()
         image.save(_file, "png")

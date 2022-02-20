@@ -167,7 +167,7 @@ class TopMixin(MixinMeta):
                 await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="topartists", aliases=["ta"])
-    async def command_severtopartists(self, ctx):
+    async def command_servertopartists(self, ctx):
         """Most listened artists in the server."""
         tasks = []
         userlist = await self.config.all_users()
@@ -231,7 +231,7 @@ class TopMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="topalbums", aliases=["talb"])
-    async def command_severtopalbums(self, ctx):
+    async def command_servertopalbums(self, ctx):
         """Most listened albums in the server."""
         tasks = []
         userlist = await self.config.all_users()
@@ -266,7 +266,7 @@ class TopMixin(MixinMeta):
                     continue
                 total_users += 1
                 for user_data in user:
-                    name = f'{escape(user_data["artist"]["name"])} — *{escape(user_data["name"])}*'
+                    name = f'**{escape(user_data["artist"]["name"], formatting=True)}** — **{escape(user_data["name"], formatting=True)}**'
                     plays = int(user_data["playcount"])
                     total_plays += plays
                     if name in mapping:
@@ -278,9 +278,8 @@ class TopMixin(MixinMeta):
             for i, (album, playcount) in enumerate(
                 sorted(mapping.items(), key=lambda x: x[1], reverse=True), start=1
             ):
-                name = escape(album, formatting=True)
                 plays = playcount
-                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — **{name}**")
+                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — {album}")
 
             content = discord.Embed(
                 title=f"Most listened to albums in {ctx.guild}",
@@ -295,7 +294,7 @@ class TopMixin(MixinMeta):
             await ctx.send(embed=pages[0])
 
     @command_fm_server.command(name="toptracks", aliases=["tt"])
-    async def command_severtoptracks(self, ctx):
+    async def command_servertoptracks(self, ctx):
         """Most listened tracks in the server."""
         tasks = []
         userlist = await self.config.all_users()
@@ -330,7 +329,7 @@ class TopMixin(MixinMeta):
                     continue
                 total_users += 1
                 for user_data in user:
-                    name = f'{escape(user_data["artist"]["name"])} — *{escape(user_data["name"])}*'
+                    name = f'**{escape(user_data["artist"]["name"], formatting=True)}** — **{escape(user_data["name"], formatting=True)}**'
                     plays = int(user_data["playcount"])
                     total_plays += plays
                     if name in mapping:
@@ -342,9 +341,8 @@ class TopMixin(MixinMeta):
             for i, (track, playcount) in enumerate(
                 sorted(mapping.items(), key=lambda x: x[1], reverse=True), start=1
             ):
-                name = escape(track, formatting=True)
                 plays = playcount
-                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — **{name}**")
+                rows.append(f"`#{i:2}` **{plays}** {self.format_plays(plays)} — {track}")
 
             content = discord.Embed(
                 title=f"Most listened to tracks in {ctx.guild}",
