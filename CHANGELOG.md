@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.3 - fix when commands were referring to the wrong user when telling them to log in
 - v1.6.2 - fix `[p]fm chart` missing top tracks.
 - v1.6.1 - fix drop shadow not showing in some browsers on `[p]fm chart` and `[p]fm server chart`
 - v1.6.0 - add `[p]fm server` - move servernp to new sub command. addition of `[p]fm server chart`, `[p]fm server toptracks`, `[p]fm server topalbums` and `[p]fm server topartists`, `[p]fm server recent`. `[p]fm recent` embed has been updated.
