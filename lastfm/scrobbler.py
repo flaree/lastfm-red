@@ -133,7 +133,7 @@ class ScrobblerMixin(MixinMeta):
     async def listener_scrobbler_track_start(
         self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
     ):
-        if not (guild and track) or int(track.length) <= 30000 or not guild.me.voice:
+        if not (guild and track) or int(track.length) <= 30000 or not guild.me or not guild.me.voice:
             return
         track.length = int(track.length)
         self.started_time[guild.id] = (int(time.time()), track.uri)
@@ -165,7 +165,7 @@ class ScrobblerMixin(MixinMeta):
             uri = t[1]
         except KeyError:
             return
-        if not track or int(track.length) <= 30000 or not guild.me.voice or uri != track.uri:
+        if not track or int(track.length) <= 30000 or not guild.me or not guild.me.voice or uri != track.uri:
             return
         track.length = int(track.length)
         renamed_track = self.regex.sub("", track.title).strip()
