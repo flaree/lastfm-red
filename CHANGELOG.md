@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.5 - fix `[p]fm tag artist list` when no artist is provided
 - v1.6.4 - fix scrobbler error when guild.me == None
 - v1.6.3 - fix when commands were referring to the wrong user when telling them to log in
 - v1.6.2 - fix `[p]fm chart` missing top tracks.

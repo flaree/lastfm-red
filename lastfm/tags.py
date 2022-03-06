@@ -404,7 +404,7 @@ class TagsMixin(MixinMeta):
             )
 
         params = {
-            "artist": artist,
+            "artist": artistname,
             "method": "artist.gettags",
             "sk": conf["session_key"],
         }
