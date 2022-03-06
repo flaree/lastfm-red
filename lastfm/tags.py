@@ -411,7 +411,7 @@ class TagsMixin(MixinMeta):
         data = await self.api_post(params=params)
         await self.maybe_send_403_msg(ctx, data)
         if "tag" not in data[1]["tags"]:
-            return await ctx.send("This track has no tags.")
+            return await ctx.send("This artist has no tags.")
         artistname = data[1]["tags"]["@attr"]["artist"]
         embed = discord.Embed(
             title=f"Your tags for {artistname}",
