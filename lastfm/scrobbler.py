@@ -59,7 +59,7 @@ class ScrobblerMixin(MixinMeta):
             return await ctx.send("\N{WARNING SIGN} Incorrect format! use `track | artist`")
 
         result = await self.scrobble_song(
-            trackname, artistname, None, ctx.author, ctx.author, conf["session_key"], False
+            trackname, artistname, ctx.author, ctx.author, conf["session_key"], False
         )
         await self.maybe_send_403_msg(ctx, result)
         await ctx.tick()
@@ -79,7 +79,7 @@ class ScrobblerMixin(MixinMeta):
         else:
             await ctx.send("\N{CROSS MARK} VC scrobbling disabled.")
 
-    async def scrobble_song(self, track, artist, duration, user, requester, key, is_vc):
+    async def scrobble_song(self, track, artist, user, requester, key, is_vc):
         timestamp = arrow.utcnow().timestamp()
         chosen = 0
         if user == requester:
@@ -93,8 +93,6 @@ class ScrobblerMixin(MixinMeta):
             "timestamp": str(timestamp),
             "track": track,
         }
-        if duration:
-            params["duration"] = str(int(duration / 1000))
         data = await self.api_post(params=params)
         if data[0] == 200 and is_vc:
             scrobbles = await self.config.user(user).scrobbles()
@@ -104,10 +102,9 @@ class ScrobblerMixin(MixinMeta):
             await self.config.user(user).scrobbles.set(scrobbles)
         return data
 
-    async def set_nowplaying(self, track, artist, duration, user, key):
+    async def set_nowplaying(self, track, artist, user, key):
         params = {
             "artist": artist,
-            "duration": str(duration / 1000),
             "method": "track.updateNowPlaying",
             "sk": key,
             "timestamp": str(arrow.utcnow().timestamp()),
@@ -150,7 +147,7 @@ class ScrobblerMixin(MixinMeta):
             user_settings = await self.config.user(member).all()
             if user_settings["scrobble"] and user_settings["session_key"]:
                 await self.set_nowplaying(
-                    track_title, track_artist, track.length, member, user_settings["session_key"]
+                    track_title, track_artist, member, user_settings["session_key"]
                 )
 
     @commands.Cog.listener(name="on_red_audio_track_end")
@@ -184,7 +181,6 @@ class ScrobblerMixin(MixinMeta):
                     await self.scrobble_song(
                         track_title,
                         track_artist,
-                        track.length,
                         member,
                         requester,
                         user_settings["session_key"],
