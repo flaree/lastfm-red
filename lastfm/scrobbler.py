@@ -137,7 +137,7 @@ class ScrobblerMixin(MixinMeta):
         renamed_track = self.regex.sub("", track.title).strip()
         track_array = renamed_track.split("-")
         if len(track_array) == 1:
-            return
+            track_array = (track.author, track_array[0])
         track_artist = track_array[0]
         track_title = track_array[1]
         voice_members = guild.me.voice.channel.members
@@ -168,7 +168,7 @@ class ScrobblerMixin(MixinMeta):
         renamed_track = self.regex.sub("", track.title).strip()
         track_array = renamed_track.split("-")
         if len(track_array) == 1:
-            return
+            track_array = (track.author, track_array[0])
         track_artist = track_array[0]
         track_title = track_array[1]
         voice_members = guild.me.voice.channel.members
