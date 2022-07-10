@@ -24,7 +24,7 @@ class CompareMixin(MixinMeta):
         width = 0
         for line in text:
             if keep_going:
-                width += 6.5
+                width += 6.6
             if line == "\n":
                 lines += 16.5
                 keep_going = False
