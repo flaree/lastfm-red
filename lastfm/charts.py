@@ -92,7 +92,7 @@ class ChartMixin(MixinMeta):
                 async for i, artist in iterator.enumerate():
                     name = artist["name"]
                     plays = artist["playcount"]
-                    if scraped_images[i] in self.chart_data:
+                    if i < len(scraped_images) and scraped_images[i] in self.chart_data:
                         chart_img = self.chart_data[scraped_images[i]]
                     else:
                         chart_img = await self.get_img(scraped_images[i])
