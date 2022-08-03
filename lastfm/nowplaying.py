@@ -65,7 +65,7 @@ class NowPlayingMixin(MixinMeta):
                 },
             )
             if trackdata is not None:
-                loved = trackdata["track"]["userloved"] == "1"
+                loved = trackdata["track"].get("userloved", "0") == "1"
                 if loved:
                     content.title += " :heart:"
                 tags = []

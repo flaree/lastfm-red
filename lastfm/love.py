@@ -56,7 +56,7 @@ class LoveMixin(MixinMeta):
             },
         )
 
-        if data["track"]["userloved"] == "1":
+        if data["track"].get("userloved", "0") == "1":
             return await ctx.send(
                 f"This song is already loved. Did you mean to run `{ctx.clean_prefix}fm unlove`?"
             )
@@ -100,7 +100,7 @@ class LoveMixin(MixinMeta):
             },
         )
 
-        if data["track"]["userloved"] == "0":
+        if data["track"].get("userloved", "0") == "0":
             return await ctx.send(
                 f"This song is not loved. Did you mean to run `{ctx.clean_prefix}fm love`?"
             )

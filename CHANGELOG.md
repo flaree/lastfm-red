@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.10 - fix keyerror in `[p]fm np`
 - v1.6.9 - fix graph being cut off
 - v1.6.8 - fix spotify scrobbling in vc - this was only broken in some circumstances and should have been working fine in normal Reds
 - v1.6.7 - attempt to fix scrobbling when duration is inaccurate
