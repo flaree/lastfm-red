@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.12 - fix vc scrobbling (again)
 - v1.6.11 - fix keyerror in `[p]fm np`
 - v1.6.10 - fix an issue where scraped images may be less than amount requested in chart for artists.
 - v1.6.9 - fix graph being cut off
