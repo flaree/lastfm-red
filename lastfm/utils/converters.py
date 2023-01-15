@@ -114,7 +114,7 @@ class ConvertersMixin:
                     parsed["method"] = "user.gettoptracks"
 
             if parsed["period"] is None:
-                parsed["period"], _ = self.get_period(a)
+                parsed["period"], _ = "overall", "overall" # self.get_period(a)
 
         if parsed["period"] is None:
             parsed["period"] = "7day"

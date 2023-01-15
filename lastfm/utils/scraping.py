@@ -108,7 +108,7 @@ class ScrapingMixin:
         tasks = []
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
-            params = {"date_preset": period_format_map[period], "page": i}
+            params = {"page": i}
             task = asyncio.ensure_future(self.fetch(ctx, url, params, handling="text"))
             tasks.append(task)
 
