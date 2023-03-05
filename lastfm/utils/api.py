@@ -12,17 +12,16 @@ class APIMixin:
         url = "http://ws.audioscrobbler.com/2.0/"
         params["api_key"] = self.token
         params["format"] = "json"
-        async with ctx.typing():
-            async with self.session.get(url, params=params) as response:
-                with contextlib.suppress(aiohttp.ContentTypeError):
-                    content = await response.json()
-                    if "error" in content or response.status != 200:
-                        if supress_errors:
-                            return
-                        raise LastFMError(
-                            f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
-                        )
-                    return content
+        async with self.session.get(url, params=params) as response:
+            with contextlib.suppress(aiohttp.ContentTypeError):
+                content = await response.json()
+                if "error" in content or response.status != 200:
+                    if supress_errors:
+                        return
+                    raise LastFMError(
+                        f"Last.fm returned an error: {content.get('message')} | Error code {content.get('error')}"
+                    )
+                return content
 
     async def api_post(self, params):
         """Post data to the lastfm api"""
@@ -39,13 +38,13 @@ class APIMixin:
     async def fetch(self, ctx, url, params=None, handling="json"):
         if params is None:
             params = {}
-        async with ctx.typing():
-            async with self.session.get(url, params=params) as response:
-                if handling == "json":
-                    return await response.json()
-                if handling == "text":
-                    return await response.text()
-                return await response
+
+        async with self.session.get(url, params=params) as response:
+            if handling == "json":
+                return await response.json()
+            if handling == "text":
+                return await response.text()
+            return await response
 
     async def get_current_track(self, ctx, username, ref=None, supress_errors=False):
         data = await self.api_request(
