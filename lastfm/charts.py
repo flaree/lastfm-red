@@ -30,11 +30,15 @@ class ChartMixin(MixinMeta):
                 return img
 
     @command_fm.command(
-        name="chart", usage="[album | artist | recent] [timeframe] [width]x[height]"
+        name="chart", usage="[album | artist | recent | track] [timeframe] [width]x[height]"
     )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def command_chart(self, ctx, *args):
-        """Visual chart of your top albums, tracks or artists."""
+        """
+        Visual chart of your top albums, tracks or artists.
+
+        Defaults to top albums, weekly, 3x3.
+        """
         conf = await self.config.user(ctx.author).all()
         self.check_if_logged_in(conf)
         arguments = self.parse_chart_arguments(args)
@@ -85,9 +89,12 @@ class ChartMixin(MixinMeta):
             elif arguments["method"] == "user.gettopartists":
                 chart_type = "top artist"
                 artists = data["topartists"]["artist"]
-                scraped_images = await self.scrape_artists_for_chart(
-                    ctx, conf["lastfm_username"], arguments["period"], arguments["amount"]
-                )
+                if self.login_token:
+                    scraped_images = await self.scrape_artists_for_chart(
+                        ctx, conf["lastfm_username"], arguments["period"], arguments["amount"]
+                    )
+                else:
+                    scraped_images = [NO_IMAGE_PLACEHOLDER] * arguments["amount"]
                 iterator = AsyncIter(artists[: arguments["width"] * arguments["height"]])
                 async for i, artist in iterator.enumerate():
                     name = artist["name"]
