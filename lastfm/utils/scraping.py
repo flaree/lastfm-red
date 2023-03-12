@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 class ScrapingMixin:
     async def artist_top(self, ctx, period, artistname, datatype, name):
         """Scrape either top tracks or top albums from lastfm library page."""
+        if not self.login_token:
+            return None, []
         url = (
             f"https://last.fm/user/{name}/library/music/{artistname}/"
             f"+{datatype}?date_preset={self.period_http_format(period)}"
