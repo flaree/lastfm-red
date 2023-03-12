@@ -5,5 +5,5 @@ __red_end_user_data_statement__ = "This cog stores a user's last.fm username, th
 
 async def setup(bot):
     cog = LastFM(bot)
-    bot.add_cog(cog)
+    await bot.add_cog(cog)
     await cog.initialize()

@@ -7,7 +7,10 @@ from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm
+from .fmmixin import FMMixin
+
+command_fm = FMMixin.command_fm
+command_fm_server = FMMixin.command_fm_server
 from .utils.tokencheck import tokencheck_plus_secret
 
 

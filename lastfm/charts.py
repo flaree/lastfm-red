@@ -9,12 +9,15 @@ from redbot.core.utils.chat_formatting import escape
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm, command_fm_server
+from .fmmixin import FMMixin
 
 NO_IMAGE_PLACEHOLDER = (
     "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
 )
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+command_fm = FMMixin.command_fm
+command_fm_server = FMMixin.command_fm_server
 
 
 class ChartMixin(MixinMeta):

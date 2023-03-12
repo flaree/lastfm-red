@@ -6,7 +6,10 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm, command_fm_server
+from .fmmixin import FMMixin
+
+command_fm = FMMixin.command_fm
+command_fm_server = FMMixin.command_fm_server
 
 
 class RecentMixin(MixinMeta):
