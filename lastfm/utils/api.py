@@ -38,8 +38,9 @@ class APIMixin:
     async def fetch(self, ctx, url, params=None, handling="json"):
         if params is None:
             params = {}
+        cookies = {'sessionid': self.login_token}
+        async with self.session.get(url, params=params, cookies=cookies) as response:
 
-        async with self.session.get(url, params=params) as response:
             if handling == "json":
                 return await response.json()
             if handling == "text":

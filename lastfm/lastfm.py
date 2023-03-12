@@ -48,7 +48,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.6.14"
+    __version__ = "1.6.15"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -66,6 +66,7 @@ class LastFM(
         )
         self.token = None
         self.wc = None
+        self.login_token = None
         self.wordcloud_create()
         self.data_loc = bundled_data_path(self)
         self.chart_data = {}
@@ -88,6 +89,7 @@ class LastFM(
         token = await self.bot.get_shared_api_tokens("lastfm")
         self.token = token.get("appid")
         self.secret = token.get("secret")
+        self.login_token = token.get("logintoken")
         await self.migrate_config()
 
     async def migrate_config(self):
@@ -109,6 +111,7 @@ class LastFM(
         if service_name == "lastfm":
             self.token = api_tokens.get("appid")
             self.secret = api_tokens.get("secret")
+            self.login_token = api_tokens.get("logintoken")
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -124,7 +127,13 @@ class LastFM(
             "2. Fill in the application. Once completed do not exit the page. - "
             "Copy all information on the page and save it.\n"
             f"3. Enter the api key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`\n"
-            f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`"
+            f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`\n"
+            f"--------\n"
+            f"Some commands that use webscraping may require a login token.\n"
+            f"1. Visit [LastFM](https://www.last.fm) site and login.\n"
+            f"2. Open your browser's developer tools and go to the Storage tab.\n"
+            f"3. Find the cookie named `sessionid` and copy the value.\n"
+            f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm logintoken <token_here>`\n"
         )
         await ctx.maybe_send_embed(message)
 
