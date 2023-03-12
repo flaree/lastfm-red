@@ -81,7 +81,7 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
             name=f"{ctx.author.name} — {artist['formatted_name']} "
             + (f"{self.humanized_period(period)} " if period != "overall" else "")
             + "Overview",
-            icon_url=ctx.author.avatar_url,
+            icon_url=ctx.author.display_avatar.url,
             url=f"https://last.fm/user/{fmname}/library/music/{urllib.parse.quote_plus(artistname)}?date_preset={self.period_http_format(period)}",
         )
         content.set_footer(text=f"{', '.join(tags)}")
@@ -204,7 +204,7 @@ class UtilsMixin(APIMixin, ConvertersMixin, ScrapingMixin):
         content = discord.Embed(color=await self.bot.get_embed_color(ctx.channel))
         content.set_author(
             name=f"{ctx.author.display_name} | Last {timeframe.title()}",
-            icon_url=ctx.author.avatar_url,
+            icon_url=ctx.author.display_avatar.url,
         )
         content.description = "\n".join(rows)
         content.add_field(

@@ -225,7 +225,7 @@ class LastFM(
             name=f"{ctx.author.display_name} — "
             + (f"{self.humanized_period(period)} " if period != "overall" else "")
             + f"Top {datatype} by {artist['formatted_name']}",
-            icon_url=ctx.author.avatar_url,
+            icon_url=ctx.author.display_avatar.url,
             url=f"https://last.fm/user/{username}/library/music/{artistname}/"
             f"+{datatype}?date_preset={self.period_http_format(period)}",
         )

@@ -51,7 +51,7 @@ class RecentMixin(MixinMeta):
             content.set_footer(text=f"Total scrobbles: {user_attr['total']}")
             content.set_author(
                 name=f"{user_attr['user']} — Recent tracks",
-                icon_url=ctx.message.author.avatar_url,
+                icon_url=ctx.message.author.display_avatar.url,
             )
 
             pages = await self.create_pages(content, rows)
