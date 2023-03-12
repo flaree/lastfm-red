@@ -1,5 +1,6 @@
 # changelog
 
+- v1.6.15 - Add login token support as lastfm checks for user auth on some pages. Re-enables timeframes.
 - v1.6.14 - refactor typing to avoid ratelimits
 - v1.6.13 - temporarily disable all chart timeframes except for all time
 - v1.6.12 - fix vc scrobbling (again)
