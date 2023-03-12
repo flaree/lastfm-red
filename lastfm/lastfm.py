@@ -128,12 +128,12 @@ class LastFM(
             "Copy all information on the page and save it.\n"
             f"3. Enter the api key via `{ctx.clean_prefix}set api lastfm appid <appid_here>`\n"
             f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm secret <secret_here>`\n"
-            f"--------."
+            f"--------\n"
             f"Some commands that use webscraping may require a login token.\n"
             f"1. Visit [LastFM](https://www.last.fm) site and login.\n"
             f"2. Open your browser's developer tools and go to the Storage tab.\n"
             f"3. Find the cookie named `sessionid` and copy the value.\n"
-             f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm logintoken <token_here>`\n"
+            f"4. Enter the api secret via `{ctx.clean_prefix}set api lastfm logintoken <token_here>`\n"
         )
         await ctx.maybe_send_embed(message)
 
