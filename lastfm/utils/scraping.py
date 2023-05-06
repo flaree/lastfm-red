@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 class ScrapingMixin:
     async def artist_top(self, ctx, period, artistname, datatype, name):
         """Scrape either top tracks or top albums from lastfm library page."""
+        if not self.login_token:
+            return None, []
         url = (
             f"https://last.fm/user/{name}/library/music/{artistname}/"
             f"+{datatype}?date_preset={self.period_http_format(period)}"
@@ -108,7 +110,7 @@ class ScrapingMixin:
         tasks = []
         url = f"https://www.last.fm/user/{username}/library/artists"
         for i in range(1, math.ceil(amount / 50) + 1):
-            params = {"page": i}
+            params = {"date_preset": period_format_map[period], "page": i}
             task = asyncio.ensure_future(self.fetch(ctx, url, params, handling="text"))
             tasks.append(task)
 
