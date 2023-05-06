@@ -1,6 +1,5 @@
 # changelog
 
-<<<<<<< HEAD
 - v1.7.0 - Add support for dpy2, refactor MixinIn to fix breakes.
 - v1.6.16 - slightly handle login token errors
 - v1.6.15 - Add login token support as lastfm checks for user auth on some pages. Re-enables timeframes.
