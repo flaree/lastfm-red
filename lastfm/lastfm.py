@@ -13,7 +13,7 @@ from .abc import *
 from .charts import ChartMixin
 from .compare import CompareMixin
 from .exceptions import *
-from .fmmixin import FMMixin, command_fm
+from .fmmixin import FMMixin
 from .love import LoveMixin
 from .nowplaying import NowPlayingMixin
 from .profile import ProfileMixin
@@ -25,6 +25,8 @@ from .utils.base import UtilsMixin
 from .utils.tokencheck import *
 from .whoknows import WhoKnowsMixin
 from .wordcloud import WordCloudMixin
+
+command_fm = FMMixin.command_fm
 
 
 class LastFM(
@@ -48,7 +50,7 @@ class LastFM(
     Interacts with the last.fm API.
     """
 
-    __version__ = "1.6.16"
+    __version__ = "1.7.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, bot, *args, **kwargs):
@@ -232,7 +234,7 @@ class LastFM(
             name=f"{ctx.author.display_name} — "
             + (f"{self.humanized_period(period)} " if period != "overall" else "")
             + f"Top {datatype} by {artist['formatted_name']}",
-            icon_url=ctx.author.avatar_url,
+            icon_url=ctx.author.display_avatar.url,
             url=f"https://last.fm/user/{username}/library/music/{artistname}/"
             f"+{datatype}?date_preset={self.period_http_format(period)}",
         )

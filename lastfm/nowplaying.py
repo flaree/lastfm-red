@@ -7,7 +7,10 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm, command_fm_server
+from .fmmixin import FMMixin
+
+command_fm = FMMixin.command_fm
+command_fm_server = FMMixin.command_fm_server
 
 
 class NowPlayingMixin(MixinMeta):
@@ -98,7 +101,7 @@ class NowPlayingMixin(MixinMeta):
 
             content.set_author(
                 name=f"{user_attr['user']} {state}",
-                icon_url=user.avatar_url,
+                icon_url=user.display_avatar.url,
             )
             if state == "— Most recent track":
                 msg = "You aren't currently listening to anything, here is the most recent song found."

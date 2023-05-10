@@ -6,7 +6,10 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .abc import MixinMeta
 from .exceptions import *
-from .fmmixin import command_fm, command_fm_server
+from .fmmixin import FMMixin
+
+command_fm = FMMixin.command_fm
+command_fm_server = FMMixin.command_fm_server
 
 
 class TopMixin(MixinMeta):
@@ -47,7 +50,7 @@ class TopMixin(MixinMeta):
             content.set_footer(text=f"Total unique artists: {user_attr['total']}")
             content.set_author(
                 name=f"{user_attr['user']} — {self.humanized_period(arguments['period']).capitalize()} top artists",
-                icon_url=ctx.message.author.avatar_url,
+                icon_url=ctx.message.author.display_avatar.url,
             )
 
         pages = await self.create_pages(content, rows)
@@ -93,7 +96,7 @@ class TopMixin(MixinMeta):
         content.set_footer(text=f"Total unique albums: {user_attr['total']}")
         content.set_author(
             name=f"{user_attr['user']} — {self.humanized_period(arguments['period']).capitalize()} top albums",
-            icon_url=ctx.message.author.avatar_url,
+            icon_url=ctx.message.author.display_avatar.url,
         )
 
         pages = await self.create_pages(content, rows)
@@ -157,7 +160,7 @@ class TopMixin(MixinMeta):
             content.set_footer(text=f"Total unique tracks: {user_attr['total']}")
             content.set_author(
                 name=f"{user_attr['user']} — {self.humanized_period(arguments['period']).capitalize()} top tracks",
-                icon_url=ctx.message.author.avatar_url,
+                icon_url=ctx.message.author.display_avatar.url,
             )
 
             pages = await self.create_pages(content, rows)
