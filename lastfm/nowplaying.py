@@ -114,45 +114,46 @@ class NowPlayingMixin(MixinMeta):
         """What people on this server are listening to at the moment."""
         listeners = []
         tasks = []
-        userlist = await self.config.all_users()
-        guildusers = [x.id for x in ctx.guild.members]
-        userslist = [user for user in userlist if user in guildusers]
-        for user in userslist:
-            lastfm_username = userlist[user]["lastfm_username"]
-            if lastfm_username is None:
-                continue
-            member = ctx.guild.get_member(user)
-            if member is None:
-                continue
+        async with ctx.typing():
+            userlist = await self.config.all_users()
+            guildusers = [x.id for x in ctx.guild.members]
+            userslist = [user for user in userlist if user in guildusers]
+            for user in userslist:
+                lastfm_username = userlist[user]["lastfm_username"]
+                if lastfm_username is None:
+                    continue
+                member = ctx.guild.get_member(user)
+                if member is None:
+                    continue
 
-            tasks.append(self.get_current_track(ctx, lastfm_username, member, True))
+                tasks.append(self.get_current_track(ctx, lastfm_username, member, True))
 
-        total_linked = len(tasks)
-        if tasks:
-            data = await asyncio.gather(*tasks)
-            data = [i for i in data if i]
-            for name, artist, album, image, ref in data:
-                if name is not None:
-                    listeners.append((name, artist, ref))
-        else:
-            return await ctx.send("Nobody on this server has connected their last.fm account yet!")
+            total_linked = len(tasks)
+            if tasks:
+                data = await asyncio.gather(*tasks)
+                data = [i for i in data if i]
+                for name, artist, album, image, ref in data:
+                    if name is not None:
+                        listeners.append((name, artist, ref))
+            else:
+                return await ctx.send("Nobody on this server has connected their last.fm account yet!")
 
-        if not listeners:
-            return await ctx.send("Nobody on this server is listening to anything at the moment!")
+            if not listeners:
+                return await ctx.send("Nobody on this server is listening to anything at the moment!")
 
-        total_listening = len(listeners)
-        rows = []
-        for name, artist, member in listeners:
-            rows.append(f"{member.mention} **{artist}** — ***{name}***")
+            total_listening = len(listeners)
+            rows = []
+            for name, artist, member in listeners:
+                rows.append(f"{member.mention} **{artist}** — ***{name}***")
 
-        content = discord.Embed(color=await ctx.embed_color())
-        content.set_author(
-            name=f"What is {ctx.guild.name} listening to?",
-            icon_url=ctx.guild.icon_url_as(size=64),
-        )
-        content.set_footer(text=f"{total_listening} / {total_linked} Members")
-        pages = await self.create_pages(content, rows)
-        if len(pages) > 1:
-            await menu(ctx, pages, DEFAULT_CONTROLS)
-        else:
-            await ctx.send(embed=pages[0])
+            content = discord.Embed(color=await ctx.embed_color())
+            content.set_author(
+                name=f"What is {ctx.guild.name} listening to?",
+                icon_url=ctx.guild.icon.url if ctx.guild.icon else None,
+            )
+            content.set_footer(text=f"{total_listening} / {total_linked} Members")
+            pages = await self.create_pages(content, rows)
+            if len(pages) > 1:
+                await menu(ctx, pages, DEFAULT_CONTROLS)
+            else:
+                await ctx.send(embed=pages[0])
