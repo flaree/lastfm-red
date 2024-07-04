@@ -108,7 +108,7 @@ class RecentMixin(MixinMeta):
         content = discord.Embed(color=await ctx.embed_color())
         content.set_author(
             name=f"What has {ctx.guild.name} been listening to?",
-            icon_url=ctx.guild.icon_url,
+            icon_url = ctx.guild.icon.url if ctx.guild.icon else None,
         )
         content.set_footer(
             text=f"{total_listening} / {total_linked} Members are listening to music right now"
