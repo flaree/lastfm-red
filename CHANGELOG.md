@@ -1,5 +1,6 @@
 # changelog
 
+- v1.7.2 - fix dpy2 issue
 - v1.7.1 - fix `[p]fm server nowplaying` guild icon
 - v1.7.0 - Add support for dpy2, refactor MixinIn to fix breakes.
 - v1.6.16 - slightly handle login token errors
